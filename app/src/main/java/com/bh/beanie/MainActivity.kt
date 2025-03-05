@@ -1,10 +1,13 @@
 package com.bh.beanie
 
+import android.content.Intent
 import android.os.Bundle
+import android.widget.Button
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import com.bh.beanie.admin.AdminDashboardActivity
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -15,6 +18,11 @@ class MainActivity : AppCompatActivity() {
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
+        }
+        val btnTest = findViewById<Button>(R.id.btnTest)
+        btnTest.setOnClickListener {
+            val intent = Intent (this, AdminDashboardActivity::class.java)
+            startActivity(intent)
         }
     }
 }
