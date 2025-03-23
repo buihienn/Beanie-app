@@ -13,6 +13,30 @@
         android:theme="@style/Theme.Beanie"
         tools:targetApi="31">
         <activity
+            android:name=".admin.RevenueStatistics"
+            android:exported="false" />
+        <activity
+            android:name=".customer.NotificationActivity"
+            android:exported="false" />
+        <activity
+            android:name=".customer.OrderReviewActivity"
+            android:exported="false" />
+        <activity
+            android:name=".customer.EditPasswordActivity"
+            android:exported="false" />
+        <activity
+            android:name=".customer.EditPhoneActivity"
+            android:exported="false" />
+        <activity
+            android:name=".customer.EditProfileActivity"
+            android:exported="false" />
+        <activity
+            android:name=".customer.SignupActivity"
+            android:exported="false" />
+        <activity
+            android:name=".customer.LoginActivity"
+            android:exported="false" />
+        <activity
             android:name=".admin.AdminDashboardActivity"
             android:exported="false" />
         <activity
