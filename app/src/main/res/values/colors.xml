@@ -2,6 +2,7 @@
 <resources>
     <!--Colors-->
     <color name="white">#FFFFFF</color>
+    <color name="black">#111111</color>
     <color name="tertiary">#EAE5AB</color>
     <color name="primary_green">#4CAF50</color>
     <color name="primary_dark_green">#388E3C</color>
