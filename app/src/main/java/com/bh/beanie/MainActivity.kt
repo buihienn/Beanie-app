@@ -8,6 +8,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.bh.beanie.admin.AdminDashboardActivity
+import com.bh.beanie.user.UserMainActivity
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -22,6 +23,12 @@ class MainActivity : AppCompatActivity() {
         val btnTest = findViewById<Button>(R.id.btnTest)
         btnTest.setOnClickListener {
             val intent = Intent (this, AdminDashboardActivity::class.java)
+            startActivity(intent)
+        }
+
+        val btnTestUser = findViewById<Button>(R.id.btnTestUser)
+        btnTestUser.setOnClickListener {
+            val intent = Intent (this, UserMainActivity::class.java)
             startActivity(intent)
         }
     }
