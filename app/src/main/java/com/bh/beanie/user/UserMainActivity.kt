@@ -29,6 +29,9 @@ class UserMainActivity : AppCompatActivity() {
             // Chọn fragment tương ứng với item được nhấn
             val selectedFragment = when (item.itemId) {
                 R.id.navigation_home -> HomeFragment.newInstance("hihi", "haha")
+                R.id.navigation_order -> OrderFragment.newInstance("hihi", "haha")
+                R.id.navigation_reward -> RewardFragment.newInstance("hihi", "haha")
+                R.id.navigation_voucher -> VoucherFragment.newInstance("hihi", "haha")
                 R.id.navigation_other -> OtherFragment.newInstance("hihi", "haha")
                 // Thêm các fragment khác
                 else -> null
