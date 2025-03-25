@@ -21,7 +21,7 @@
     <!-- Icon Button Sizes -->
     <dimen name="icon_button_size">48dp</dimen>
     <dimen name="icon_button_size_small">32dp</dimen>
-    <dimen name="icon_button_size_smaller">32dp</dimen>
+    <dimen name="icon_button_size_smaller">24dp</dimen>
 
     <!-- Card Sizes -->
     <dimen name="card_height_small">100dp</dimen>

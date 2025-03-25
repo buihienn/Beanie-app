@@ -268,8 +268,8 @@
                             android:id="@+id/fortuneWheelImage"
                             android:layout_width="@dimen/icon_size_xlarge"
                             android:layout_height="@dimen/icon_size_xlarge"
-                            android:contentDescription="@string/fortune_wheel_image"
-                            android:src="@drawable/ic_fortune_wheel"
+                            android:src="@drawable/ic_home_black"
+                            android:contentDescription="Fortune wheel image"
                             app:layout_constraintBottom_toTopOf="@+id/fortuneWheelTitle"
                             app:layout_constraintEnd_toEndOf="parent"
                             app:layout_constraintStart_toStartOf="parent"
@@ -313,7 +313,7 @@
                             style="@style/Widget.App.Button.IconOnly.Circular.Small"
                             android:layout_width="@dimen/icon_button_size_smaller"
                             android:layout_height="@dimen/icon_button_size_smaller"
-                            android:contentDescription="@string/daily_checkin_info"
+                            android:contentDescription="Daily checkin info"
                             app:icon="@drawable/ic_home_black"
                             app:iconSize="@dimen/icon_size_small"
                             app:layout_constraintEnd_toEndOf="parent"
@@ -323,8 +323,8 @@
                             android:id="@+id/dailyCheckinImage"
                             android:layout_width="@dimen/icon_size_xlarge"
                             android:layout_height="@dimen/icon_size_xlarge"
-                            android:contentDescription="@string/daily_checkin_image"
-                            android:src="@drawable/ic_calendar_check"
+                            android:contentDescription="Daily checkin image"
+                            android:src="@drawable/ic_home_black"
                             app:layout_constraintBottom_toTopOf="@+id/dailyCheckinTitle"
                             app:layout_constraintEnd_toEndOf="parent"
                             app:layout_constraintStart_toStartOf="parent"
@@ -393,16 +393,16 @@
                 android:textSize="@dimen/text_size_large"
                 android:textStyle="bold" />
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/popularItemsRecyclerView"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:clipToPadding="false"
-                android:orientation="horizontal"
-                android:paddingHorizontal="@dimen/spacing_medium"
-                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-                tools:itemCount="4"
-                tools:listitem="@layout/item_popular_product" />
+<!--            <androidx.recyclerview.widget.RecyclerView-->
+<!--                android:id="@+id/popularItemsRecyclerView"-->
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:clipToPadding="false"-->
+<!--                android:orientation="horizontal"-->
+<!--                android:paddingHorizontal="@dimen/spacing_medium"-->
+<!--                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"-->
+<!--                tools:itemCount="4"-->
+<!--                tools:listitem="@layout/item_popular_product" />-->
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
