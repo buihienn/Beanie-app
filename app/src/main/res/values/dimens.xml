@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Spacing -->
+    <dimen name="spacing_small">8dp</dimen>
+    <dimen name="spacing_medium">16dp</dimen>
+    <dimen name="spacing_large">24dp</dimen>
+    <dimen name="spacing_xlarge">32dp</dimen>
+
+    <!-- Text Sizes -->
+    <dimen name="text_size_small">14sp</dimen>
+    <dimen name="text_size_medium">16sp</dimen>
+    <dimen name="text_size_large">20sp</dimen>
+    <dimen name="text_size_xlarge">24sp</dimen>
+
+    <!-- Icon Sizes -->
+    <dimen name="icon_size_small">16dp</dimen>
+    <dimen name="icon_size_medium">24dp</dimen>
+    <dimen name="icon_size_large">40dp</dimen>
+    <dimen name="icon_size_xlarge">64dp</dimen>
+
+    <!-- Icon Button Sizes -->
+    <dimen name="icon_button_size">48dp</dimen>
+    <dimen name="icon_button_size_small">32dp</dimen>
+    <dimen name="icon_button_size_smaller">24dp</dimen>
+
+    <!-- Card Sizes -->
+    <dimen name="card_height_small">100dp</dimen>
+    <dimen name="card_height_medium">130dp</dimen>
+    <dimen name="card_height_large">144dp</dimen>
+
+    <!-- Card Properties -->
+    <dimen name="card_corner_radius">16dp</dimen>
+    <dimen name="card_corner_radius_small">12dp</dimen>
+    <dimen name="card_elevation">4dp</dimen>
+
+    <!-- Button Properties -->
+    <dimen name="button_height">56dp</dimen>
+    <dimen name="button_corner_radius">24dp</dimen>
+
+    <!-- Other -->
+    <dimen name="barcode_height">40dp</dimen>
+</resources>
