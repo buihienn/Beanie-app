@@ -1,4 +1,4 @@
-package com.bh.beanie.admin
+package com.bh.beanie.admin.fragments
 
 import android.graphics.Color
 import android.os.Bundle
