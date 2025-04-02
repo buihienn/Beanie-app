@@ -1,3 +1,21 @@
 <resources>
-    <string name="app_name">Beanie</string>
+    <string name="app_name">Beanies Loyalty</string>
+
+    <!-- Title bottom navigation -->
+    <string name="title_home">Home</string>
+    <string name="title_order">Order</string>
+    <string name="title_reward">Reward</string>
+    <string name="title_voucher">Voucher</string>
+    <string name="title_other">Other</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="gold_membership">Membership</string>
+    <string name="redeem">Redeem</string>
+    <string name="beanies">Beanies</string>
+    <string name="welcome_message">Beanie say hi to you!</string>
+    <string name="delivery">Delivery</string>
+    <string name="take_away">Take away</string>
+    <string name="fortune_wheel">Fortune wheel</string>
+    <string name="daily_check_in">Daily check-in</string>
+    <string name="best_seller">Best seller</string>
 </resources>

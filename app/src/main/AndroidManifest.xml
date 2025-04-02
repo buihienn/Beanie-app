@@ -40,6 +40,9 @@
             android:name=".customer.LoginActivity"
             android:exported="false" />
         <activity
+            android:name=".user.UserMainActivity"
+            android:exported="false" />
+        <activity
             android:name=".admin.AdminDashboardActivity"
             android:exported="false" />
         <activity
