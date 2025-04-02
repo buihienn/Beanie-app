@@ -7,7 +7,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import com.bh.beanie.admin.AdminDashboardActivity
+import com.bh.beanie.admin.AdminMainActivity
 import com.bh.beanie.user.UserMainActivity
 
 class MainActivity : AppCompatActivity() {
@@ -22,7 +22,7 @@ class MainActivity : AppCompatActivity() {
         }
         val btnTest = findViewById<Button>(R.id.btnTest)
         btnTest.setOnClickListener {
-            val intent = Intent (this, AdminDashboardActivity::class.java)
+            val intent = Intent (this, AdminMainActivity::class.java)
             startActivity(intent)
         }
 

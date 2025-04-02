@@ -1,7 +1,8 @@
-package com.bh.beanie.admin
+package com.bh.beanie.admin.fragments
 
 import android.graphics.Color
 import android.os.Bundle
+import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -15,6 +16,8 @@ import com.github.mikephil.charting.data.BarDataSet
 import com.github.mikephil.charting.data.BarEntry
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
 import com.github.mikephil.charting.utils.ColorTemplate
+import java.util.Calendar
+import java.util.Locale
 
 class AdminDashboardActivity : AppCompatActivity() {
 
@@ -43,6 +46,7 @@ class AdminDashboardActivity : AppCompatActivity() {
         )
 
         updateChart(barChart, entries)
+        updateDate(this)
 
     }
 
@@ -71,7 +75,20 @@ class AdminDashboardActivity : AppCompatActivity() {
 
         barChart.description.isEnabled = false
         barChart.legend.isEnabled = false
-
+        barChart.xAxis.setDrawGridLines(false)
+        barChart.axisLeft.setDrawGridLines(false)
+        barChart.axisRight.setDrawGridLines(false)
         barChart.invalidate()
+    }
+
+    fun updateDate(context: AppCompatActivity) {
+        val calendar = Calendar.getInstance()
+        val day = calendar.get(Calendar.DAY_OF_MONTH)
+        val month = calendar.getDisplayName(Calendar.MONTH, Calendar.LONG, Locale.getDefault())
+        val year = calendar.get(Calendar.YEAR)
+
+        context.findViewById<TextView>(R.id.textDay).text = day.toString()
+        context.findViewById<TextView>(R.id.textMonth).text = month
+        context.findViewById<TextView>(R.id.textYear).text = year.toString()
     }
 }
