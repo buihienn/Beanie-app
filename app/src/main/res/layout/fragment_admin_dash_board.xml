@@ -1,21 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".admin.fragments.AdminDashboardActivity">
+    tools:context=".admin.fragments.AdminDashBoardFragment">
+
+    <FrameLayout
+        android:id="@+id/headerDashboard"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:layout_editor_absoluteX="1dp">
+
+        <TextView
+            android:id="@+id/textUserName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Hi, Hien !"
+            android:textSize="26sp" />
+
+        <ImageButton
+            android:id="@+id/imageButton3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:backgroundTint="#00FFFFFF"
+            android:contentDescription="notification icon"
+            app:srcCompat="@drawable/notification_bell" />
+
+    </FrameLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="0dp"
+        android:layout_height="match_parent"
         android:orientation="vertical"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintHeight_default="spread"
-        app:layout_constraintTop_toBottomOf="@+id/headerDashboard"
-        app:layout_constraintVertical_bias="0.5"
-        tools:layout_editor_absoluteX="18dp">
+        android:layout_marginTop="50dp"
+        >
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -132,29 +153,4 @@
     </LinearLayout>
 
 
-    <FrameLayout
-        android:id="@+id/headerDashboard"
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:layout_editor_absoluteX="1dp">
-
-        <TextView
-            android:id="@+id/textUserName"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Hi, Hien !"
-            android:textSize="26sp" />
-
-        <ImageButton
-            android:id="@+id/imageButton3"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="end"
-            android:backgroundTint="#00FFFFFF"
-            android:contentDescription="notification icon"
-            app:srcCompat="@drawable/notification_bell" />
-
-    </FrameLayout>
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+</FrameLayout>
