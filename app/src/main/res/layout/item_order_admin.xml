@@ -1,13 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
-
     <ImageView
-        android:id="@+id/imageView4"
+        android:id="@+id/imgOrder"
         android:layout_width="100dp"
         android:layout_height="130dp"
         app:layout_constraintStart_toStartOf="parent"
@@ -15,54 +13,68 @@
         app:srcCompat="@drawable/ic_launcher_background" />
 
     <TextView
-        android:id="@+id/nameVoucher"
+        android:id="@+id/idOrder"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="20dp"
         android:layout_marginTop="10dp"
+        android:text="#0123"
         android:textStyle="bold"
-        android:text="#V000"
-        app:layout_constraintStart_toEndOf="@+id/imageView4"
+        app:layout_constraintStart_toEndOf="@+id/imgOrder"
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
-        android:id="@+id/contentVoucher"
+        android:id="@+id/contentOrder"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
-        android:text="Giam gia 50%"
-        app:layout_constraintStart_toStartOf="@+id/nameVoucher"
-        app:layout_constraintTop_toBottomOf="@+id/nameVoucher" />
+        android:text="Nguyen Van A"
+        app:layout_constraintStart_toStartOf="@+id/idOrder"
+        app:layout_constraintTop_toBottomOf="@+id/idOrder" />
 
     <TextView
         android:id="@+id/textTime"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
-        android:text="Han: 10/02/2025"
-        app:layout_constraintStart_toStartOf="@+id/contentVoucher"
-        app:layout_constraintTop_toBottomOf="@+id/contentVoucher" />
+        android:text="10/02/2025 - 09:30"
+        app:layout_constraintStart_toStartOf="@+id/contentOrder"
+        app:layout_constraintTop_toBottomOf="@+id/contentOrder" />
 
     <TextView
-        android:id="@+id/stateVoucher"
+        android:id="@+id/stateOrder"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
-        android:text="Con hieu luc"
+        android:text="Done"
+        android:textColor="@color/primary_green"
         app:layout_constraintStart_toStartOf="@+id/textTime"
         app:layout_constraintTop_toBottomOf="@+id/textTime" />
 
     <Button
         android:id="@+id/btnConfirm"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="10dp"
-        android:backgroundTint="#7EADAAAA"
+        android:layout_width="100dp"
+        android:layout_height="48dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginEnd="16dp"
+        android:backgroundTint="#359FF2"
         android:checkable="false"
-        android:text="Edit"
+        android:text="Confirm"
         app:cornerRadius="0dp"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.5" />
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/btnCancel"
+        android:layout_width="100dp"
+        android:layout_height="48dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginEnd="16dp"
+        android:backgroundTint="#7EF80707"
+        android:checkable="false"
+        android:text="Cancel"
+        app:cornerRadius="0dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/btnConfirm" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>
