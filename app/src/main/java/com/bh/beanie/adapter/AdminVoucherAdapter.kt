@@ -12,12 +12,11 @@ import com.bh.beanie.model.AdminVoucher
 class AdminVoucherAdapter(private val voucherList: List<AdminVoucher>) :
     RecyclerView.Adapter<AdminVoucherAdapter.VoucherViewHolder>() {
 
-    // ViewHolder sẽ giữ các tham chiếu đến các phần tử trong layout item_voucher
     class VoucherViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val imageView: ImageView = itemView.findViewById(R.id.imageView4)
         val nameVoucher: TextView = itemView.findViewById(R.id.nameVoucher)
         val contentVoucher: TextView = itemView.findViewById(R.id.contentVoucher)
-        val expiryDateText: TextView = itemView.findViewById(R.id.textView4)
+        val expiryDateText: TextView = itemView.findViewById(R.id.textTime)
         val stateVoucher: TextView = itemView.findViewById(R.id.stateVoucher)
 
         fun bind(voucher: AdminVoucher) {
