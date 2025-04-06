@@ -8,6 +8,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.bh.beanie.R
 import com.bh.beanie.admin.fragments.AdminDashBoardFragment
+import com.bh.beanie.admin.fragments.AdminInventoryFragment
 import com.bh.beanie.admin.fragments.AdminOrderFragment
 import com.bh.beanie.admin.fragments.AdminVoucherFragment
 import com.google.android.material.bottomnavigation.BottomNavigationView
@@ -39,6 +40,8 @@ class AdminMainActivity : AppCompatActivity() {
                 R.id.dashboardAdmin -> AdminDashBoardFragment()
                 R.id.voucherAdmin -> AdminVoucherFragment()
                 R.id.orderAdmin -> AdminOrderFragment()
+                R.id.inventoryAdmin -> AdminInventoryFragment()
+
                 // Thêm Fragment khác nếu cần
                 else -> null
             }
