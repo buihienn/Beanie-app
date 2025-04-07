@@ -47,7 +47,6 @@
 
     <style name="Widget.App.Button.Icon" parent="Widget.Material3.Button">
         <item name="android:textColor">@color/text_primary</item>
-        <item name="backgroundTint">@color/primary</item>
         <item name="cornerRadius">@dimen/button_corner_radius</item>
         <item name="iconGravity">textStart</item>
         <item name="iconTint">@color/text_primary</item>

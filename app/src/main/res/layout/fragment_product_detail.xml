@@ -40,7 +40,7 @@
                     android:layout_gravity="end|top"
                     android:layout_margin="16dp"
                     android:background="@drawable/circle_button_bg"
-                    android:src="@drawable/ic_home"
+                    android:src="@drawable/ic_cancel"
                     android:contentDescription="Close" />
             </FrameLayout>
 
@@ -383,34 +383,38 @@
     </androidx.core.widget.NestedScrollView>
 
     <!-- Phần cố định ở dưới cùng -->
-    <LinearLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/bottomBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="16dp"
-        android:gravity="center_vertical"
+        android:layout_gravity="bottom"
         android:background="@color/background_light"
         android:elevation="8dp"
-        android:layout_gravity="bottom">
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:padding="16dp">
 
         <!-- Quantity selector -->
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:gravity="center"
             android:orientation="horizontal"
-            android:gravity="center">
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.5">
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/decreaseButton"
                 style="@style/Widget.App.Button.IconOnly.Circular.Small"
-                android:backgroundTint="@color/tertiary_container"
                 android:layout_width="@dimen/icon_button_size"
                 android:layout_height="@dimen/icon_button_size"
+                android:backgroundTint="@color/tertiary_container"
                 android:contentDescription="Decrease product"
                 app:icon="@drawable/ic_minus"
-                app:iconTint="@color/tertiary"
-                app:iconSize="@dimen/icon_size_medium" />
+                app:iconSize="@dimen/icon_size_medium"
+                app:iconTint="@color/tertiary" />
 
             <TextView
                 android:id="@+id/quantityTextView"
@@ -432,18 +436,19 @@
                 app:icon="@drawable/ic_plus"
                 app:iconSize="@dimen/icon_size_medium"
                 app:iconTint="@color/tertiary" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/addToCartBtn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:backgroundTint="@color/primary"
+                android:text="Add to cart"
+                android:textColor="@color/white"
+                android:layout_marginStart="16dp"
+                android:contentDescription="Increase product" />
+
+
         </LinearLayout>
 
-        <!-- Add to cart button -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/addToCartButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="300dp"
-            android:paddingVertical="12dp"
-            android:text="Add • 55.000đ"
-            android:textColor="@color/white"
-            android:textSize="16sp"
-            android:textStyle="bold" />
-    </LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -251,15 +251,24 @@
 
         <!-- Cart Icon -->
         <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/cartBtn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="10dp">
+            android:layout_marginStart="10dp"
+            android:clickable="true"
+            android:focusable="true">
 
             <ImageView
                 android:id="@+id/cartIcon"
                 android:layout_width="60dp"
                 android:layout_height="60dp"
                 android:src="@drawable/ic_cart"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.5"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintVertical_bias="0.5"
                 app:tint="@color/tertiary_container" />
 
             <TextView
