@@ -5,7 +5,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background_light">
+    android:background="@color/background">
 
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
@@ -43,7 +43,7 @@
                     style="@style/Widget.App.Button.IconOnly.Circular"
                     android:layout_width="@dimen/icon_button_size"
                     android:layout_height="@dimen/icon_button_size"
-                    app:icon="@drawable/ic_home_black"
+                    app:icon="@drawable/ic_home"
                     app:iconGravity="textStart"
                     app:iconSize="@dimen/icon_size_medium"
                     app:layout_constraintEnd_toEndOf="parent"
@@ -60,7 +60,7 @@
                         android:id="@+id/ivUserAvatar"
                         android:layout_width="48dp"
                         android:layout_height="48dp"
-                        android:src="@drawable/ic_home_black"
+                        android:src="@drawable/ic_home"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent"/>
 
@@ -120,7 +120,7 @@
                                 android:layout_width="@dimen/icon_size_medium"
                                 android:layout_height="@dimen/icon_size_medium"
                                 android:layout_marginStart="@dimen/spacing_small"
-                                android:src="@drawable/ic_home_black"
+                                android:src="@drawable/ic_home"
                                 app:tint="@color/text_primary"/>
 
                             <com.google.android.material.button.MaterialButton
@@ -129,7 +129,7 @@
                                 android:layout_width="@dimen/icon_button_size_smaller"
                                 android:layout_height="@dimen/icon_button_size_smaller"
                                 android:contentDescription="@string/redeem"
-                                app:icon="@drawable/ic_home_black"
+                                app:icon="@drawable/ic_home"
                                 app:iconSize="@dimen/icon_size_small"/>
 
                         </LinearLayout>
@@ -163,7 +163,7 @@
                     <ImageView
                         android:layout_width="@dimen/icon_size_medium"
                         android:layout_height="@dimen/icon_size_medium"
-                        android:src="@drawable/ic_home_black"
+                        android:src="@drawable/ic_home"
                         android:layout_marginBottom="@dimen/spacing_small"/>
 
                     <TextView
@@ -204,7 +204,7 @@
                     <ImageView
                         android:layout_width="@dimen/icon_size_medium"
                         android:layout_height="@dimen/icon_size_medium"
-                        android:src="@drawable/ic_home_black"
+                        android:src="@drawable/ic_home"
                         android:layout_marginBottom="@dimen/spacing_small"/>
 
                     <TextView
@@ -236,7 +236,7 @@
                     <ImageView
                         android:layout_width="@dimen/icon_size_medium"
                         android:layout_height="@dimen/icon_size_medium"
-                        android:src="@drawable/ic_home_black"
+                        android:src="@drawable/ic_home"
                         android:layout_marginBottom="@dimen/spacing_small"/>
 
                     <TextView
@@ -277,7 +277,7 @@
                     <ImageView
                         android:layout_width="@dimen/icon_size_medium"
                         android:layout_height="@dimen/icon_size_medium"
-                        android:src="@drawable/ic_home_black"
+                        android:src="@drawable/ic_home"
                         android:layout_marginBottom="@dimen/spacing_small"/>
 
                     <TextView

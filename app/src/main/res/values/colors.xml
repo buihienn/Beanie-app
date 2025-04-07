@@ -3,11 +3,19 @@
     <!--Colors-->
     <color name="white">#FFFFFF</color>
     <color name="black">#111111</color>
-    <color name="tertiary">#EAE5AB</color>
-    <color name="primary_green">#4CAF50</color>
-    <color name="primary_dark_green">#388E3C</color>
-    <color name="accent_brown">#795548</color>
-    <color name="background_light">#F5F5F5</color>
+    <color name="tertiary">#636032</color>
+    <color name="tertiary_container">#EAE5AB</color>
+    <color name="primary">#765848</color>
+    <color name="background">#FCF9F1</color>
+    <color name="seed">#C3713F</color>
+    <color name="divider">#1f000000</color>
+
+    <color name="green">#087F00</color>
+
+    <color name="primary_green">#C19A6B</color>
+    <color name="primary_dark_green">#FF9800</color>
+    <color name="accent_brown">#8B5A2B</color>
+    <color name="background_light">#FCF9F1</color>
 
     <!--Text color-->
     <color name="text_primary">#333333</color>

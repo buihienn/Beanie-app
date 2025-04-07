@@ -5,7 +5,11 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.bh.beanie.R
+import com.bh.beanie.user.adapter.ProductAdapter
+import com.bh.beanie.user.model.Product
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -22,6 +26,10 @@ class HomeFragment : Fragment() {
     private var param1: String? = null
     private var param2: String? = null
 
+    private lateinit var popularItemsRecyclerView: RecyclerView
+    private lateinit var productAdapter: ProductAdapter
+    private val productList = mutableListOf<Product>()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         arguments?.let {
@@ -36,6 +44,33 @@ class HomeFragment : Fragment() {
     ): View? {
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_home, container, false)
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        // Khởi tạo RecyclerView
+        popularItemsRecyclerView = view.findViewById(R.id.popularItemsRecyclerView)
+        popularItemsRecyclerView.layoutManager =
+            LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+
+        // Tạo dữ liệu mẫu
+        createSampleData()
+
+        // Khởi tạo adapter và gắn vào RecyclerView
+        productAdapter = ProductAdapter(requireContext(), productList)
+        popularItemsRecyclerView.adapter = productAdapter
+    }
+
+    private fun createSampleData() {
+        // Thêm sản phẩm mẫu từ hình ảnh
+        productList.apply {
+            add(Product(1, "Coffee extra milk", 35000.0, R.drawable.matcha))
+            add(Product(2, "Olong Blao Milktea", 35000.0, R.drawable.matcha))
+            add(Product(3, "Matcha latte", 35000.0, R.drawable.matcha))
+            add(Product(4, "Café latte", 35000.0, R.drawable.matcha))
+            add(Product(5, "Café latte", 35000.0, R.drawable.matcha))
+        }
     }
 
     companion object {

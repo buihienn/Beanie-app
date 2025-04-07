@@ -1,26 +1,24 @@
 package com.bh.beanie.user.fragment
 
+import android.content.Intent
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import com.bh.beanie.R
+import androidx.fragment.app.Fragment
+import com.bh.beanie.databinding.FragmentOrderBinding
+import com.bh.beanie.user.UserOrderActivity
+import com.bh.beanie.user.model.Address
 
-// TODO: Rename parameter arguments, choose names that match
-// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
 private const val ARG_PARAM1 = "param1"
 private const val ARG_PARAM2 = "param2"
 
-/**
- * A simple [Fragment] subclass.
- * Use the [OrderFragment.newInstance] factory method to
- * create an instance of this fragment.
- */
 class OrderFragment : Fragment() {
-    // TODO: Rename and change types of parameters
     private var param1: String? = null
     private var param2: String? = null
+
+    private var _binding: FragmentOrderBinding? = null
+    private val binding get() = _binding!!
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -33,9 +31,42 @@ class OrderFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_order, container, false)
+    ): View {
+        _binding = FragmentOrderBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        // Thiết lập sự kiện cho card Delivery
+        binding.deliveryCard.setOnClickListener {
+            showAddressSelectionAndOpenCategories()
+        }
+
+        // Thiết lập sự kiện cho card Take Away
+        binding.takeAwayCard.setOnClickListener {
+            // Mở trực tiếp Categories Activity
+            startActivity(Intent(requireContext(), UserOrderActivity::class.java))
+        }
+    }
+
+    private fun showAddressSelectionAndOpenCategories() {
+        // Tạo và hiển thị bottom sheet chọn địa chỉ
+        val selectAddressFragment = SelectAddressFragment.newInstance()
+
+        // Thiết lập listener để biết khi nào địa chỉ được chọn
+        selectAddressFragment.setAddressSelectedListener { address ->
+            // Mở Categories Activity
+            startActivity(Intent(requireContext(), UserOrderActivity::class.java))
+        }
+
+        selectAddressFragment.show(childFragmentManager, "addressSelector")
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 
     companion object {

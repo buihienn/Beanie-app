@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background_light"
+    android:background="@color/background"
     tools:context=".user.fragment.HomeFragment">
 
     <androidx.core.widget.NestedScrollView
@@ -34,7 +34,7 @@
                     android:layout_height="@dimen/icon_size_large"
                     android:layout_margin="@dimen/spacing_small"
                     android:contentDescription="Logo"
-                    android:src="@drawable/ic_home_black"
+                    android:src="@drawable/ic_home"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
@@ -59,7 +59,7 @@
                     android:layout_height="@dimen/icon_button_size"
                     android:layout_marginEnd="@dimen/spacing_medium"
                     android:contentDescription="Notifications"
-                    app:icon="@drawable/ic_home_black"
+                    app:icon="@drawable/ic_home"
                     app:iconGravity="textStart"
                     app:iconSize="@dimen/icon_size_medium"
                     app:iconTint="@color/white"
@@ -107,10 +107,12 @@
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/membershipInfoButton"
                             style="@style/Widget.App.Button.IconOnly.Circular.Small"
+                            android:backgroundTint="@color/white"
+                            app:iconTint="@color/seed"
                             android:layout_width="@dimen/icon_button_size_smaller"
                             android:layout_height="@dimen/icon_button_size_smaller"
                             android:contentDescription="Membership"
-                            app:icon="@drawable/ic_home_black"
+                            app:icon="@drawable/ic_home"
                             app:iconSize="@dimen/icon_size_small"
                             app:layout_constraintBottom_toBottomOf="@+id/tvMembershipTitle"
                             app:layout_constraintEnd_toEndOf="parent"
@@ -211,7 +213,7 @@
                                     android:layout_height="@dimen/icon_size_medium"
                                     android:layout_marginStart="@dimen/spacing_small"
                                     android:contentDescription="Beanie icon"
-                                    android:src="@drawable/ic_home_black"
+                                    android:src="@drawable/ic_home"
                                     app:tint="@color/white" />
                             </LinearLayout>
 
@@ -256,10 +258,12 @@
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/fortuneWheelInfoButton"
                             style="@style/Widget.App.Button.IconOnly.Circular.Small"
+                            android:backgroundTint="@color/seed"
                             android:layout_width="@dimen/icon_button_size_smaller"
                             android:layout_height="@dimen/icon_button_size_smaller"
                             android:contentDescription="Fortune wheel"
-                            app:icon="@drawable/ic_home_black"
+                            app:icon="@drawable/ic_home"
+                            app:iconTint="@color/white"
                             app:iconSize="@dimen/icon_size_small"
                             app:layout_constraintEnd_toEndOf="parent"
                             app:layout_constraintTop_toTopOf="parent" />
@@ -268,7 +272,7 @@
                             android:id="@+id/fortuneWheelImage"
                             android:layout_width="@dimen/icon_size_xlarge"
                             android:layout_height="@dimen/icon_size_xlarge"
-                            android:src="@drawable/ic_home_black"
+                            android:src="@drawable/ic_home"
                             android:contentDescription="Fortune wheel image"
                             app:layout_constraintBottom_toTopOf="@+id/fortuneWheelTitle"
                             app:layout_constraintEnd_toEndOf="parent"
@@ -311,10 +315,12 @@
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/dailyCheckinInfoButton"
                             style="@style/Widget.App.Button.IconOnly.Circular.Small"
+                            android:backgroundTint="@color/seed"
                             android:layout_width="@dimen/icon_button_size_smaller"
                             android:layout_height="@dimen/icon_button_size_smaller"
                             android:contentDescription="Daily checkin info"
-                            app:icon="@drawable/ic_home_black"
+                            app:icon="@drawable/ic_home"
+                            app:iconTint="@color/white"
                             app:iconSize="@dimen/icon_size_small"
                             app:layout_constraintEnd_toEndOf="parent"
                             app:layout_constraintTop_toTopOf="parent" />
@@ -324,7 +330,7 @@
                             android:layout_width="@dimen/icon_size_xlarge"
                             android:layout_height="@dimen/icon_size_xlarge"
                             android:contentDescription="Daily checkin image"
-                            android:src="@drawable/ic_home_black"
+                            android:src="@drawable/ic_home"
                             app:layout_constraintBottom_toTopOf="@+id/dailyCheckinTitle"
                             app:layout_constraintEnd_toEndOf="parent"
                             app:layout_constraintStart_toStartOf="parent"
@@ -361,7 +367,8 @@
                     android:layout_height="@dimen/button_height"
                     android:layout_marginEnd="@dimen/spacing_small"
                     android:text="@string/delivery"
-                    app:icon="@drawable/ic_home_black"
+                    android:textColor="@color/white"
+                    app:icon="@drawable/ic_home"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toStartOf="@+id/takeawayButton"
                     app:layout_constraintStart_toStartOf="parent"
@@ -375,7 +382,8 @@
                     android:layout_height="@dimen/button_height"
                     android:layout_marginStart="@dimen/spacing_small"
                     android:text="@string/take_away"
-                    app:icon="@drawable/ic_home_black"
+                    android:textColor="@color/white"
+                    app:icon="@drawable/ic_home"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toEndOf="@+id/deliveryButton"
@@ -383,26 +391,37 @@
             </androidx.constraintlayout.widget.ConstraintLayout>
 
             <!-- Menu Categories (example section) -->
-            <TextView
+            <!-- Best Seller Section -->
+            <LinearLayout
+                android:id="@+id/bestSellerSection"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginHorizontal="@dimen/spacing_medium"
-                android:layout_marginBottom="@dimen/spacing_small"
-                android:text="@string/best_seller"
-                android:textColor="@color/text_primary"
-                android:textSize="@dimen/text_size_large"
-                android:textStyle="bold" />
+                android:orientation="vertical">
 
-<!--            <androidx.recyclerview.widget.RecyclerView-->
-<!--                android:id="@+id/popularItemsRecyclerView"-->
-<!--                android:layout_width="match_parent"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                android:clipToPadding="false"-->
-<!--                android:orientation="horizontal"-->
-<!--                android:paddingHorizontal="@dimen/spacing_medium"-->
-<!--                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"-->
-<!--                tools:itemCount="4"-->
-<!--                tools:listitem="@layout/item_popular_product" />-->
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="@dimen/spacing_medium"
+                    android:layout_marginBottom="@dimen/spacing_small"
+                    android:drawableStart="@drawable/ic_home"
+                    android:drawablePadding="@dimen/spacing_small"
+                    android:text="Best seller"
+                    android:textColor="@color/text_primary"
+                    android:textSize="@dimen/text_size_large"
+                    android:textStyle="bold" />
+
+                <!-- Horizontal scrollable RecyclerView for product cards -->
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/popularItemsRecyclerView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:clipToPadding="false"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="@dimen/spacing_medium"
+                    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                    tools:itemCount="5"
+                    tools:listitem="@layout/product_item_card" />
+            </LinearLayout>
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
