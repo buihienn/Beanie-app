@@ -4,11 +4,13 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import com.bh.beanie.R
 import com.bh.beanie.databinding.FragmentProductDetailBinding
 import com.bh.beanie.user.model.Product
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 
 class ProductDetailFragment : BottomSheetDialogFragment() {
@@ -50,16 +52,36 @@ class ProductDetailFragment : BottomSheetDialogFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // Cấu hình Bottom Sheet để hiển thị toàn màn hình
+        setupFullscreenBottomSheet()
+
         // Khởi tạo giá trị
         product?.let {
             selectedSizePrice = 45000.0 // Giá size S
             toppingPrice = 10000.0 // Giá cho White pearl
         }
 
-        updateTotalPrice()
-
         setupUI()
         setupListeners()
+    }
+
+    private fun setupFullscreenBottomSheet() {
+        // Lấy bottom sheet từ dialog
+        dialog?.findViewById<FrameLayout>(com.google.android.material.R.id.design_bottom_sheet)?.let { bottomSheet ->
+            // Thiết lập chiều cao bằng với chiều cao màn hình
+            bottomSheet.layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
+
+            // Lấy behavior và cấu hình
+            val behavior = BottomSheetBehavior.from(bottomSheet)
+            behavior.apply {
+                // Thiết lập peekHeight bằng chiều cao màn hình để hiển thị toàn màn hình
+                peekHeight = resources.displayMetrics.heightPixels
+                // Mở rộng bottom sheet
+                state = BottomSheetBehavior.STATE_EXPANDED
+                // Cho phép kéo
+                isDraggable = true
+            }
+        }
     }
 
     private fun setupUI() {
@@ -137,7 +159,7 @@ class ProductDetailFragment : BottomSheetDialogFragment() {
         }
 
         // Xử lý sự kiện thêm vào giỏ hàng
-        binding.addToCartButton.setOnClickListener {
+        binding.addToCartBtn.setOnClickListener {
             addToCart()
         }
     }
@@ -191,7 +213,7 @@ class ProductDetailFragment : BottomSheetDialogFragment() {
 
     private fun updateTotalPrice() {
         totalPrice = (selectedSizePrice + toppingPrice) * quantity
-        binding.addToCartButton.text = "Add • ${String.format("%.0fđ", totalPrice)}"
+        binding.addToCartBtn.text = "Add • ${String.format("%.0fđ", totalPrice)}"
     }
 
     private fun addToCart() {

@@ -1,11 +1,15 @@
 package com.bh.beanie.user
 
 import android.os.Bundle
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.recyclerview.widget.GridLayoutManager
 import com.bh.beanie.R
 import com.bh.beanie.databinding.ActivityUserOrderBinding
 import com.bh.beanie.user.adapter.ProductAdapter
+import com.bh.beanie.user.fragment.OrderConfirmationBottomSheet
+import com.bh.beanie.user.fragment.SelectAddressFragment
 import com.bh.beanie.user.model.Product
 
 class UserOrderActivity : AppCompatActivity() {
@@ -27,9 +31,19 @@ class UserOrderActivity : AppCompatActivity() {
         binding = ActivityUserOrderBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        binding.cartBtn.setOnClickListener {
+            try {
+                val orderConfirmationSheet = OrderConfirmationBottomSheet.newInstance()
+                orderConfirmationSheet.show(supportFragmentManager, OrderConfirmationBottomSheet.TAG)
+            } catch (e: Exception) {
+                e.printStackTrace()
+                Toast.makeText(this, "Lỗi: ${e.message}", Toast.LENGTH_LONG).show()
+            }
+        }
+
         // Thiết lập toolbar
         setSupportActionBar(binding.toolbar)
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.setDisplayHomeAsUpEnabled(false)
         supportActionBar?.title = "Categories"
 
         // Lấy địa chỉ đã chọn từ SharedPreferences
@@ -91,10 +105,5 @@ class UserOrderActivity : AppCompatActivity() {
             layoutManager = GridLayoutManager(this@UserOrderActivity, 2)
             adapter = coffeeAdapter
         }
-    }
-
-    override fun onSupportNavigateUp(): Boolean {
-        onBackPressed()
-        return true
     }
 }
