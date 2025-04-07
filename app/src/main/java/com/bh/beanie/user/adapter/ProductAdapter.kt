@@ -12,6 +12,8 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bh.beanie.R
 import com.bh.beanie.user.model.Product
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.FragmentActivity
+import com.bh.beanie.user.fragment.ProductDetailFragment
 
 class ProductAdapter(private val context: Context, private val productList: List<Product>) :
     RecyclerView.Adapter<ProductAdapter.ProductViewHolder>() {
@@ -39,6 +41,12 @@ class ProductAdapter(private val context: Context, private val productList: List
                 context,
                 if (product.isFavorite) R.drawable.ic_favorite else R.drawable.ic_unfavorite
             )
+        }
+
+        holder.itemView.setOnClickListener {
+            val productDetailFragment = ProductDetailFragment.newInstance(product)
+            val fragmentManager = (context as FragmentActivity).supportFragmentManager
+            productDetailFragment.show(fragmentManager, "productDetail")
         }
     }
 
