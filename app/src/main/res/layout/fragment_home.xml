@@ -34,7 +34,7 @@
                     android:layout_height="@dimen/icon_size_large"
                     android:layout_margin="@dimen/spacing_small"
                     android:contentDescription="Logo"
-                    android:src="@drawable/ic_home"
+                    android:src="@drawable/logo"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
@@ -59,10 +59,11 @@
                     android:layout_height="@dimen/icon_button_size"
                     android:layout_marginEnd="@dimen/spacing_medium"
                     android:contentDescription="Notifications"
-                    app:icon="@drawable/ic_home"
+                    android:backgroundTint="@color/tertiary_container"
+                    app:icon="@drawable/ic_noiification"
                     app:iconGravity="textStart"
                     app:iconSize="@dimen/icon_size_medium"
-                    app:iconTint="@color/white"
+                    app:iconTint="@color/black"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
@@ -112,7 +113,7 @@
                             android:layout_width="@dimen/icon_button_size_smaller"
                             android:layout_height="@dimen/icon_button_size_smaller"
                             android:contentDescription="Membership"
-                            app:icon="@drawable/ic_home"
+                            app:icon="@drawable/ic_navigation"
                             app:iconSize="@dimen/icon_size_small"
                             app:layout_constraintBottom_toBottomOf="@+id/tvMembershipTitle"
                             app:layout_constraintEnd_toEndOf="parent"
@@ -138,19 +139,11 @@
 
                                 <ImageView
                                     android:id="@+id/ivBarcode"
-                                    android:layout_width="195dp"
-                                    android:layout_height="31dp"
+                                    android:layout_width="117dp"
+                                    android:layout_height="52dp"
                                     android:contentDescription="Membership barcode"
-                                    android:scaleType="fitCenter" />
-
-                                <TextView
-                                    android:id="@+id/tvBarcodeNumber"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginTop="@dimen/spacing_small"
-                                    android:text="1 7 2 3 6 4 8 5"
-                                    android:textColor="@color/text_primary"
-                                    android:textSize="@dimen/text_size_small" />
+                                    android:scaleType="fitCenter"
+                                    android:src="@drawable/barcode" />
                             </LinearLayout>
                         </com.google.android.material.card.MaterialCardView>
                     </androidx.constraintlayout.widget.ConstraintLayout>
@@ -213,8 +206,7 @@
                                     android:layout_height="@dimen/icon_size_medium"
                                     android:layout_marginStart="@dimen/spacing_small"
                                     android:contentDescription="Beanie icon"
-                                    android:src="@drawable/ic_home"
-                                    app:tint="@color/white" />
+                                    android:src="@drawable/ic_point"/>
                             </LinearLayout>
 
                             <com.google.android.material.button.MaterialButton
@@ -262,7 +254,7 @@
                             android:layout_width="@dimen/icon_button_size_smaller"
                             android:layout_height="@dimen/icon_button_size_smaller"
                             android:contentDescription="Fortune wheel"
-                            app:icon="@drawable/ic_home"
+                            app:icon="@drawable/ic_navigation"
                             app:iconTint="@color/white"
                             app:iconSize="@dimen/icon_size_small"
                             app:layout_constraintEnd_toEndOf="parent"
@@ -272,7 +264,7 @@
                             android:id="@+id/fortuneWheelImage"
                             android:layout_width="@dimen/icon_size_xlarge"
                             android:layout_height="@dimen/icon_size_xlarge"
-                            android:src="@drawable/ic_home"
+                            android:src="@drawable/wheel"
                             android:contentDescription="Fortune wheel image"
                             app:layout_constraintBottom_toTopOf="@+id/fortuneWheelTitle"
                             app:layout_constraintEnd_toEndOf="parent"
@@ -319,22 +311,33 @@
                             android:layout_width="@dimen/icon_button_size_smaller"
                             android:layout_height="@dimen/icon_button_size_smaller"
                             android:contentDescription="Daily checkin info"
-                            app:icon="@drawable/ic_home"
+                            app:icon="@drawable/ic_navigation"
                             app:iconTint="@color/white"
                             app:iconSize="@dimen/icon_size_small"
                             app:layout_constraintEnd_toEndOf="parent"
                             app:layout_constraintTop_toTopOf="parent" />
 
-                        <ImageView
-                            android:id="@+id/dailyCheckinImage"
-                            android:layout_width="@dimen/icon_size_xlarge"
-                            android:layout_height="@dimen/icon_size_xlarge"
-                            android:contentDescription="Daily checkin image"
-                            android:src="@drawable/ic_home"
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
                             app:layout_constraintBottom_toTopOf="@+id/dailyCheckinTitle"
                             app:layout_constraintEnd_toEndOf="parent"
                             app:layout_constraintStart_toStartOf="parent"
-                            app:layout_constraintTop_toTopOf="parent" />
+                            app:layout_constraintTop_toTopOf="parent">
+                            <ImageView
+                                android:id="@+id/dailyCheckinImage"
+                                android:layout_width="@dimen/icon_size_xlarge"
+                                android:layout_height="@dimen/icon_size_xlarge"
+                                android:contentDescription="Daily checkin image"
+                                android:src="@drawable/fire" />
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textSize="50sp"
+                                android:textColor="#FF9800"
+                                android:text="32"/>
+
+                        </LinearLayout>
 
                         <TextView
                             android:id="@+id/dailyCheckinTitle"
@@ -363,16 +366,18 @@
                     android:id="@+id/deliveryButton"
                     style="@style/Widget.App.Button.Icon"
                     android:layout_width="174dp"
-                    android:paddingHorizontal="32dp"
                     android:layout_height="@dimen/button_height"
                     android:layout_marginEnd="@dimen/spacing_small"
+                    android:paddingHorizontal="32dp"
                     android:text="@string/delivery"
                     android:textColor="@color/white"
-                    app:icon="@drawable/ic_home"
+                    app:icon="@drawable/ic_delivery"
+                    app:iconTint="@color/white"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toStartOf="@+id/takeawayButton"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintVertical_bias="0.0" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/takeawayButton"
@@ -383,7 +388,8 @@
                     android:layout_marginStart="@dimen/spacing_small"
                     android:text="@string/take_away"
                     android:textColor="@color/white"
-                    app:icon="@drawable/ic_home"
+                    app:icon="@drawable/ic_take_away"
+                    app:iconTint="@color/white"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toEndOf="@+id/deliveryButton"
@@ -403,7 +409,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginHorizontal="@dimen/spacing_medium"
                     android:layout_marginBottom="@dimen/spacing_small"
-                    android:drawableStart="@drawable/ic_home"
+                    android:drawableStart="@drawable/ic_star"
                     android:drawablePadding="@dimen/spacing_small"
                     android:text="Best seller"
                     android:textColor="@color/text_primary"

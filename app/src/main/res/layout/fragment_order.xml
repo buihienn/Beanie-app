@@ -85,7 +85,7 @@
                     android:layout_height="32dp"
                     android:layout_gravity="center"
                     android:contentDescription="Delivery icon"
-                    android:src="@drawable/ic_home"
+                    android:src="@drawable/ic_delivery"
                     app:tint="@color/primary" />
             </FrameLayout>
         </androidx.constraintlayout.widget.ConstraintLayout>
@@ -157,7 +157,7 @@
                     android:layout_height="32dp"
                     android:layout_gravity="center"
                     android:contentDescription="Take away icon"
-                    android:src="@drawable/ic_home"
+                    android:src="@drawable/ic_take_away"
                     app:tint="@color/primary" />
             </FrameLayout>
         </androidx.constraintlayout.widget.ConstraintLayout>
