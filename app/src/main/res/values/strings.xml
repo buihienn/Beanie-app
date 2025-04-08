@@ -18,5 +18,7 @@
     <string name="fortune_wheel">Fortune wheel</string>
     <string name="daily_check_in">Daily check-in</string>
     <string name="best_seller">Best seller</string>
+    <string name="back_button_desc">Back</string> <!-- Mô tả nút quay lại -->
+    <string name="profile_picture_desc">User profile picture</string> <!-- Mô tả ảnh đại diện -->
     <string name="confirm">Confirm</string>
 </resources>

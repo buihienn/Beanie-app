@@ -10,20 +10,17 @@ import android.widget.Button
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bh.beanie.R
+import com.bh.beanie.customer.LoginActivity
 import com.bh.beanie.user.UserOrderActivity
 import com.bh.beanie.user.adapter.ProductAdapter
 import com.bh.beanie.user.model.Product
+import com.google.android.material.button.MaterialButton
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
 private const val ARG_PARAM1 = "param1"
 private const val ARG_PARAM2 = "param2"
 
-/**
- * A simple [Fragment] subclass.
- * Use the [HomeFragment.newInstance] factory method to
- * create an instance of this fragment.
- */
 class HomeFragment : Fragment() {
     // TODO: Rename and change types of parameters
     private var param1: String? = null
@@ -51,6 +48,19 @@ class HomeFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        // Sử dụng kiểu cụ thể là MaterialButton vì nó được định nghĩa trong XML
+        val notificationButton = view.findViewById<MaterialButton>(R.id.notificationButton)
+
+        // Kiểm tra xem button có được tìm thấy không (đề phòng lỗi)
+        if (notificationButton != null) {
+            notificationButton.setOnClickListener {
+                // Tạo Intent để mở LoginActivity
+                val intent = Intent(requireContext(), LoginActivity::class.java)
+                // Khởi chạy Activity
+                startActivity(intent)
+            }
+        }
 
         // Khởi tạo RecyclerView
         popularItemsRecyclerView = view.findViewById(R.id.popularItemsRecyclerView)
