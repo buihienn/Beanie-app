@@ -50,12 +50,14 @@
             android:layout_width="match_parent"
             android:layout_height="175dp"
             app:cardCornerRadius="16dp"
+            android:layout_marginHorizontal="16dp"
             app:cardElevation="0dp">
+
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="175dp"
-                android:background="#DDDAA021"
-                >
+                android:paddingHorizontal="16dp"
+                android:background="#DDDAA021">
 
                 <ImageView
                     android:id="@+id/imageView"
@@ -80,40 +82,16 @@
                     app:layout_constraintStart_toEndOf="@+id/imageView"
                     app:layout_constraintTop_toTopOf="@+id/imageView" />
 
-                <TextView
-                    android:id="@+id/textScore"
+
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cardBeanies"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:layout_marginEnd="5dp"
-                    android:text="700"
-                    android:textColor="#FFFFFF"
-                    android:textSize="22sp"
-                    app:layout_constraintEnd_toStartOf="@+id/imageView3"
-                    app:layout_constraintTop_toTopOf="@+id/button" />
-
-                <Button
-                    android:id="@+id/button"
-                    android:layout_width="110dp"
-                    android:layout_height="48dp"
-                    android:layout_marginTop="35dp"
-                    android:layout_marginEnd="5dp"
-                    android:backgroundTint="#DDFFDA72"
-                    android:text="Redeem"
-                    android:textStyle="bold"
-                    android:textSize="16sp"
+                    app:cardCornerRadius="16dp"
                     app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
+                    app:layout_constraintTop_toTopOf="parent" >
 
-                <ImageView
-                    android:id="@+id/imageView3"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    android:layout_marginEnd="10dp"
-                    android:src="@drawable/point"
-                    app:layout_constraintEnd_toStartOf="@+id/button"
-                    app:layout_constraintTop_toTopOf="@+id/button" />
+                </com.google.android.material.card.MaterialCardView>
 
                 <TextView
                     android:id="@+id/textView5"
@@ -132,6 +110,49 @@
                     android:layout_marginTop="5dp"
                     app:layout_constraintStart_toStartOf="@+id/textView5"
                     app:layout_constraintTop_toBottomOf="@+id/textView5" />
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="32dp"
+                    android:background="@drawable/normal_button_bg"
+                    android:backgroundTint="#2FFFFFFF"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="@dimen/spacing_large"
+                    android:paddingVertical="12dp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintHorizontal_bias="0.844"
+                    app:layout_constraintStart_toEndOf="@+id/textView2"
+                    app:layout_constraintTop_toTopOf="parent">
+
+                    <TextView
+                        android:id="@+id/tvBeaniesCount"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="150"
+                        android:textColor="@color/text_primary"
+                        android:textSize="@dimen/text_size_large"
+                        android:textStyle="bold" />
+
+                    <ImageView
+                        android:layout_width="@dimen/icon_size_medium"
+                        android:layout_height="@dimen/icon_size_medium"
+                        android:layout_marginStart="@dimen/spacing_small"
+                        android:src="@drawable/ic_point" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/fortuneWheelInfoButton"
+                        style="@style/Widget.App.Button.IconOnly.Circular.Small"
+                        android:layout_width="@dimen/icon_button_size_smaller"
+                        android:layout_height="@dimen/icon_button_size_smaller"
+                        android:contentDescription="@string/redeem"
+                        app:backgroundTint="@color/white"
+                        app:icon="@drawable/ic_navigation"
+                        app:iconSize="@dimen/icon_size_small"
+                        app:iconTint="@color/primary" />
+
+                </LinearLayout>
             </androidx.constraintlayout.widget.ConstraintLayout>
         </com.google.android.material.card.MaterialCardView>
 

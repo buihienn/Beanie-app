@@ -1,13 +1,16 @@
 package com.bh.beanie.user.fragment
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bh.beanie.R
+import com.bh.beanie.user.UserOrderActivity
 import com.bh.beanie.user.adapter.ProductAdapter
 import com.bh.beanie.user.model.Product
 
@@ -60,6 +63,18 @@ class HomeFragment : Fragment() {
         // Khởi tạo adapter và gắn vào RecyclerView
         productAdapter = ProductAdapter(requireContext(), productList)
         popularItemsRecyclerView.adapter = productAdapter
+
+        val deliveryBtn: Button = view.findViewById(R.id.deliveryButton)
+        deliveryBtn.setOnClickListener {
+            startActivity(Intent(requireContext(), UserOrderActivity::class.java))
+        }
+
+        val takeAwayBtn: Button = view.findViewById(R.id.takeawayButton)
+        takeAwayBtn.setOnClickListener {
+            startActivity(Intent(requireContext(), UserOrderActivity::class.java))
+        }
+
+
     }
 
     private fun createSampleData() {
