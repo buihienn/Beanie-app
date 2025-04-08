@@ -4,21 +4,21 @@
     <item
         android:id="@+id/dashboardAdmin"
         android:title="Dashboard"
-        android:icon="@drawable/baseline_home_24"/>
+        android:icon="@drawable/ic_home"/>
     <item
         android:id="@+id/inventoryAdmin"
         android:title="Inventory"
-        android:icon="@drawable/baseline_home_24" />
+        android:icon="@drawable/ic_home" />
     <item
         android:id="@+id/orderAdmin"
         android:title="Order"
-        android:icon="@drawable/baseline_home_24" />
+        android:icon="@drawable/ic_home" />
     <item
         android:id="@+id/voucherAdmin"
         android:title="Voucher"
-        android:icon="@drawable/baseline_home_24" />
+        android:icon="@drawable/ic_home" />
     <item
         android:id="@+id/otherAdmin"
-        android:icon="@drawable/baseline_home_24"
+        android:icon="@drawable/ic_home"
         android:title="Other" />
 </menu>

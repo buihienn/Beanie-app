@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "610667902405",
+    "project_id": "beanie-2402",
+    "storage_bucket": "beanie-2402.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:610667902405:android:1a400b6827d1fab3e207ac",
+        "android_client_info": {
+          "package_name": "com.bh.beanie"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBhsUfHe0dUNrie_v04QGZBkBImEdTO0bM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
