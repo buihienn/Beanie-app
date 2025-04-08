@@ -218,7 +218,7 @@ class ProductDetailFragment : BottomSheetDialogFragment() {
 
     private fun addToCart() {
         // TODO: Thêm sản phẩm vào giỏ hàng
-        // Trong ứng dụng thực tế, bạn nên sử dụng ViewModel hoặc Repository
+        // ViewModel hoặc Repository
 
         val note = binding.noteEditText.text.toString().trim()
         val toppingsText = selectedToppings.joinToString(", ")
