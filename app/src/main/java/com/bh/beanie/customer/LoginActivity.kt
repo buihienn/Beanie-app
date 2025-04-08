@@ -7,103 +7,91 @@ import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.bh.beanie.MainActivity
+import com.bh.beanie.MainActivity // Đảm bảo import đúng MainActivity của bạn
 import com.bh.beanie.R
+// import com.bh.beanie.SignupActivity // Đảm bảo import đúng SignupActivity của bạn
+// Giả sử bạn có SignupActivity, nếu không thì comment dòng trên và phần goToSignUp
 
 class LoginActivity : AppCompatActivity() {
 
-    private lateinit var etEmail: EditText
-    private lateinit var etPassword: EditText
-    private lateinit var btnLogin: Button
-    private lateinit var tvForgotPassword: TextView
+    // Khai báo biến cho các View
+    private lateinit var edtEmail: EditText
+    private lateinit var edtPassword: EditText
+    private lateinit var btnSignIn: Button
+    private lateinit var txtForgotPassword: TextView
     private lateinit var btnLoginGoogle: Button
-    private lateinit var tvRegister: TextView
-    //private lateinit var mGoogleSignInClient: GoogleSignInClient // Bỏ comment khi cần dùng
-    private val RC_SIGN_IN: Int = 123 // Bạn có thể chọn bất kỳ số nguyên nào
-
+    private lateinit var txtSignUpLink: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_login)
+        setContentView(R.layout.activity_login) // Đảm bảo tên layout đúng
 
         // Ánh xạ views
-        etEmail = findViewById(R.id.etEmail)
-        etPassword = findViewById(R.id.etPassword)
-        btnLogin = findViewById(R.id.btnLogin)
-        tvForgotPassword = findViewById(R.id.tvForgotPassword)
+        edtEmail = findViewById(R.id.edtEmail)
+        edtPassword = findViewById(R.id.edtPassword)
+        btnSignIn = findViewById(R.id.btnSignIn)
+        txtForgotPassword = findViewById(R.id.txtForgotPassword)
         btnLoginGoogle = findViewById(R.id.btnLoginGoogle)
-        tvRegister = findViewById(R.id.tvRegister)
+        txtSignUpLink = findViewById(R.id.txtSignUpLink)
 
-        // Xử lý sự kiện click cho nút Login
-        btnLogin.setOnClickListener {
-            login()
+        // --- Xử lý sự kiện click ---
+
+        // Nhấn nút "Sign in" -> Chuyển đến MainActivity
+        btnSignIn.setOnClickListener {
+            // Lấy thông tin nhập liệu (tùy chọn, có thể bỏ qua nếu không cần)
+            val email = edtEmail.text.toString().trim()
+            val password = edtPassword.text.toString().trim()
+            println("Email: $email, Password: $password") // In ra logcat để xem
+
+            // Chỉ chuyển màn hình, không kiểm tra gì cả
+            goToMainActivity()
         }
 
-        // Xử lý sự kiện click cho liên kết "Forgot Password?"
-        tvForgotPassword.setOnClickListener {
-            forgotPassword()
+        // Nhấn liên kết "Forgot password?" -> Hiển thị Toast
+        txtForgotPassword.setOnClickListener {
+            showForgotPasswordMessage()
         }
 
-        // Xử lý sự kiện click cho nút Login with Google (để trống hàm)
+        // Nhấn nút "Sign in with Google" -> Hiển thị Toast
         btnLoginGoogle.setOnClickListener {
-            signInWithGoogle() // Gọi hàm, nhưng hàm đang để trống
+            showGoogleSignInMessage()
         }
 
-        // Xử lý sự kiện click cho liên kết "Register"
-        tvRegister.setOnClickListener {
+        // Nhấn liên kết "Sign up" -> Chuyển đến SignupActivity
+        txtSignUpLink.setOnClickListener {
             goToSignUp()
         }
     }
 
-    // Hàm xử lý đăng nhập bằng Google (để trống)
-    private fun signInWithGoogle() {
-        // TODO: Implement Google Sign-In here later
+    // --- Các hàm xử lý đơn giản ---
+
+    // Hiển thị thông báo tạm thời cho chức năng Quên mật khẩu
+    private fun showForgotPasswordMessage() {
+        Toast.makeText(this, "Chức năng Quên mật khẩu chưa được cài đặt.", Toast.LENGTH_SHORT).show()
+        // Hoặc:
+        // val intent = Intent(this, ForgotPasswordActivity::class.java) // Nếu có màn hình riêng
+        // startActivity(intent)
     }
 
-    // Hàm xử lý kết quả trả về từ Google Sign-In (để trống)
-    // (Bạn sẽ cần hàm này khi implement Google Sign-In)
-//    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-//        super.onActivityResult(requestCode, resultCode, data)
-//
-//        if (requestCode == RC_SIGN_IN) {
-//            val task = GoogleSignIn.getSignedInAccountFromIntent(data)
-//            handleSignInResult(task) // Gọi hàm handle, nhưng hàm đang để trống.
-//        }
-//    }
-    // Hàm để handle kết quả đăng nhập, cũng để trống.
-    private fun handleSignInResult(){
-
+    // Hiển thị thông báo tạm thời cho chức năng Đăng nhập Google
+    private fun showGoogleSignInMessage() {
+        Toast.makeText(this, "Chức năng Đăng nhập Google chưa được cài đặt.", Toast.LENGTH_SHORT).show()
     }
 
-    private fun login() {
-        val email = etEmail.text.toString().trim()
-        val password = etPassword.text.toString().trim()
-
-        if (email.isEmpty() || password.isEmpty()) {
-            Toast.makeText(this, "Vui lòng nhập email và mật khẩu", Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        // TODO: Thực hiện xác thực (gọi API, kiểm tra database, ...)
-        // Tạm thời, hiển thị Toast để mô phỏng
-        Toast.makeText(this, "Đăng nhập (chưa implement backend)", Toast.LENGTH_SHORT).show()
-        goToMainActivity() // Giả sử đăng nhập thành công
-    }
-
-    private fun forgotPassword() {
-        // TODO: Chuyển đến màn hình Forgot Password (nếu có)
-        Toast.makeText(this, "Chuyển đến màn hình Forgot Password (chưa implement)", Toast.LENGTH_SHORT).show()
-    }
-
-
-
+    // Chuyển đến màn hình đăng ký
     private fun goToSignUp() {
-        val intent = Intent(this, SignupActivity::class.java)
-        startActivity(intent)
+        // Đảm bảo bạn có SignupActivity và đã khai báo trong Manifest
+        val intent = Intent(this, SignupActivity::class.java) // Bỏ comment nếu có SignupActivity
+        startActivity(intent) // Bỏ comment nếu có SignupActivity
+        // Toast.makeText(this, "Chuyển đến màn hình Đăng ký (chưa có).", Toast.LENGTH_SHORT).show() // Dùng tạm nếu chưa có SignupActivity
     }
-    private fun goToMainActivity(){
-        val intent = Intent(this, MainActivity::class.java) // Thay MainActivity bằng activity chính
+
+    // Chuyển đến màn hình chính
+    private fun goToMainActivity() {
+        val intent = Intent(this, MainActivity::class.java)
+        // Xóa các activity trước đó khỏi stack để người dùng không quay lại màn hình login bằng nút back
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         startActivity(intent)
-        finish() // Đóng LoginActivity
+        finish() // Đóng LoginActivity hiện tại
     }
 }
