@@ -1,6 +1,7 @@
 {
   "project_info": {
     "project_number": "610667902405",
+    "firebase_url": "https://beanie-2402-default-rtdb.asia-southeast1.firebasedatabase.app",
     "project_id": "beanie-2402",
     "storage_bucket": "beanie-2402.firebasestorage.app"
   },
@@ -12,7 +13,28 @@
           "package_name": "com.bh.beanie"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "610667902405-8lftr09ul0espk282hv9p8gsdqqif44t.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.bh.beanie",
+            "certificate_hash": "4f73ad0a3626d8e41398b4a6b11ed0a3a374b633"
+          }
+        },
+        {
+          "client_id": "610667902405-njsem7f0um7hj5uke1hp1ln6m35smc8u.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.bh.beanie",
+            "certificate_hash": "b7c754efa988a1e90fe371e7781d1bb13a2d838d"
+          }
+        },
+        {
+          "client_id": "610667902405-sqbdn9dsv7krcan8ghufedq8pt67a8pv.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBhsUfHe0dUNrie_v04QGZBkBImEdTO0bM"
@@ -20,7 +42,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "610667902405-sqbdn9dsv7krcan8ghufedq8pt67a8pv.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }
