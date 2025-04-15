@@ -21,4 +21,24 @@
     <string name="back_button_desc">Back</string> <!-- Mô tả nút quay lại -->
     <string name="profile_picture_desc">User profile picture</string> <!-- Mô tả ảnh đại diện -->
     <string name="confirm">Confirm</string>
+
+    <!--    sigunpPage-->
+    <string name="error_field_required">This field is required</string>
+    <string name="error_invalid_email">This email address is invalid</string>
+    <string name="error_password_length">Password must be at least 6 characters</string>
+    <string name="error_passwords_dont_match">Passwords do not match</string>
+    <string name="error_email_collision">The email address is already in use by another account.</string>
+    <string name="error_email_not_found">No account found with this email.</string>
+    <string name="error_incorrect_password">Incorrect password.</string>
+    <string name="prompt_select_gender">Please select your gender</string>
+
+    <string name="default_web_client_id" translatable="false">610667902405-sqbdn9dsv7krcan8ghufedq8pt67a8pv.apps.googleusercontent.com</string>
+
+    <string-array name="gender_array">
+        <item>Select Gender</item>
+        <item>Male</item>
+        <item>Female</item>
+        <item>Other</item>
+    </string-array>
+
 </resources>

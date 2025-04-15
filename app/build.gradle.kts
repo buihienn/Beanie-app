@@ -50,6 +50,7 @@ dependencies {
     implementation(libs.androidx.ui.text.android)
     implementation(libs.androidx.legacy.support.v4)
     implementation(libs.androidx.recyclerview)
+    implementation(libs.firebase.firestore.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -57,6 +58,7 @@ dependencies {
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics)
     implementation(libs.firebase.auth)
+    implementation("com.google.android.gms:play-services-auth:20.7.0")
 
     // implementation(libs.firebase.firestore) // real-time
     // implementation(libs.firebase.storage)  // - dung thi bo comment
