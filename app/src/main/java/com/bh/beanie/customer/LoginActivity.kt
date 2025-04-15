@@ -13,6 +13,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.bh.beanie.MainActivity
+import com.bh.beanie.utils.NavigationUtils
 import com.bh.beanie.R
 import com.bh.beanie.admin.AdminMainActivity
 import com.bh.beanie.user.UserMainActivity
@@ -82,7 +83,18 @@ class LoginActivity : AppCompatActivity() {
 
         // Google sign in button click
         btnLoginGoogle.setOnClickListener {
-            signInWithGoogle()
+            // Sign out first to force account picker
+            val googleSignInClient = GoogleSignIn.getClient(this,
+                GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                    .requestIdToken(getString(R.string.default_web_client_id))
+                    .requestEmail()
+                    .build())
+
+            // Sign out from previous Google account
+            googleSignInClient.signOut().addOnCompleteListener {
+                // After signing out, start the sign in process again with account picker
+                startActivityForResult(googleSignInClient.signInIntent, RC_SIGN_IN)
+            }
         }
 
         // Sign up link click
@@ -150,6 +162,7 @@ class LoginActivity : AppCompatActivity() {
     }
 
     // New method to check user role and navigate accordingly
+
     private fun checkUserRoleAndNavigate(userId: String?) {
         if (userId == null) {
             Log.e("RoleCheck", "User ID is null")
@@ -158,44 +171,7 @@ class LoginActivity : AppCompatActivity() {
         }
 
         showLoading(true)
-
-        // Query Firestore to get user role
-        db.collection("users").document(userId)
-            .get()
-            .addOnSuccessListener { document ->
-                showLoading(false)
-                if (document.exists()) {
-                    val role = document.getString("role")
-
-                    when (role?.lowercase()) {
-                        "admin" -> {
-                            // Navigate to admin screen
-                            val intent = Intent(this, AdminMainActivity::class.java)
-                            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                            startActivity(intent)
-                            finish()
-                        }
-                        else -> {
-                            // By default, treat as customer
-                            val intent = Intent(this, UserMainActivity::class.java)
-                            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                            startActivity(intent)
-                            finish()
-                        }
-                    }
-                } else {
-                    // Document doesn't exist - treat as customer by default
-                    Log.d("RoleCheck", "No user document found")
-                    goToMainActivity() // Your existing method for customers
-                }
-            }
-            .addOnFailureListener { e ->
-                showLoading(false)
-                Log.e("RoleCheck", "Error checking user role", e)
-                Toast.makeText(this, "Failed to verify user access: ${e.message}", Toast.LENGTH_SHORT).show()
-                // Fallback to customer view on error
-                goToMainActivity()
-            }
+        NavigationUtils.navigateBasedOnRole(this, userId)
     }
 
     private fun checkAndCollectAdditionalInfo(userId: String?) {
@@ -331,20 +307,10 @@ class LoginActivity : AppCompatActivity() {
         Toast.makeText(this, "Forgot password feature is coming soon.", Toast.LENGTH_SHORT).show()
     }
 
-    private fun showGoogleSignInMessage() {
-        Toast.makeText(this, "Google sign-in feature is coming soon.", Toast.LENGTH_SHORT).show()
-    }
 
     private fun goToSignUp() {
         val intent = Intent(this, SignupActivity::class.java)
         startActivity(intent)
     }
 
-    private fun goToMainActivity() {
-        val intent = Intent(this, MainActivity::class.java)
-        // Clear the back stack so user can't go back to login screen with back button
-        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        startActivity(intent)
-        finish()
-    }
 }

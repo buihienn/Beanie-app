@@ -58,6 +58,18 @@
                     android:gravity="center_vertical"
                     android:orientation="horizontal">
 
+                    <ProgressBar
+                        android:id="@+id/loginProgressBar"
+                        style="?android:attr/progressBarStyle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:visibility="gone"
+                        android:elevation="10dp"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+
                     <ImageView
                         android:layout_width="48dp"
                         android:layout_height="48dp"
@@ -107,17 +119,7 @@
                     android:textSize="14sp" />
 
                 <!-- Nút Sign In -->
-                <ProgressBar
-                    android:id="@+id/loginProgressBar"
-                    style="?android:attr/progressBarStyle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:visibility="gone"
-                    android:elevation="10dp"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
+
 
                 <Button
                     android:id="@+id/btnSignIn"
