@@ -1,16 +1,24 @@
 package com.bh.beanie.user
 
+import android.content.Intent
 import android.os.Bundle
+import android.util.Log
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.bh.beanie.R
+import com.bh.beanie.customer.LoginActivity
 import com.bh.beanie.user.fragment.*
 import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class UserMainActivity : AppCompatActivity() {
     private lateinit var bottomNavigation: BottomNavigationView
+    //User information
+    private lateinit var userId: String
+    private var userEmail: String? = null
+    private var userName: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -21,6 +29,21 @@ class UserMainActivity : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
+
+        userId = intent.getStringExtra("USER_ID") ?: ""
+        userEmail = intent.getStringExtra("USER_EMAIL")
+        userName = intent.getStringExtra("USER_NAME")
+
+        Log.d("UserMainActivity", "Received user data: ID=$userId, Email=$userEmail, Name=$userName")
+
+        if (userId.isEmpty()) {
+            // No user ID - go back to login
+            Toast.makeText(this, "User authentication error", Toast.LENGTH_SHORT).show()
+            startActivity(Intent(this, LoginActivity::class.java))
+            finish()
+            return
+        }
+
 
         // Ánh xạ bottom navigation
         bottomNavigation = findViewById(R.id.bottom_navigation)
@@ -52,5 +75,18 @@ class UserMainActivity : AppCompatActivity() {
         if (savedInstanceState == null) {
             bottomNavigation.selectedItemId = R.id.navigation_home
         }
+    }
+
+    fun getUserId(): String {
+        return userId
+    }
+
+    // Method to get user information (can be expanded)
+    fun getUserInfo(): Map<String, String?> {
+        return mapOf(
+            "id" to userId,
+            "email" to userEmail,
+            "name" to userName
+        )
     }
 }

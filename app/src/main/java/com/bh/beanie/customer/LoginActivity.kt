@@ -171,7 +171,59 @@ class LoginActivity : AppCompatActivity() {
         }
 
         showLoading(true)
-        NavigationUtils.navigateBasedOnRole(this, userId)
+        db.collection("users").document(userId)
+            .get()
+            .addOnSuccessListener { document ->
+                showLoading(false)
+                if (document.exists()) {
+                    val role = document.getString("role") ?: "user"
+                    when (role) {
+                        "admin" -> {
+                            val intent = Intent(this, AdminMainActivity::class.java)
+                            intent.putExtra("USER_ID", userId)
+                            startActivity(intent)
+                            finish()
+                        }
+                        else -> {
+                            val intent = Intent(this, UserMainActivity::class.java)
+                            intent.putExtra("USER_ID", userId)
+                            // You can also add other user info if needed
+                            intent.putExtra("USER_EMAIL", auth.currentUser?.email)
+                            intent.putExtra("USER_NAME", auth.currentUser?.displayName)
+                            startActivity(intent)
+                            finish()
+                        }
+                    }
+                } else {
+                    // No user document - create one with default role and navigate to user activity
+                    val userMap = hashMapOf(
+                        "email" to auth.currentUser?.email,
+                        "name" to auth.currentUser?.displayName,
+                        "role" to "user",
+                        "createdAt" to System.currentTimeMillis()
+                    )
+
+                    db.collection("users").document(userId)
+                        .set(userMap)
+                        .addOnSuccessListener {
+                            val intent = Intent(this, UserMainActivity::class.java)
+                            intent.putExtra("USER_ID", userId)
+                            intent.putExtra("USER_EMAIL", auth.currentUser?.email)
+                            intent.putExtra("USER_NAME", auth.currentUser?.displayName)
+                            startActivity(intent)
+                            finish()
+                        }
+                        .addOnFailureListener { e ->
+                            Log.w("Firestore", "Error creating user document", e)
+                            Toast.makeText(this, "Error setting up user profile", Toast.LENGTH_SHORT).show()
+                        }
+                }
+            }
+            .addOnFailureListener { e ->
+                showLoading(false)
+                Log.w("Firestore", "Error checking user role", e)
+                Toast.makeText(this, "Error checking user role: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
     }
 
     private fun checkAndCollectAdditionalInfo(userId: String?) {
