@@ -62,7 +62,7 @@ class AdminDashBoardFragment : Fragment() {
         val yAxis: YAxis = barChart.axisLeft
         yAxis.axisMinimum = 0f
         yAxis.axisMaximum = entries.maxOf { it.y } + 50f
-        yAxis.axisLineColor = Color.BLACK
+        yAxis.axisLineColor = Color.GRAY
         yAxis.setLabelCount(10, true)
 
         barChart.axisRight.isEnabled = false

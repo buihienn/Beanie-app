@@ -14,7 +14,7 @@ class AdminCategoryAdapter(
     private val categories: List<Category>,
     private val onCategoryClick: (Category) -> Unit,
     private val onEditItemClick: (CategoryItem) -> Unit,
-    private val onAddStockClick: (CategoryItem) -> Unit
+    private val onDeleteItemClick: (CategoryItem) -> Unit
 ) : RecyclerView.Adapter<AdminCategoryAdapter.CategoryViewHolder>() {
 
     // Sử dụng Set để lưu các vị trí đang mở
@@ -32,7 +32,7 @@ class AdminCategoryAdapter(
 
         holder.bind(category, isExpanded)
 
-        // Xử lý click để mở/đóng
+        // Handle click to expand/collapse and trigger onCategoryClick
         holder.itemView.setOnClickListener {
             if (isExpanded) {
                 expandedPositions.remove(position)
@@ -40,6 +40,7 @@ class AdminCategoryAdapter(
                 expandedPositions.add(position)
             }
             notifyItemChanged(position)
+            onCategoryClick(category) // Trigger the callback
         }
     }
 
@@ -58,7 +59,7 @@ class AdminCategoryAdapter(
                 adapter = AdminCategoryItemAdapter(
                     items = category.items,
                     onEditClick = onEditItemClick,
-                    onAddClick = onAddStockClick
+                    onDeleteClick = onDeleteItemClick
                 )
                 setHasFixedSize(true)
                 isNestedScrollingEnabled = false

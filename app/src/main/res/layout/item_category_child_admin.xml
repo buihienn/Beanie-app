@@ -6,7 +6,7 @@
     android:layout_height="wrap_content">
 
     <ImageView
-        android:id="@+id/imageView2"
+        android:id="@+id/imageViewProductAdmin"
         android:layout_width="70dp"
         android:layout_height="70dp"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -20,22 +20,24 @@
         android:layout_width="40dp"
         android:layout_height="40dp"
         android:layout_marginEnd="10dp"
+        android:backgroundTint="#00FFFFFF"
         android:contentDescription="Button edit"
-        app:layout_constraintEnd_toStartOf="@+id/imgBtnAdd"
-        app:layout_constraintTop_toTopOf="@+id/imgBtnAdd"
+        app:layout_constraintEnd_toStartOf="@+id/imgBtnDelete"
+        app:layout_constraintTop_toTopOf="@+id/imgBtnDelete"
         app:srcCompat="@android:drawable/ic_menu_edit" />
 
     <ImageButton
-        android:id="@+id/imgBtnAdd"
+        android:id="@+id/imgBtnDelete"
         android:layout_width="40dp"
         android:layout_height="40dp"
         android:layout_marginEnd="10dp"
-        android:contentDescription="Button add"
+        android:backgroundTint="#00FFFFFF"
+        android:contentDescription="Button Delete"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.5"
-        app:srcCompat="@android:drawable/ic_menu_add" />
+        app:srcCompat="@android:drawable/ic_menu_delete" />
 
     <TextView
         android:id="@+id/textNameItemInCategory"
@@ -46,7 +48,7 @@
         android:text="Capuchino"
         android:textSize="18sp"
         android:textStyle="bold"
-        app:layout_constraintStart_toEndOf="@+id/imageView2"
+        app:layout_constraintStart_toEndOf="@+id/imageViewProductAdmin"
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView

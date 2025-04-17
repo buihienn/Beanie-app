@@ -1,6 +1,9 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kotlin.kapt)
     id("com.google.gms.google-services")
 }
 
@@ -16,6 +19,16 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        val localProperties = rootProject.file("local.properties")
+        if (localProperties.exists()) {
+            val properties = Properties().apply {
+                load(localProperties.inputStream())
+            }
+
+            buildConfigField("String", "CLOUDINARY_CLOUD_NAME", "\"${properties["CLOUDINARY_CLOUD_NAME"]}\"")
+            buildConfigField("String", "CLOUDINARY_API_KEY", "\"${properties["CLOUDINARY_API_KEY"]}\"")
+            buildConfigField("String", "CLOUDINARY_API_SECRET", "\"${properties["CLOUDINARY_API_SECRET"]}\"")
+        }
     }
 
     buildTypes {
@@ -36,6 +49,7 @@ android {
     }
     buildFeatures {
         viewBinding = true
+        buildConfig = true
     }
 }
 
@@ -54,13 +68,18 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+    implementation(libs.glide)
+    kapt(libs.glide.compiler)
 
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics)
     implementation(libs.firebase.auth)
-    implementation("com.google.android.gms:play-services-auth:20.7.0")
+    implementation("com.google.android.gms:play-services-auth:21.3.0")
 
-    // implementation(libs.firebase.firestore) // real-time
+
+    implementation(libs.firebase.firestore)
     // implementation(libs.firebase.storage)  // - dung thi bo comment
     // implementation(libs.firebase.messaging)
+
+    implementation(libs.cloudinary.android)
 }
