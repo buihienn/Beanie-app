@@ -4,64 +4,48 @@ import android.util.Log
 import com.bh.beanie.model.Category
 import com.bh.beanie.model.CategoryItem
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.tasks.await
 
 class FirebaseRepository(private val db: FirebaseFirestore) {
 
-    fun fetchCategories(branchId: String, onSuccess: (List<Category>) -> Unit, onFailure: (Exception) -> Unit) {
+    suspend fun fetchCategoriesSuspend(branchId: String): List<Category> {
         val categoriesRef = db.collection("branches").document(branchId).collection("categories")
-        categoriesRef.get()
-            .addOnSuccessListener { snapshot ->
-                val categories = snapshot.map { doc ->
-                    Category(
-                        id = doc.id,
-                        name = doc.getString("name") ?: "Unnamed Category",
-                        items = emptyList() // Items can be fetched separately if needed
-                    )
-                }
-                onSuccess(categories)
-            }
-            .addOnFailureListener { exception ->
-                Log.e("FirebaseRepository", "Error fetching categories", exception)
-                onFailure(exception)
-            }
+        val snapshot = categoriesRef.get().await()
+
+        return snapshot.map { doc ->
+            Category(
+                id = doc.id,
+                name = doc.getString("name") ?: "Unnamed Category",
+                items = emptyList()
+            )
+        }
     }
 
-    fun fetchCategoryItems(branchId: String, categoryId: String, onSuccess: (List<CategoryItem>) -> Unit, onFailure: (Exception) -> Unit) {
+    suspend fun fetchCategoryItemsSuspend(branchId: String, categoryId: String): List<CategoryItem> {
         val productsRef = db.collection("branches").document(branchId)
             .collection("categories").document(categoryId).collection("products")
-        productsRef.get()
-            .addOnSuccessListener { snapshot ->
-                val items = snapshot.map { doc ->
-                    CategoryItem(
-                        id = doc.id,
-                        name = doc.getString("name") ?: "Unnamed Product",
-                        description = doc.getString("description") ?: "",
-                        price = doc.getDouble("price") ?: 0.0,
-                        imageUrl = doc.getString("imageUrl") ?: "",
-                        stockQuantity = doc.getLong("stock")?.toInt() ?: 0,
-                        categoryId = categoryId
-                    )
-                }
-                onSuccess(items)
-            }
-            .addOnFailureListener { exception ->
-                Log.e("FirebaseRepository", "Error fetching category items", exception)
-                onFailure(exception)
-            }
+        val snapshot = productsRef.get().await()
+
+        return snapshot.map { doc ->
+            CategoryItem(
+                id = doc.id,
+                name = doc.getString("name") ?: "Unnamed Product",
+                description = doc.getString("description") ?: "",
+                price = doc.getDouble("price") ?: 0.0,
+                imageUrl = doc.getString("imageUrl") ?: "",
+                stockQuantity = doc.getLong("stock")?.toInt() ?: 0,
+                categoryId = categoryId
+            )
+        }
     }
 
-    fun addCategory(branchId: String, category: Category, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
+    suspend fun addCategorySuspend(branchId: String, category: Category) {
         val categoriesRef = db.collection("branches").document(branchId).collection("categories")
         val categoryData = mapOf("name" to category.name)
-        categoriesRef.document(category.id).set(categoryData)
-            .addOnSuccessListener { onSuccess() }
-            .addOnFailureListener { exception ->
-                Log.e("FirebaseRepository", "Error adding category", exception)
-                onFailure(exception)
-            }
+        categoriesRef.document(category.id).set(categoryData).await()
     }
 
-    fun addCategoryItem(branchId: String, categoryId: String, item: CategoryItem, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
+    suspend fun addCategoryItemSuspend(branchId: String, categoryId: String, item: CategoryItem) {
         val productsRef = db.collection("branches").document(branchId)
             .collection("categories").document(categoryId).collection("products")
         val itemData = mapOf(
@@ -71,18 +55,10 @@ class FirebaseRepository(private val db: FirebaseFirestore) {
             "imageUrl" to item.imageUrl,
             "stock" to item.stockQuantity
         )
-        productsRef.document(item.id).set(itemData)
-            .addOnSuccessListener { onSuccess() }
-            .addOnFailureListener { exception ->
-                Log.e("FirebaseRepository", "Error adding category item", exception)
-                onFailure(exception)
-            }
+        productsRef.document(item.id).set(itemData).await()
     }
 
-    fun editCategoryItem( branchId: String,  categoryId: String,
-        item: CategoryItem, onSuccess: () -> Unit,
-        onFailure: (Exception) -> Unit
-    ) {
+    suspend fun editCategoryItemSuspend(branchId: String, categoryId: String, item: CategoryItem) {
         val itemRef = db.collection("branches").document(branchId)
             .collection("categories").document(categoryId)
             .collection("products").document(item.id)
@@ -95,11 +71,14 @@ class FirebaseRepository(private val db: FirebaseFirestore) {
             "stock" to item.stockQuantity
         )
 
-        itemRef.update(updatedData)
-            .addOnSuccessListener { onSuccess() }
-            .addOnFailureListener { exception ->
-                Log.e("FirebaseRepository", "Error editing category item", exception)
-                onFailure(exception)
-            }
+        itemRef.update(updatedData).await()
+    }
+
+    suspend fun deleteCategoryItemSuspend(branchId: String, categoryId: String, itemId: String) {
+        val itemRef = db.collection("branches").document(branchId)
+            .collection("categories").document(categoryId)
+            .collection("products").document(itemId)
+
+        itemRef.delete().await()
     }
 }

@@ -21,6 +21,8 @@ import com.bumptech.glide.Glide
 import com.google.firebase.firestore.FirebaseFirestore
 import java.io.File
 import java.io.FileOutputStream
+import kotlinx.coroutines.launch
+import androidx.lifecycle.lifecycleScope
 
 class EditItemDialogFragment(
     private val item: CategoryItem,
@@ -157,15 +159,15 @@ class EditItemDialogFragment(
     }
 
     private fun updateItemInDatabase(updatedItem: CategoryItem) {
-        repository.editCategoryItem(branchId, item.categoryId, updatedItem,
-            onSuccess = {
-                onItemUpdated(updatedItem)
-                dismiss()
-            },
-            onFailure = { exception ->
+        lifecycleScope.launch {
+            try {
+                repository.editCategoryItemSuspend(branchId, updatedItem.categoryId, updatedItem)
+                onItemUpdated(updatedItem)  // Gọi callback sau khi cập nhật thành công
+                dismiss()  // Đóng dialog
+            } catch (exception: Exception) {
                 Log.e("EditItemDialog", "Error updating item", exception)
                 Toast.makeText(requireContext(), "Update failed", Toast.LENGTH_SHORT).show()
             }
-        )
+        }
     }
 }
