@@ -2,6 +2,7 @@ package com.bh.beanie.admin
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -11,12 +12,20 @@ import com.bh.beanie.admin.fragments.AdminDashBoardFragment
 import com.bh.beanie.admin.fragments.AdminInventoryFragment
 import com.bh.beanie.admin.fragments.AdminOrderFragment
 import com.bh.beanie.admin.fragments.AdminVoucherFragment
+import com.bh.beanie.config.CloudinaryConfig
+import com.bh.beanie.model.Category
+import com.bh.beanie.model.CategoryItem
+import com.google.android.gms.tasks.Tasks
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.firebase.firestore.FirebaseFirestore
 
 class AdminMainActivity : AppCompatActivity() {
+
+
     private lateinit var bottomNav: BottomNavigationView
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        CloudinaryConfig.initialize(this)
         enableEdgeToEdge()
         setContentView(R.layout.activity_admin_main)
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
@@ -52,7 +61,6 @@ class AdminMainActivity : AppCompatActivity() {
             } ?: false
         }
     }
-
 
 
 }

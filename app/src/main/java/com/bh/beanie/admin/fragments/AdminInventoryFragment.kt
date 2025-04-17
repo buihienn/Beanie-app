@@ -1,6 +1,7 @@
 package com.bh.beanie.admin.fragments
 
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -10,14 +11,18 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bh.beanie.R
 import com.bh.beanie.adapter.AdminCategoryAdapter
-import com.bh.beanie.adapter.AdminCategoryItemAdapter
+import com.bh.beanie.admin.dialogs.EditItemDialogFragment
 import com.bh.beanie.model.Category
 import com.bh.beanie.model.CategoryItem
+import com.bh.beanie.repository.FirebaseRepository
+import com.google.firebase.firestore.FirebaseFirestore
 
 class AdminInventoryFragment : Fragment() {
     private lateinit var recyclerViewCategory: RecyclerView
     private lateinit var categoryAdapter: AdminCategoryAdapter
     private val categories = mutableListOf<Category>()
+    private val repository = FirebaseRepository(FirebaseFirestore.getInstance())
+    private val branchId = "braches_q5"
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -41,22 +46,23 @@ class AdminInventoryFragment : Fragment() {
         }
 
         view.findViewById<Button>(R.id.btnAddItem).setOnClickListener {
-            addNewItemToSelectedCategory()
+//            addNewItemToSelectedCategory()
         }
 
         return view
     }
 
     private fun setupRecyclerView() {
-        categoryAdapter = AdminCategoryAdapter(categories,
+        categoryAdapter = AdminCategoryAdapter(
+            categories,
             onCategoryClick = { category ->
-                // Handle category click
+                fetchCategoryDetails(category.id)
             },
             onEditItemClick = { item ->
                 showEditItemDialog(item)
             },
-            onAddStockClick = { item ->
-                addStockToItem(item)
+            onDeleteItemClick = { item ->
+                deleteItem(item)
             }
         )
 
@@ -65,54 +71,24 @@ class AdminInventoryFragment : Fragment() {
     }
 
     private fun loadCategories() {
-        // Sample data - in real app, load from database/API
-        val coffeeItems = listOf(
-            CategoryItem(
-                id = "1",
-                name = "Cappuccino",
-                description = "Espresso with steamed milk",
-                price = 3.5,
-                imageUrl = "",
-                stockQuantity = 50,
-                categoryId = "1"
-            ),
-            CategoryItem(
-                id = "2",
-                name = "Espresso",
-                description = "Strong black coffee",
-                price = 2.5,
-                imageUrl = "",
-                stockQuantity = 75,
-                categoryId = "1"
-            )
+        repository.fetchCategories(branchId,
+            onSuccess = { fetchedCategories ->
+                requireActivity().runOnUiThread {
+                    categories.clear()
+                    categories.addAll(fetchedCategories)
+                    categoryAdapter.notifyDataSetChanged()
+                }
+            },
+            onFailure = { exception ->
+                Log.e("AdminInventoryFragment", "Error loading categories", exception)
+            }
         )
-
-        val teaItems = listOf(
-            CategoryItem(
-                id = "3",
-                name = "Trà sữa",
-                description = "Trà sữa truyền thống",
-                price = 4.0,
-                imageUrl = "",
-                stockQuantity = 100,
-                categoryId = "2"
-            )
-        )
-
-        categories.apply {
-            add(Category(id = 1, name = "Cà phê", items = coffeeItems))
-            add(Category(id = 2, name = "Trà", items = teaItems))
-        }
-
-        categoryAdapter.notifyDataSetChanged()
     }
 
     private fun addNewCategory() {
-        // Create new empty category
-        val newId = categories.maxOfOrNull { it.id }?.plus(1) ?: 1
         val newCategory = Category(
-            id = newId,
-            name = "Danh mục mới",
+            id = System.currentTimeMillis().toString(), // Generate a unique ID
+            name = "New Category",
             items = emptyList()
         )
 
@@ -120,15 +96,52 @@ class AdminInventoryFragment : Fragment() {
         categoryAdapter.notifyItemInserted(categories.size - 1)
     }
 
-    private fun addNewItemToSelectedCategory() {
-        // Implement logic to select category and add new item
+    private fun fetchCategoryDetails(categoryId: String) {
+        repository.fetchCategoryItems(branchId, categoryId,
+            onSuccess = { items ->
+                updateCategoryItems(categoryId, items)
+            },
+            onFailure = { exception ->
+                Log.e("AdminInventoryFragment", "Error fetching category items", exception)
+            }
+        )
     }
 
     private fun showEditItemDialog(item: CategoryItem) {
-        // Show dialog to edit item details
+        val dialog = EditItemDialogFragment(
+            item = item,
+            branchId = branchId,
+            onItemUpdated = { updatedItem ->
+                updateCategoryItemInUI(updatedItem)
+            }
+        )
+        dialog.show(parentFragmentManager, "EditItemDialog")
     }
 
-    private fun addStockToItem(item: CategoryItem) {
-        // Implement stock addition logic
+    private fun deleteItem(item: CategoryItem) {
+        // Implement logic to add stock to the item
+    }
+
+    private fun updateCategoryItems(categoryId: String, items: List<CategoryItem>) {
+        val categoryIndex = categories.indexOfFirst { it.id == categoryId }
+        if (categoryIndex != -1) {
+            val updatedCategory = categories[categoryIndex].copy(items = items)
+            categories[categoryIndex] = updatedCategory
+            categoryAdapter.notifyItemChanged(categoryIndex)
+        }
+    }
+
+    private fun updateCategoryItemInUI(updatedItem: CategoryItem) {
+        val categoryIndex = categories.indexOfFirst { it.id == updatedItem.categoryId }
+        if (categoryIndex != -1) {
+            val category = categories[categoryIndex]
+            val itemIndex = category.items.indexOfFirst { it.id == updatedItem.id }
+            if (itemIndex != -1) {
+                val updatedItems = category.items.toMutableList()
+                updatedItems[itemIndex] = updatedItem
+                categories[categoryIndex] = category.copy(items = updatedItems)
+                categoryAdapter.notifyItemChanged(categoryIndex)
+            }
+        }
     }
 }
