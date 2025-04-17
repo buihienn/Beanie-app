@@ -46,8 +46,13 @@ class FirebaseRepository(private val db: FirebaseFirestore) {
     }
 
     suspend fun addCategoryItemSuspend(branchId: String, categoryId: String, item: CategoryItem) {
-        val productsRef = db.collection("branches").document(branchId)
-            .collection("categories").document(categoryId).collection("products")
+        val productsRef = db.collection("branches")
+            .document(branchId)
+            .collection("categories")
+            .document(categoryId)
+            .collection("products")
+            .document(item.id)
+
         val itemData = mapOf(
             "name" to item.name,
             "description" to item.description,
@@ -55,7 +60,8 @@ class FirebaseRepository(private val db: FirebaseFirestore) {
             "imageUrl" to item.imageUrl,
             "stock" to item.stockQuantity
         )
-        productsRef.document(item.id).set(itemData).await()
+
+        productsRef.set(itemData).await()
     }
 
     suspend fun editCategoryItemSuspend(branchId: String, categoryId: String, item: CategoryItem) {
