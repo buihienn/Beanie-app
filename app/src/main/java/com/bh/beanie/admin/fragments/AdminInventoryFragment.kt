@@ -20,6 +20,7 @@ import com.bh.beanie.repository.FirebaseRepository
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
 import androidx.lifecycle.lifecycleScope
+import com.bh.beanie.admin.dialogs.AddItemDialogFragment
 
 class AdminInventoryFragment : Fragment() {
     private lateinit var recyclerViewCategory: RecyclerView
@@ -50,7 +51,7 @@ class AdminInventoryFragment : Fragment() {
         }
 
         view.findViewById<Button>(R.id.btnAddItem).setOnClickListener {
-//            addNewItemToSelectedCategory()
+            addNewItem()
         }
 
         return view
@@ -179,5 +180,26 @@ class AdminInventoryFragment : Fragment() {
                 categoryAdapter.notifyItemChanged(categoryIndex)
             }
         }
+    }
+
+    private fun addNewItem() {
+        val dialog = AddItemDialogFragment(
+            branchId = branchId,
+            onItemAdded = { newItem ->
+                // Tìm category tương ứng với item vừa thêm
+                val categoryIndex = categories.indexOfFirst { it.id == newItem.categoryId }
+                if (categoryIndex != -1) {
+                    val category = categories[categoryIndex]
+                    val updatedItems = category.items + newItem
+                    categories[categoryIndex] = category.copy(items = updatedItems)
+                    categoryAdapter.notifyItemChanged(categoryIndex)
+                } else {
+                    // Nếu category chưa có trong danh sách thì có thể thêm mới (nếu cần)
+                    Toast.makeText(requireContext(), "Category not found", Toast.LENGTH_SHORT).show()
+                }
+            }
+        )
+
+        dialog.show(parentFragmentManager, "AddItemDialog")
     }
 }
