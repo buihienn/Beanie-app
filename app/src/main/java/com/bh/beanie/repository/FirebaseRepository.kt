@@ -2,7 +2,9 @@ package com.bh.beanie.repository
 
 import android.util.Log
 import com.bh.beanie.model.Category
-import com.bh.beanie.model.CategoryItem
+import com.bh.beanie.model.Product
+import com.bh.beanie.model.Voucher
+import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 
@@ -21,13 +23,13 @@ class FirebaseRepository(private val db: FirebaseFirestore) {
         }
     }
 
-    suspend fun fetchCategoryItemsSuspend(branchId: String, categoryId: String): List<CategoryItem> {
+    suspend fun fetchCategoryItemsSuspend(branchId: String, categoryId: String): List<Product> {
         val productsRef = db.collection("branches").document(branchId)
             .collection("categories").document(categoryId).collection("products")
         val snapshot = productsRef.get().await()
 
         return snapshot.map { doc ->
-            CategoryItem(
+            Product(
                 id = doc.id,
                 name = doc.getString("name") ?: "Unnamed Product",
                 description = doc.getString("description") ?: "",
@@ -45,7 +47,7 @@ class FirebaseRepository(private val db: FirebaseFirestore) {
         categoriesRef.document(category.id).set(categoryData).await()
     }
 
-    suspend fun addCategoryItemSuspend(branchId: String, categoryId: String, item: CategoryItem) {
+    suspend fun addCategoryItemSuspend(branchId: String, categoryId: String, item: Product) {
         val productsRef = db.collection("branches")
             .document(branchId)
             .collection("categories")
@@ -64,7 +66,7 @@ class FirebaseRepository(private val db: FirebaseFirestore) {
         productsRef.set(itemData).await()
     }
 
-    suspend fun editCategoryItemSuspend(branchId: String, categoryId: String, item: CategoryItem) {
+    suspend fun editCategoryItemSuspend(branchId: String, categoryId: String, item: Product) {
         val itemRef = db.collection("branches").document(branchId)
             .collection("categories").document(categoryId)
             .collection("products").document(item.id)
@@ -87,4 +89,44 @@ class FirebaseRepository(private val db: FirebaseFirestore) {
 
         itemRef.delete().await()
     }
+
+
+    // voucher
+
+    suspend fun addVoucherSuspend(voucher: Voucher) {
+        val voucherRef = db.collection("vouchers").document(voucher.id.ifEmpty { db.collection("vouchers").document().id })
+
+        val voucherData = mapOf(
+            "name" to voucher.name,
+            "content" to voucher.content,
+            "expiryDate" to voucher.expiryDate,
+            "state" to voucher.state,
+            "imageUrl" to voucher.imageUrl,
+            "discountType" to voucher.discountType,
+            "discountValue" to voucher.discountValue,
+            "minOrderAmount" to voucher.minOrderAmount
+        )
+
+        voucherRef.set(voucherData).await()
+    }
+
+    suspend fun fetchVouchersSuspend(): List<Voucher> {
+        val vouchersRef = db.collection("vouchers")
+        val snapshot = vouchersRef.get().await()
+
+        return snapshot.map { doc ->
+            Voucher(
+                id = doc.id,
+                name = doc.getString("name") ?: "",
+                content = doc.getString("content") ?: "",
+                expiryDate = doc.getTimestamp("expiryDate") ?: Timestamp.now(),
+                state = doc.getString("state") ?: "ACTIVE",
+                imageUrl = doc.getString("imageUrl") ?: "",
+                discountType = doc.getString("discountType") ?: "PERCENT",
+                discountValue = doc.getDouble("discountValue") ?: 0.0,
+                minOrderAmount = doc.getDouble("minOrderAmount")
+            )
+        }
+    }
+
 }

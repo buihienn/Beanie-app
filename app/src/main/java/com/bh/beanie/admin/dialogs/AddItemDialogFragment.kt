@@ -16,7 +16,7 @@ import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.lifecycleScope
 import com.bh.beanie.R
 import com.bh.beanie.model.Category
-import com.bh.beanie.model.CategoryItem
+import com.bh.beanie.model.Product
 import com.bh.beanie.repository.CloudinaryRepository
 import com.bh.beanie.repository.FirebaseRepository
 import com.bumptech.glide.Glide
@@ -28,7 +28,7 @@ import java.util.UUID
 
 class AddItemDialogFragment(
     private val branchId: String,
-    private val onItemAdded: (CategoryItem) -> Unit
+    private val onItemAdded: (Product) -> Unit
 ) : DialogFragment() {
 
     private lateinit var imageView: ImageView
@@ -106,7 +106,7 @@ class AddItemDialogFragment(
             if (selectedCategory != Spinner.INVALID_POSITION && selectedCategory < categories.size) {
                 val category = categories[selectedCategory]
 
-                val newItem = CategoryItem(
+                val newItem = Product(
                     id = UUID.randomUUID().toString(),
                     name = nameEditText.text.toString(),
                     price = priceEditText.text.toString().toDoubleOrNull() ?: 0.0,
@@ -173,7 +173,7 @@ class AddItemDialogFragment(
         return name
     }
 
-    private fun addItemToDatabase(item: CategoryItem) {
+    private fun addItemToDatabase(item: Product) {
         lifecycleScope.launch {
             try {
                 repository.addCategoryItemSuspend(branchId, item.categoryId, item)

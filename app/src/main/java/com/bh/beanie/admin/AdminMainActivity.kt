@@ -13,11 +13,7 @@ import com.bh.beanie.admin.fragments.AdminInventoryFragment
 import com.bh.beanie.admin.fragments.AdminOrderFragment
 import com.bh.beanie.admin.fragments.AdminVoucherFragment
 import com.bh.beanie.config.CloudinaryConfig
-import com.bh.beanie.model.Category
-import com.bh.beanie.model.CategoryItem
-import com.google.android.gms.tasks.Tasks
 import com.google.android.material.bottomnavigation.BottomNavigationView
-import com.google.firebase.firestore.FirebaseFirestore
 
 class AdminMainActivity : AppCompatActivity() {
 

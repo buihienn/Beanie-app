@@ -1,8 +1,6 @@
 package com.bh.beanie.model
 
-
-// It a child of category
-data class CategoryItem (
+data class Product (
     val id: String,
     val name: String,
     val description: String,

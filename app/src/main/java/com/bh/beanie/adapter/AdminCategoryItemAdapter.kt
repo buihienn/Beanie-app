@@ -8,13 +8,13 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.bh.beanie.R
-import com.bh.beanie.model.CategoryItem
+import com.bh.beanie.model.Product
 import com.bumptech.glide.Glide
 
 class AdminCategoryItemAdapter(
-    private val items: List<CategoryItem>,
-    private val onEditClick: (CategoryItem) -> Unit,
-    private val onDeleteClick: (CategoryItem) -> Unit
+    private val items: List<Product>,
+    private val onEditClick: (Product) -> Unit,
+    private val onDeleteClick: (Product) -> Unit
 ) : RecyclerView.Adapter<AdminCategoryItemAdapter.CategoryItemViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CategoryItemViewHolder {
@@ -36,7 +36,7 @@ class AdminCategoryItemAdapter(
         private val deleteButton: ImageButton = itemView.findViewById(R.id.imgBtnDelete)
         private val image: ImageView = itemView.findViewById(R.id.imageViewProductAdmin)
 
-        fun bind(item: CategoryItem) {
+        fun bind(item: Product) {
             itemName.text = item.name
             itemStock.text = "Stock: ${item.stockQuantity} | Price: $${item.price}"
 
