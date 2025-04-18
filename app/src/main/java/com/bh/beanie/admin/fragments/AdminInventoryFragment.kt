@@ -8,6 +8,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.ImageButton
 import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -20,7 +21,9 @@ import com.bh.beanie.repository.FirebaseRepository
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
 import androidx.lifecycle.lifecycleScope
+import com.bh.beanie.admin.dialogs.AddCategoryDialogFragment
 import com.bh.beanie.admin.dialogs.AddItemDialogFragment
+import java.util.UUID
 
 class AdminInventoryFragment : Fragment() {
     private lateinit var recyclerViewCategory: RecyclerView
@@ -52,6 +55,10 @@ class AdminInventoryFragment : Fragment() {
 
         view.findViewById<Button>(R.id.btnAddItem).setOnClickListener {
             addNewItem()
+        }
+
+        view.findViewById<ImageButton>(R.id.btnBack).setOnClickListener {
+            requireActivity().onBackPressedDispatcher.onBackPressed()
         }
 
         return view
@@ -89,14 +96,24 @@ class AdminInventoryFragment : Fragment() {
     }
 
     private fun addNewCategory() {
-        val newCategory = Category(
-            id = System.currentTimeMillis().toString(), // Generate a unique ID
-            name = "New Category",
-            items = emptyList()
-        )
+        AddCategoryDialogFragment { categoryName ->
+            val newCategory = Category(
+                id = UUID.randomUUID().toString(),
+                name = categoryName,
+                items = emptyList()
+            )
 
-        categories.add(newCategory)
-        categoryAdapter.notifyItemInserted(categories.size - 1)
+            lifecycleScope.launch {
+                try {
+                    repository.addCategorySuspend(branchId, newCategory)
+                    categories.add(newCategory) // Cập nhật local list
+                    categoryAdapter.notifyItemInserted(categories.size - 1)
+                } catch (e: Exception) {
+                    Log.e("AddCategory", "Error adding category", e)
+                    Toast.makeText(requireContext(), "Thêm danh mục thất bại", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }.show(parentFragmentManager, "AddCategoryDialog")
     }
 
     private fun fetchCategoryDetails(categoryId: String) {

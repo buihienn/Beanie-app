@@ -15,15 +15,17 @@
 
         <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="50dp">
+            android:layout_height="50dp"
+            android:background="#EBDAAB">
 
             <ImageButton
                 android:id="@+id/btnBack"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:minHeight="48dp"
                 android:layout_gravity="start|center_vertical"
+                android:backgroundTint="#00FFFFFF"
                 android:contentDescription="Back Image"
+                android:minHeight="48dp"
                 android:src="@drawable/baseline_arrow_back_24" />
 
             <TextView

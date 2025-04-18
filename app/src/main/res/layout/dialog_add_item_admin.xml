@@ -37,7 +37,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:text="Chọn ảnh" />
+            android:text="Choose image" />
 
         <TextView
             android:layout_width="match_parent"
@@ -63,8 +63,8 @@
             android:id="@+id/editTextName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:minHeight="48dp"
-            android:hint="Tên sản phẩm" />
+            android:hint="Name of item"
+            android:minHeight="48dp" />
 
         <TextView
             android:layout_width="match_parent"
@@ -78,7 +78,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:minHeight="48dp"
-            android:hint="Giá"
+            android:hint="Price"
             android:inputType="numberDecimal" />
 
         <TextView
@@ -92,7 +92,7 @@
             android:id="@+id/editTextStock"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Số lượng"
+            android:hint="Number of items"
             android:minHeight="48dp"
             android:inputType="number" />
 
@@ -101,7 +101,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            android:text="Lưu" />
+            android:text="Save" />
 
     </LinearLayout>
 
