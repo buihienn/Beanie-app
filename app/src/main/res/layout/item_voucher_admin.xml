@@ -53,7 +53,7 @@
         app:layout_constraintTop_toBottomOf="@+id/textTime" />
 
     <Button
-        android:id="@+id/btnConfirm"
+        android:id="@+id/btnEditVoucher"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="10dp"

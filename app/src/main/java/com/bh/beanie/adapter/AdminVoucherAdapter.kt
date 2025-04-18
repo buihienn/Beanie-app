@@ -3,6 +3,7 @@ package com.bh.beanie.adapter
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
@@ -12,53 +13,56 @@ import com.bumptech.glide.Glide
 import java.text.SimpleDateFormat
 import java.util.Locale
 
-class AdminVoucherAdapter(private val voucherList: MutableList<Voucher>) :
-    RecyclerView.Adapter<AdminVoucherAdapter.VoucherViewHolder>() {
+class AdminVoucherAdapter(
+    private val voucherList: MutableList<Voucher>,
+    private val onEditClick: (Voucher) -> Unit,
+) : RecyclerView.Adapter<AdminVoucherAdapter.VoucherViewHolder>() {
 
-    class VoucherViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val imageView: ImageView = itemView.findViewById(R.id.imageView4)
-        val nameVoucher: TextView = itemView.findViewById(R.id.nameVoucher)
-        val contentVoucher: TextView = itemView.findViewById(R.id.contentVoucher)
-        val expiryDateText: TextView = itemView.findViewById(R.id.textTime)
-        val stateVoucher: TextView = itemView.findViewById(R.id.stateVoucher)
+    inner class VoucherViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        private val imageView: ImageView = itemView.findViewById(R.id.imageView4)
+        private val nameVoucher: TextView = itemView.findViewById(R.id.nameVoucher)
+        private val contentVoucher: TextView = itemView.findViewById(R.id.contentVoucher)
+        private val expiryDateText: TextView = itemView.findViewById(R.id.textTime)
+        private val stateVoucher: TextView = itemView.findViewById(R.id.stateVoucher)
+        private val btnEditVoucher: Button = itemView.findViewById(R.id.btnEditVoucher)
 
-        fun bind(voucher: Voucher) {
+        fun bind(voucher: Voucher, onEditClick: (Voucher) -> Unit) {
             nameVoucher.text = voucher.name
             contentVoucher.text = voucher.content
+
             val expiryDate = voucher.expiryDate.toDate()
             val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-            val formattedDate = dateFormat.format(expiryDate)
-            expiryDateText.text = "Hạn: $formattedDate"
+            expiryDateText.text = "Hạn: ${dateFormat.format(expiryDate)}"
 
             stateVoucher.text = voucher.state
+            val colorRes = if (voucher.state == "ACTIVE") R.color.green else R.color.button_red
+            stateVoucher.setTextColor(itemView.context.getColor(colorRes))
 
-            if (voucher.state == "ACTIVE") {
-                stateVoucher.setTextColor(itemView.context.getColor(R.color.green))
-            } else {
-                stateVoucher.setTextColor(itemView.context.getColor(R.color.button_red))
+            Glide.with(itemView.context)
+                .load(voucher.imageUrl)
+                .into(imageView)
+
+            btnEditVoucher.setOnClickListener {
+                onEditClick(voucher)
             }
-
-            Glide.with(itemView.context).load(voucher.imageUrl).into(imageView)
         }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VoucherViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.item_voucher_admin, parent, false)
+        val view = LayoutInflater.from(parent.context)
+            .inflate(R.layout.item_voucher_admin, parent, false)
         return VoucherViewHolder(view)
     }
 
     override fun onBindViewHolder(holder: VoucherViewHolder, position: Int) {
-        val voucher = voucherList[position]
-        holder.bind(voucher)
+        holder.bind(voucherList[position], onEditClick)
     }
 
-    override fun getItemCount(): Int {
-        return voucherList.size
-    }
+    override fun getItemCount(): Int = voucherList.size
 
-//    fun updateVoucherList(newVoucherList: List<Voucher>) {
-//        voucherList.clear()
-//        voucherList.addAll(newVoucherList)
-//        notifyDataSetChanged()
-//    }
+    fun updateData(newList: List<Voucher>) {
+        voucherList.clear()
+        voucherList.addAll(newList)
+        notifyDataSetChanged()
+    }
 }
