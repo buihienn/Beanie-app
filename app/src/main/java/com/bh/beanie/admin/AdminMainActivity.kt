@@ -56,7 +56,10 @@ class AdminMainActivity : AppCompatActivity() {
             }
 
             fragment?.let {
-                supportFragmentManager.beginTransaction().replace(R.id.fragment_container, it).commit()
+                supportFragmentManager.beginTransaction()
+                    .replace(R.id.fragment_container, it)
+                    .addToBackStack(null) // Thêm fragment vào back stack
+                    .commit()
                 true
             } ?: false
         }
