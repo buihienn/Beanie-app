@@ -8,13 +8,13 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bh.beanie.R
 import com.bh.beanie.model.Category
-import com.bh.beanie.model.CategoryItem
+import com.bh.beanie.model.Product
 
 class AdminCategoryAdapter(
     private val categories: List<Category>,
     private val onCategoryClick: (Category) -> Unit,
-    private val onEditItemClick: (CategoryItem) -> Unit,
-    private val onDeleteItemClick: (CategoryItem) -> Unit
+    private val onEditItemClick: (Product) -> Unit,
+    private val onDeleteItemClick: (Product) -> Unit
 ) : RecyclerView.Adapter<AdminCategoryAdapter.CategoryViewHolder>() {
 
     // Sử dụng Set để lưu các vị trí đang mở

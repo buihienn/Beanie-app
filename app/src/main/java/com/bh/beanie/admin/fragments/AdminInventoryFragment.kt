@@ -16,7 +16,7 @@ import com.bh.beanie.R
 import com.bh.beanie.adapter.AdminCategoryAdapter
 import com.bh.beanie.admin.dialogs.EditItemDialogFragment
 import com.bh.beanie.model.Category
-import com.bh.beanie.model.CategoryItem
+import com.bh.beanie.model.Product
 import com.bh.beanie.repository.FirebaseRepository
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
@@ -127,7 +127,7 @@ class AdminInventoryFragment : Fragment() {
         }
     }
 
-    private fun showEditItemDialog(item: CategoryItem) {
+    private fun showEditItemDialog(item: Product) {
         val dialog = EditItemDialogFragment(
             item = item,
             branchId = branchId,
@@ -138,7 +138,7 @@ class AdminInventoryFragment : Fragment() {
         dialog.show(parentFragmentManager, "EditItemDialog")
     }
 
-    private fun deleteItem(item: CategoryItem) {
+    private fun deleteItem(item: Product) {
         val dialog = AlertDialog.Builder(requireContext())
             .setTitle("Confirm Delete")
             .setMessage("Are you sure you want to delete this item?")
@@ -162,7 +162,7 @@ class AdminInventoryFragment : Fragment() {
         dialog.show()
     }
 
-    private fun removeItemFromUI(item: CategoryItem) {
+    private fun removeItemFromUI(item: Product) {
         // Loại bỏ item khỏi danh sách và cập nhật lại RecyclerView
         val category = categories.find { it.id == item.categoryId }
         category?.let {
@@ -176,7 +176,7 @@ class AdminInventoryFragment : Fragment() {
         }
     }
 
-    private fun updateCategoryItems(categoryId: String, items: List<CategoryItem>) {
+    private fun updateCategoryItems(categoryId: String, items: List<Product>) {
         val categoryIndex = categories.indexOfFirst { it.id == categoryId }
         if (categoryIndex != -1) {
             val updatedCategory = categories[categoryIndex].copy(items = items)
@@ -185,7 +185,7 @@ class AdminInventoryFragment : Fragment() {
         }
     }
 
-    private fun updateCategoryItemInUI(updatedItem: CategoryItem) {
+    private fun updateCategoryItemInUI(updatedItem: Product) {
         val categoryIndex = categories.indexOfFirst { it.id == updatedItem.categoryId }
         if (categoryIndex != -1) {
             val category = categories[categoryIndex]

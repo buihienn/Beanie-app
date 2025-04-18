@@ -14,7 +14,7 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.DialogFragment
 import com.bh.beanie.R
-import com.bh.beanie.model.CategoryItem
+import com.bh.beanie.model.Product
 import com.bh.beanie.repository.CloudinaryRepository
 import com.bh.beanie.repository.FirebaseRepository
 import com.bumptech.glide.Glide
@@ -25,9 +25,9 @@ import kotlinx.coroutines.launch
 import androidx.lifecycle.lifecycleScope
 
 class EditItemDialogFragment(
-    private val item: CategoryItem,
+    private val item: Product,
     private val branchId: String,
-    private val onItemUpdated: (CategoryItem) -> Unit
+    private val onItemUpdated: (Product) -> Unit
 ) : DialogFragment() {
 
     private lateinit var imageView: ImageView
@@ -158,7 +158,7 @@ class EditItemDialogFragment(
         return name
     }
 
-    private fun updateItemInDatabase(updatedItem: CategoryItem) {
+    private fun updateItemInDatabase(updatedItem: Product) {
         lifecycleScope.launch {
             try {
                 repository.editCategoryItemSuspend(branchId, updatedItem.categoryId, updatedItem)
