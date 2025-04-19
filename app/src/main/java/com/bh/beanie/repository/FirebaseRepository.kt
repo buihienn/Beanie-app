@@ -8,7 +8,9 @@ import com.bh.beanie.model.OrderItem
 import com.bh.beanie.model.Product
 import com.bh.beanie.model.Voucher
 import com.google.firebase.Timestamp
+import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.async
@@ -154,10 +156,18 @@ class FirebaseRepository(private val db: FirebaseFirestore) {
         }
     }
 
-    suspend fun fetchAllOrdersWithItems(): List<Order> = coroutineScope {
-        val ordersSnapshot = db.collection("orders").get().await()
+    suspend fun fetchOrdersPaginated(lastVisibleDocument: DocumentSnapshot? = null): Pair<List<Order>, DocumentSnapshot?> = coroutineScope {
+        var query = db.collection("orders")
+            .orderBy("orderTime", Query.Direction.DESCENDING)
+            .limit(7)
 
-        ordersSnapshot.map { doc ->
+        lastVisibleDocument?.let {
+            query = query.startAfter(it)
+        }
+
+        val ordersSnapshot = query.get().await()
+
+        val orders = ordersSnapshot.map { doc ->
             async {
                 val orderId = doc.id
                 val order = Order(
@@ -167,9 +177,9 @@ class FirebaseRepository(private val db: FirebaseFirestore) {
                     customerName = doc.getString("customerName") ?: "",
                     phoneNumber = doc.getString("phoneNumber") ?: "",
                     deliveryAddress = doc.getString("deliveryAddress") ?: "",
-                    type = doc.getString("type") ?: "PENDING",
+                    type = doc.getString("type") ?: "DELIVERY",
                     totalPrice = doc.getDouble("totalPrice") ?: 0.0,
-                    status = doc.getString("status") ?: "PENDING",
+                    status = doc.getString("status") ?: "WAITING ACCEPT",
                     orderTime = doc.getTimestamp("orderTime") ?: Timestamp.now(),
                     paymentMethod = doc.getString("paymentMethod") ?: "CASH",
                     note = doc.getString("note") ?: ""
@@ -177,8 +187,22 @@ class FirebaseRepository(private val db: FirebaseFirestore) {
                 val items = fetchOrderItems(orderId)
                 order.copy(items = items)
             }
-        }.awaitAll()
+        }
+
+        val orderList = orders.awaitAll()
+        val lastDoc = ordersSnapshot.documents.lastOrNull()
+
+        Pair(orderList, lastDoc)
     }
+
+    suspend fun updateOrderStatus(orderId: String, newStatus: String) {
+        val orderRef = db.collection("orders").document(orderId)
+        orderRef.update("status", newStatus).await()
+    }
+
+
+
+
 
 
 }

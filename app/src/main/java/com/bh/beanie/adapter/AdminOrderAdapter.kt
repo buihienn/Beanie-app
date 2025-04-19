@@ -1,5 +1,6 @@
 package com.bh.beanie.adapter
 
+import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,23 +14,23 @@ import java.util.Locale
 
 
 class AdminOrderAdapter(
-    private var orderList: List<Order>, // Thay đổi sang var để có thể cập nhật
+    private var orderList: MutableList<Order>,
     private val onConfirmClick: (Order) -> Unit,
     private val onCancelClick: (Order) -> Unit,
+    private val onCompleteClick: (Order) -> Unit,
     private val onItemClick: (Order) -> Unit
 ) : RecyclerView.Adapter<AdminOrderAdapter.OrderViewHolder>() {
 
     inner class OrderViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-
-        val listProducts: TextView = view.findViewById(R.id.listProducts)
-        val customerName: TextView = view.findViewById(R.id.contentOrder)
-        val orderTime: TextView = view.findViewById(R.id.textTime)
-        val orderStatus: TextView = view.findViewById(R.id.stateOrder)
-        val btnConfirm: Button = view.findViewById(R.id.btnConfirm)
-        val btnCancel: Button = view.findViewById(R.id.btnCancel)
+        private val listProducts: TextView = view.findViewById(R.id.listProducts)
+        private val customerName: TextView = view.findViewById(R.id.contentOrder)
+        private val orderTime: TextView = view.findViewById(R.id.textTime)
+        private val orderStatus: TextView = view.findViewById(R.id.stateOrder)
+        private val btnConfirm: Button = view.findViewById(R.id.btnConfirm)
+        private val btnCancel: Button = view.findViewById(R.id.btnCancel)
+        private val btnCompleted: Button = view.findViewById(R.id.btnComplted)
 
         fun bind(order: Order) {
-            // Concatenate product names
             val format = SimpleDateFormat("dd/MM/yy - HH:mm:ss", Locale.getDefault())
             val formattedDate = format.format(order.orderTime.toDate())
 
@@ -37,22 +38,31 @@ class AdminOrderAdapter(
             listProducts.text = productNames
 
             customerName.text = order.customerName
-            orderTime.text = order.orderTime.toDate().toString()
-            orderStatus.text = order.status
-
             orderTime.text = formattedDate
+            orderStatus.text = order.status
 
             orderStatus.setTextColor(
                 when (order.status) {
-                    "CONFIRMED" -> android.graphics.Color.GREEN
-                    "PENDING" -> android.graphics.Color.YELLOW
-                    "CANCELLED" -> android.graphics.Color.RED
+                    "WAITING ACCEPT" -> android.graphics.Color.GRAY
+                    "READY FOR PICKUP" -> android.graphics.Color.BLUE
+                    "DELIVERING" -> android.graphics.Color.BLUE
+                    "CONFIRMED" -> Color.parseColor("#4CAF50")
+                    "PENDING" -> Color.parseColor("#FBC02D")
+                    "CANCELED" -> android.graphics.Color.RED
                     else -> android.graphics.Color.GRAY
                 }
             )
 
+            btnConfirm.visibility = if (order.status == "WAITING ACCEPT") View.VISIBLE else View.GONE
+            btnCancel.visibility = if (order.status == "WAITING ACCEPT") View.VISIBLE else View.GONE
+            btnCompleted.visibility = if (order.status == "PENDING") View.VISIBLE else View.GONE
+
+
             btnConfirm.setOnClickListener { onConfirmClick(order) }
             btnCancel.setOnClickListener { onCancelClick(order) }
+            btnCompleted.setOnClickListener { onCompleteClick(order) }
+
+            itemView.setOnClickListener { onItemClick(order) }
         }
     }
 
@@ -68,9 +78,19 @@ class AdminOrderAdapter(
 
     override fun getItemCount(): Int = orderList.size
 
-    // Thêm phương thức để cập nhật danh sách đơn hàng
     fun updateOrders(newOrderList: List<Order>) {
-        orderList = newOrderList
+        orderList = newOrderList.toMutableList()
+        notifyDataSetChanged()
+    }
+
+    fun appendOrders(newOrders: List<Order>) {
+        val startPosition = orderList.size
+        orderList.addAll(newOrders)
+        notifyItemRangeInserted(startPosition, newOrders.size)
+    }
+
+    fun clearOrders() {
+        orderList.clear()
         notifyDataSetChanged()
     }
 }
