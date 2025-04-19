@@ -19,12 +19,12 @@
         android:layout_marginStart="10dp"
         android:layout_marginTop="10dp"
         android:layout_marginEnd="10dp"
+        android:ellipsize="end"
+        android:maxLines="1"
         android:text="#0123"
         android:textStyle="bold"
-        android:maxLines="1"
-        android:ellipsize="end"
-        app:layout_constraintStart_toEndOf="@+id/imgOrder"
         app:layout_constraintEnd_toStartOf="@+id/btnConfirm"
+        app:layout_constraintStart_toEndOf="@+id/imgOrder"
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
@@ -32,10 +32,10 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
+        android:layout_marginEnd="10dp"
         android:ellipsize="end"
         android:maxLines="1"
         android:text="Nguyen Van A"
-        android:layout_marginEnd="10dp"
         app:layout_constraintEnd_toStartOf="@+id/btnConfirm"
         app:layout_constraintStart_toStartOf="@+id/listProducts"
         app:layout_constraintTop_toBottomOf="@+id/listProducts" />
@@ -55,7 +55,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
         android:text="CONFIRMED"
-        android:textColor="@color/primary_green"
+        android:textColor="#4CAF50"
         app:layout_constraintStart_toStartOf="@+id/textTime"
         app:layout_constraintTop_toBottomOf="@+id/textTime" />
 
@@ -64,7 +64,7 @@
         android:layout_width="100dp"
         android:layout_height="48dp"
         android:layout_marginTop="10dp"
-        android:layout_marginEnd="16dp"
+        android:layout_marginEnd="10dp"
         android:backgroundTint="#359FF2"
         android:checkable="false"
         android:text="Confirm"
@@ -73,11 +73,28 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <Button
+        android:id="@+id/btnComplted"
+        android:layout_width="100dp"
+        android:layout_height="48dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginEnd="10dp"
+        android:backgroundTint="@color/green"
+        android:checkable="false"
+        android:padding="0dp"
+        android:text="Completed"
+        android:visibility="gone"
+        app:cornerRadius="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.5" />
+
+    <Button
         android:id="@+id/btnCancel"
         android:layout_width="100dp"
         android:layout_height="48dp"
         android:layout_marginTop="10dp"
-        android:layout_marginEnd="16dp"
+        android:layout_marginEnd="10dp"
         android:backgroundTint="#7EF80707"
         android:checkable="false"
         android:text="Cancel"

@@ -34,17 +34,18 @@
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginVertical="15dp">
+            android:layout_marginTop="15dp">
 
-            <EditText
+            <AutoCompleteTextView
                 android:id="@+id/searchText"
                 android:layout_width="380dp"
                 android:layout_height="50dp"
                 android:layout_marginStart="10dp"
                 android:drawableStart="@android:drawable/ic_menu_search"
                 android:ems="10"
-                android:hint="Search order ..."
+                android:hint="Search order by customer name"
                 android:inputType="text"
+                android:completionThreshold="2"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
@@ -53,17 +54,18 @@
         </androidx.constraintlayout.widget.ConstraintLayout>
 
         <RadioGroup
+            android:id="@+id/radioGroupRow1"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="10dp"
-            android:orientation="horizontal"
-            android:layout_marginHorizontal="10dp">
+            android:layout_marginHorizontal="10dp"
+            android:orientation="horizontal">
 
             <RadioButton
                 android:id="@+id/radioBtnAll"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:checked="true"
                 android:text="All" />
 
             <RadioButton
@@ -87,11 +89,49 @@
                 android:text="Canceled" />
         </RadioGroup>
 
+        <RadioGroup
+            android:id="@+id/radioGroupRow2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="10dp"
+            android:layout_marginBottom="10dp"
+            android:orientation="horizontal">
+
+            <RadioButton
+                android:id="@+id/radioBtnPickup"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Pickup" />
+
+            <RadioButton
+                android:id="@+id/radioBtnDelivering"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Delivering" />
+
+            <RadioButton
+                android:id="@+id/radioBtnWaiting"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Waiting" />
+        </RadioGroup>
+
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recyclerViewOrder"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_marginHorizontal="10dp" />
     </LinearLayout>
+
+    <ProgressBar
+        android:id="@+id/progressBarLoading"
+        style="?android:attr/progressBarStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:visibility="gone"/>
 
 </FrameLayout>

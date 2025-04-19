@@ -14,7 +14,7 @@ data class Order(
 
     val items: List<OrderItem> = emptyList(),
     val totalPrice: Double = 0.0,
-    val status: String = "PENDING", // "PENDING", "CONFIRMED", "DELIVERED", "CANCELLED"
+    val status: String = "WAITING ACCEPT", //"WAITING ACCEPT" "READY FOR PICKUP"  "PENDING" "DELIVERING" "COMPLETED" "CANCELLED"
     val orderTime: Timestamp = Timestamp.now(),
     val paymentMethod: String = "CASH", // "MOMO", "VNPAY", ...
     val note: String = ""
