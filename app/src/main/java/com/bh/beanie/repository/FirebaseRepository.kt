@@ -2,11 +2,17 @@ package com.bh.beanie.repository
 
 import android.util.Log
 import com.bh.beanie.model.Category
+import com.bh.beanie.model.Order
+import com.bh.beanie.model.OrderItem
+
 import com.bh.beanie.model.Product
 import com.bh.beanie.model.Voucher
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 
 class FirebaseRepository(private val db: FirebaseFirestore) {
 
@@ -128,5 +134,51 @@ class FirebaseRepository(private val db: FirebaseFirestore) {
             )
         }
     }
+
+    // Lấy danh sách sản phẩm trong đơn hàng
+    private suspend fun fetchOrderItems(orderId: String): List<OrderItem> {
+        val itemsSnapshot = db.collection("orders")
+            .document(orderId)
+            .collection("order_items")
+            .get()
+            .await()
+
+        return itemsSnapshot.map { doc ->
+            OrderItem(
+                productId = doc.getString("productId") ?: "",
+                productName = doc.getString("productName") ?: "",
+                size = doc.getString("size") ?: "",
+                quantity = doc.getLong("quantity")?.toInt() ?: 0,
+                unitPrice = doc.getDouble("unitPrice") ?: 0.0
+            )
+        }
+    }
+
+    suspend fun fetchAllOrdersWithItems(): List<Order> = coroutineScope {
+        val ordersSnapshot = db.collection("orders").get().await()
+
+        ordersSnapshot.map { doc ->
+            async {
+                val orderId = doc.id
+                val order = Order(
+                    id = orderId,
+                    branchId = doc.getString("branchId") ?: "",
+                    userId = doc.getString("userId") ?: "",
+                    customerName = doc.getString("customerName") ?: "",
+                    phoneNumber = doc.getString("phoneNumber") ?: "",
+                    deliveryAddress = doc.getString("deliveryAddress") ?: "",
+                    type = doc.getString("type") ?: "PENDING",
+                    totalPrice = doc.getDouble("totalPrice") ?: 0.0,
+                    status = doc.getString("status") ?: "PENDING",
+                    orderTime = doc.getTimestamp("orderTime") ?: Timestamp.now(),
+                    paymentMethod = doc.getString("paymentMethod") ?: "CASH",
+                    note = doc.getString("note") ?: ""
+                )
+                val items = fetchOrderItems(orderId)
+                order.copy(items = items)
+            }
+        }.awaitAll()
+    }
+
 
 }
