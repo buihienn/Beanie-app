@@ -10,27 +10,35 @@
         android:layout_height="130dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/ic_launcher_background" />
+        app:srcCompat="@drawable/ic_order_admin" />
 
     <TextView
-        android:id="@+id/idOrder"
-        android:layout_width="wrap_content"
+        android:id="@+id/listProducts"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="20dp"
+        android:layout_marginStart="10dp"
         android:layout_marginTop="10dp"
+        android:layout_marginEnd="10dp"
         android:text="#0123"
         android:textStyle="bold"
+        android:maxLines="1"
+        android:ellipsize="end"
         app:layout_constraintStart_toEndOf="@+id/imgOrder"
+        app:layout_constraintEnd_toStartOf="@+id/btnConfirm"
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
         android:id="@+id/contentOrder"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
+        android:ellipsize="end"
+        android:maxLines="1"
         android:text="Nguyen Van A"
-        app:layout_constraintStart_toStartOf="@+id/idOrder"
-        app:layout_constraintTop_toBottomOf="@+id/idOrder" />
+        android:layout_marginEnd="10dp"
+        app:layout_constraintEnd_toStartOf="@+id/btnConfirm"
+        app:layout_constraintStart_toStartOf="@+id/listProducts"
+        app:layout_constraintTop_toBottomOf="@+id/listProducts" />
 
     <TextView
         android:id="@+id/textTime"
@@ -46,7 +54,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
-        android:text="Done"
+        android:text="CONFIRMED"
         android:textColor="@color/primary_green"
         app:layout_constraintStart_toStartOf="@+id/textTime"
         app:layout_constraintTop_toBottomOf="@+id/textTime" />
