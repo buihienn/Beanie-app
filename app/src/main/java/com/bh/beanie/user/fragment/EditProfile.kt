@@ -1,114 +1,234 @@
 package com.bh.beanie.user.fragment
 
+import android.app.AlertDialog
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.* // Import các lớp View cần thiết
-import android.widget.ArrayAdapter
-import android.widget.Toast
+import android.widget.*
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import com.bh.beanie.R
+import com.bh.beanie.model.User
+import com.bh.beanie.repository.UserRepository
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.imageview.ShapeableImageView
 import com.google.android.material.textfield.TextInputEditText
+import com.google.firebase.auth.EmailAuthProvider
+import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 
-/**
- * A simple [Fragment] subclass.
- * Use the [EditProfile.newInstance] factory method to
- * create an instance of this fragment.
- */
 class EditProfile : Fragment() {
-    // TODO: Rename and change types of parameters
-    // --- Khai báo biến cho các View ---
-    // Khai báo là lateinit vì chúng sẽ được khởi tạo trong onViewCreated
+    // View references
     private lateinit var ivBackArrow: ImageView
     private lateinit var tvProfileTitle: TextView
     private lateinit var ivProfilePic: ShapeableImageView
     private lateinit var tvUserName: TextView
-    private lateinit var etEmailEditable: TextInputEditText // Hoặc EditText nếu không dùng TextInputLayout
     private lateinit var etEmailDisabled1: TextInputEditText
-    private lateinit var etEmailDisabled2: TextInputEditText
-    private lateinit var actvEmailDropdown: AutoCompleteTextView
-    private lateinit var btnUpdateProfile: MaterialButton // Hoặc Button
-    private lateinit var btnDeleteAccount: MaterialButton // Hoặc Button
+    private lateinit var etPhoneNumber: TextInputEditText
+    private lateinit var etNewPassword: TextInputEditText
+    private lateinit var etConfirmPassword: TextInputEditText
+    private lateinit var btnUpdateProfile: MaterialButton
+    private lateinit var btnDeleteAccount: MaterialButton
+    private lateinit var progressBar: ProgressBar
 
-    // --- onCreateView ---
-    // Chỉ inflate layout và trả về View
+    // Repository reference
+    private lateinit var userRepository: UserRepository
+    private lateinit var auth: FirebaseAuth
+    private var currentUser: User? = null
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // Inflate layout XML bằng cách truyền thống
-        // Trả về view gốc của layout đã inflate
         return inflater.inflate(R.layout.fragment_edit_profile, container, false)
     }
 
-    // --- onViewCreated ---
-    // Tìm và thiết lập các View sau khi layout đã được tạo
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // --- Ánh xạ Views sử dụng findViewById ---
-        // Sử dụng 'view' được truyền vào hàm này để gọi findViewById
+        // Initialize Firebase Auth
+        auth = FirebaseAuth.getInstance()
+
+        // Initialize repository
+        userRepository = UserRepository.getInstance()
+
+        // Map views
+        mapViews(view)
+
+        // Setup button click listeners
+        setupButtonClickListeners()
+
+        // Load user data
+        loadUserData()
+    }
+
+    private fun mapViews(view: View) {
         ivBackArrow = view.findViewById(R.id.ivBackArrow)
-        tvProfileTitle = view.findViewById(R.id.tvProfileTitle) // Mặc dù không dùng trong logic nhưng vẫn có thể ánh xạ
+        tvProfileTitle = view.findViewById(R.id.tvProfileTitle)
         ivProfilePic = view.findViewById(R.id.ivProfilePic)
         tvUserName = view.findViewById(R.id.tvUserName)
-        etEmailEditable = view.findViewById(R.id.etEmailEditable) // ID của TextInputEditText bên trong TextInputLayout
         etEmailDisabled1 = view.findViewById(R.id.etEmailDisabled1)
-        etEmailDisabled2 = view.findViewById(R.id.etEmailDisabled2)
-        actvEmailDropdown = view.findViewById(R.id.actvEmailDropdown)
+        etPhoneNumber = view.findViewById(R.id.etPhoneNumber)
+        etNewPassword = view.findViewById(R.id.etNewPassword)
+        etConfirmPassword = view.findViewById(R.id.etConfirmPassword)
         btnUpdateProfile = view.findViewById(R.id.btnUpdateProfile)
         btnDeleteAccount = view.findViewById(R.id.btnDeleteAccount)
-
-
-        // --- Thiết lập Dữ liệu cho Dropdown (AutoCompleteTextView) ---
-        setupDropdown()
-
-        // --- Thiết lập Listener cho các nút ---
-        setupButtonClickListeners()
+        progressBar = view.findViewById(R.id.progressBar)
     }
 
-    // --- Thiết lập Dropdown ---
-    private fun setupDropdown() {
-        val items = listOf("Email Option 1", "Email Option 2", "Email Option 3")
-        // Cần Context để tạo Adapter, dùng requireContext() là an toàn trong Fragment sau onViewCreated
-        val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, items)
-        // Gán Adapter cho AutoCompleteTextView đã ánh xạ
-        actvEmailDropdown.setAdapter(adapter)
+    private fun loadUserData() {
+        showLoading(true)
+
+        lifecycleScope.launch {
+            try {
+                currentUser = userRepository.getCurrentUser()
+                currentUser?.let { user ->
+                    updateUI(user)
+                } ?: run {
+                    Toast.makeText(requireContext(), "Failed to load user data", Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: Exception) {
+                Toast.makeText(requireContext(), "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+            } finally {
+                showLoading(false)
+            }
+        }
     }
 
-    // --- Thiết lập Listener ---
+    private fun updateUI(user: User) {
+        tvUserName.text = user.username
+        etEmailDisabled1.setText(user.email)
+        etPhoneNumber.setText(user.phone)
+    }
+
     private fun setupButtonClickListeners() {
-        // Nút Back Arrow
         ivBackArrow.setOnClickListener {
-            //findNavController().navigateUp() // Vẫn dùng Navigation Component hoặc cách khác
+            requireActivity().onBackPressed()
         }
 
-        // Nút Update Profile
         btnUpdateProfile.setOnClickListener {
-            val emailEditable = etEmailEditable.text.toString()
-            val emailDisabled1 = etEmailDisabled1.text.toString()
-            val emailDisabled2 = etEmailDisabled2.text.toString()
-            val emailDropdown = actvEmailDropdown.text.toString()
-
-            // TODO: Validate và xử lý logic cập nhật
-            Toast.makeText(requireContext(), "Update Profile Clicked (findViewById)", Toast.LENGTH_SHORT).show()
-            println("Email Editable: $emailEditable")
-            println("Email Dropdown: $emailDropdown")
+            updateProfile()
         }
 
-        // Nút Delete Account
         btnDeleteAccount.setOnClickListener {
-            // TODO: Xử lý logic xóa tài khoản
-            Toast.makeText(requireContext(), "Delete Account Clicked (findViewById)", Toast.LENGTH_SHORT).show()
+            showDeleteConfirmation()
         }
     }
 
-    // --- onDestroyView ---
-    // Không cần làm gì đặc biệt ở đây khi không dùng View Binding
-    // override fun onDestroyView() {
-    //     super.onDestroyView()
-    // }
+    private fun updateProfile() {
+        val phoneNumber = etPhoneNumber.text.toString().trim()
+        val newPassword = etNewPassword.text.toString()
+        val confirmPassword = etConfirmPassword.text.toString()
+
+        // Validate phone number
+        if (phoneNumber.isEmpty()) {
+            etPhoneNumber.error = "Phone number cannot be empty"
+            return
+        }
+
+        // Validate password fields if they're not empty
+        if (newPassword.isNotEmpty() || confirmPassword.isNotEmpty()) {
+            if (newPassword.length < 6) {
+                etNewPassword.error = "Password must be at least 6 characters"
+                return
+            }
+
+            if (newPassword != confirmPassword) {
+                etConfirmPassword.error = "Passwords don't match"
+                return
+            }
+        }
+
+        showLoading(true)
+
+        lifecycleScope.launch {
+            try {
+                // Update phone number in Firestore
+                currentUser?.let { user ->
+                    user.phone = phoneNumber
+                    val profileUpdated = userRepository.updateUserProfile(user)
+
+                    // Update password in Firebase Auth if provided
+                    var passwordUpdated = true
+                    if (newPassword.isNotEmpty()) {
+                        passwordUpdated = updateUserPassword(newPassword)
+                    }
+
+                    if (profileUpdated && passwordUpdated) {
+                        Toast.makeText(requireContext(), "Profile updated successfully", Toast.LENGTH_SHORT).show()
+                        // Clear password fields
+                        etNewPassword.text?.clear()
+                        etConfirmPassword.text?.clear()
+                    } else {
+                        Toast.makeText(requireContext(), "Failed to update some profile information", Toast.LENGTH_SHORT).show()
+                    }
+                } ?: run {
+                    Toast.makeText(requireContext(), "No user data available", Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: Exception) {
+                Toast.makeText(requireContext(), "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+            } finally {
+                showLoading(false)
+            }
+        }
+    }
+
+    private suspend fun updateUserPassword(newPassword: String): Boolean {
+        return try {
+            auth.currentUser?.updatePassword(newPassword)?.await()
+            true
+        } catch (e: Exception) {
+            Toast.makeText(requireContext(), "Failed to update password: ${e.message}", Toast.LENGTH_SHORT).show()
+            false
+        }
+    }
+
+    private fun showDeleteConfirmation() {
+        AlertDialog.Builder(requireContext())
+            .setTitle("Delete Account")
+            .setMessage("Are you sure you want to delete your account? This action cannot be undone.")
+            .setPositiveButton("Delete") { _, _ ->
+                deleteAccount()
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun deleteAccount() {
+        showLoading(true)
+
+        lifecycleScope.launch {
+            try {
+                val success = userRepository.deleteAccount()
+                if (success) {
+                    Toast.makeText(requireContext(), "Account deleted successfully", Toast.LENGTH_SHORT).show()
+                    requireActivity().finish()
+                } else {
+                    Toast.makeText(requireContext(), "Failed to delete account", Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: Exception) {
+                Toast.makeText(requireContext(), "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+            } finally {
+                showLoading(false)
+            }
+        }
+    }
+
+    private fun showLoading(isLoading: Boolean) {
+        if (isLoading) {
+            progressBar.visibility = View.VISIBLE
+            btnUpdateProfile.isEnabled = false
+            btnDeleteAccount.isEnabled = false
+        } else {
+            progressBar.visibility = View.GONE
+            btnUpdateProfile.isEnabled = true
+            btnDeleteAccount.isEnabled = true
+        }
+    }
+
+    companion object {
+        fun newInstance() = EditProfile()
+    }
 }

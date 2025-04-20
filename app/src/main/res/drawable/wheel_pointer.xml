@@ -1,0 +1,21 @@
+<!-- res/drawable/wheel_pointer.xml -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+
+    <!-- Triangle pointer shape -->
+    <path
+        android:fillColor="#D32F2F"
+        android:strokeColor="#000000"
+        android:strokeWidth="0.5"
+        android:pathData="M12,2 L4,12 L20,12 Z"/>
+
+    <!-- Circle at the base -->
+    <path
+        android:fillColor="#D32F2F"
+        android:strokeColor="#000000"
+        android:strokeWidth="0.5"
+        android:pathData="M12,14 m-4,0 a4,4 0 1,0 8,0 a4,4 0 1,0 -8,0"/>
+</vector>

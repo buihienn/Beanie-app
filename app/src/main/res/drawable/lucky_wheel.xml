@@ -1,0 +1,62 @@
+<!-- res/drawable/lucky_wheel.xml -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="200dp"
+    android:height="200dp"
+    android:viewportWidth="200"
+    android:viewportHeight="200">
+
+    <!-- Outer circle/border -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:strokeColor="#000000"
+        android:strokeWidth="2"
+        android:pathData="M100,100 m-98,0 a98,98 0 1,0 196,0 a98,98 0 1,0 -196,0"/>
+
+    <!-- 8 Segments -->
+    <!-- Segment 1 - Red -->
+    <path
+        android:fillColor="#F44336"
+        android:pathData="M100,100 L100,2 A98,98 0 0,1 169.7,30.3 L100,100 Z"/>
+
+    <!-- Segment 2 - Orange -->
+    <path
+        android:fillColor="#FF9800"
+        android:pathData="M100,100 L169.7,30.3 A98,98 0 0,1 198,100 L100,100 Z"/>
+
+    <!-- Segment 3 - Yellow -->
+    <path
+        android:fillColor="#FFEB3B"
+        android:pathData="M100,100 L198,100 A98,98 0 0,1 169.7,169.7 L100,100 Z"/>
+
+    <!-- Segment 4 - Green -->
+    <path
+        android:fillColor="#4CAF50"
+        android:pathData="M100,100 L169.7,169.7 A98,98 0 0,1 100,198 L100,100 Z"/>
+
+    <!-- Segment 5 - Teal -->
+    <path
+        android:fillColor="#009688"
+        android:pathData="M100,100 L100,198 A98,98 0 0,1 30.3,169.7 L100,100 Z"/>
+
+    <!-- Segment 6 - Blue -->
+    <path
+        android:fillColor="#2196F3"
+        android:pathData="M100,100 L30.3,169.7 A98,98 0 0,1 2,100 L100,100 Z"/>
+
+    <!-- Segment 7 - Purple -->
+    <path
+        android:fillColor="#9C27B0"
+        android:pathData="M100,100 L2,100 A98,98 0 0,1 30.3,30.3 L100,100 Z"/>
+
+    <!-- Segment 8 - Pink -->
+    <path
+        android:fillColor="#E91E63"
+        android:pathData="M100,100 L30.3,30.3 A98,98 0 0,1 100,2 L100,100 Z"/>
+
+    <!-- Center circle -->
+    <path
+        android:fillColor="#795548"
+        android:strokeColor="#000000"
+        android:strokeWidth="1"
+        android:pathData="M100,100 m-15,0 a15,15 0 1,0 30,0 a15,15 0 1,0 -30,0"/>
+</vector>
