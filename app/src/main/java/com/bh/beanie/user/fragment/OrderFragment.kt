@@ -8,7 +8,6 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import com.bh.beanie.databinding.FragmentOrderBinding
 import com.bh.beanie.user.UserOrderActivity
-import com.bh.beanie.user.model.Address
 
 private const val ARG_PARAM1 = "param1"
 private const val ARG_PARAM2 = "param2"

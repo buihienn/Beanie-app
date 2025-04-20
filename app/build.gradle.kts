@@ -50,6 +50,7 @@ android {
     buildFeatures {
         viewBinding = true
         buildConfig = true
+        dataBinding = true
     }
 }
 
@@ -83,4 +84,5 @@ dependencies {
     // implementation(libs.firebase.messaging)
 
     implementation(libs.cloudinary.android)
+    implementation(libs.androidx.lifecycle.runtime.ktx)
 }

@@ -8,12 +8,9 @@ import androidx.recyclerview.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
-import android.widget.ImageButton
-import com.bh.beanie.R
 import com.bh.beanie.databinding.ItemAddressBinding
 import com.bh.beanie.databinding.FragmentSelectAddressBinding
-import com.bh.beanie.user.model.Address
+import com.bh.beanie.model.Address
 import androidx.core.content.edit
 
 /**
@@ -73,8 +70,8 @@ class SelectAddressFragment : BottomSheetDialogFragment() {
 
     private fun createSampleAddresses() {
         addressList.apply {
-            add(Address(1, "Vinh", "0334435678", "227 Nguyễn Văn Cừ, Phường 4, Quận 5, TP.HCM", true))
-            add(Address(2, "Vinh", "0334435678", "227 Nguyễn Văn Cừ, Phường 4, Quận 5, TP.HCM", false))
+            add(Address(1, "Address A","Vinh", "0334435678", "227 Nguyễn Văn Cừ, Phường 4, Quận 5, TP.HCM", true))
+            add(Address(2, "Address B","Vinh", "0334435678", "227 Nguyễn Văn Cừ, Phường 4, Quận 5, TP.HCM", false))
         }
     }
 

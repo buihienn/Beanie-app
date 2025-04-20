@@ -4,7 +4,6 @@ import android.util.Log
 import com.bh.beanie.model.Category
 import com.bh.beanie.model.Order
 import com.bh.beanie.model.OrderItem
-
 import com.bh.beanie.model.Product
 import com.bh.beanie.model.Voucher
 import com.google.firebase.Timestamp
