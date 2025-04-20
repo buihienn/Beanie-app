@@ -10,13 +10,33 @@ import com.google.android.material.button.MaterialButton
 import java.util.Locale
 import androidx.recyclerview.widget.RecyclerView
 import com.bh.beanie.R
-import com.bh.beanie.user.model.Product
+import com.bh.beanie.model.Product
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
+import com.bh.beanie.repository.FavoriteRepository
 import com.bh.beanie.user.fragment.ProductDetailFragment
+import com.bumptech.glide.Glide
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 
 class ProductAdapter(private val context: Context, private val productList: List<Product>) :
     RecyclerView.Adapter<ProductAdapter.ProductViewHolder>() {
+
+    private val favoriteRepository = FavoriteRepository(FirebaseFirestore.getInstance())
+    private val userId = FirebaseAuth.getInstance().currentUser?.uid
+    private val favorites = mutableMapOf<String, Boolean>()
+
+    init {
+        // Kiểm tra favorites cho mỗi sản phẩm nếu user đã đăng nhập
+        userId?.let { uid ->
+            productList.forEach { product ->
+                favoriteRepository.isFavorite(uid, product.id) { isFavorite ->
+                    favorites[product.id] = isFavorite
+                    notifyItemChanged(productList.indexOf(product))
+                }
+            }
+        }
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ProductViewHolder {
         val view = LayoutInflater.from(context).inflate(R.layout.product_item_card, parent, false)
@@ -26,21 +46,42 @@ class ProductAdapter(private val context: Context, private val productList: List
     override fun onBindViewHolder(holder: ProductViewHolder, position: Int) {
         val product = productList[position]
 
-        holder.productImageView.setImageResource(product.imageResourceId)
+        // Load hình ảnh từ URL sử dụng Glide
+        if (product.imageUrl.isNotEmpty()) {
+            Glide.with(context)
+                .load(product.imageUrl)
+                .into(holder.productImageView)
+        } else {
+            holder.productImageView.setImageResource(R.drawable.placeholder)
+        }
+
         holder.productNameTextView.text = product.name
         holder.productPriceTextView.text = String.format(Locale.getDefault(), "%.0fđ", product.price)
 
+        // Cập nhật trạng thái favorite
+        val isFavorite = favorites[product.id] ?: false
         holder.favoriteButton.icon = ContextCompat.getDrawable(
             context,
-            if (product.isFavorite) R.drawable.ic_favorite else R.drawable.ic_unfavorite
+            if (isFavorite) R.drawable.ic_favorite else R.drawable.ic_unfavorite
         )
 
         holder.favoriteButton.setOnClickListener {
-            product.isFavorite = !product.isFavorite
-            holder.favoriteButton.icon = ContextCompat.getDrawable(
-                context,
-                if (product.isFavorite) R.drawable.ic_favorite else R.drawable.ic_unfavorite
-            )
+            userId?.let { uid ->
+                val currentFavorite = favorites[product.id] ?: false
+                val newFavorite = !currentFavorite
+
+                if (newFavorite) {
+                    favoriteRepository.addFavorite(uid, product)
+                } else {
+                    favoriteRepository.removeFavorite(uid, product.id)
+                }
+
+                favorites[product.id] = newFavorite
+                holder.favoriteButton.icon = ContextCompat.getDrawable(
+                    context,
+                    if (newFavorite) R.drawable.ic_favorite else R.drawable.ic_unfavorite
+                )
+            }
         }
 
         holder.itemView.setOnClickListener {
