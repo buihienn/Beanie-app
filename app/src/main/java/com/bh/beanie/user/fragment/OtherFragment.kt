@@ -8,8 +8,10 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.Toast
+import androidx.core.content.ContentProviderCompat.requireContext
 import com.bh.beanie.R
 import com.bh.beanie.customer.LoginActivity
+import com.bh.beanie.utils.NavigationUtils.logout
 import com.google.android.material.card.MaterialCardView
 import com.google.firebase.auth.FirebaseAuth
 
@@ -66,25 +68,10 @@ class OtherFragment : Fragment() {
         // Add logout button click listener - using Button instead of MaterialCardView
         val btnLogout = view.findViewById<Button>(R.id.btnLogout)
         btnLogout?.setOnClickListener {
-            logoutUser()
+            activity?.let { currentActivity ->
+                logout(currentActivity)
+            }
         }
-    }
-
-    private fun logoutUser() {
-        // Get Firebase Auth instance
-        val auth = FirebaseAuth.getInstance()
-
-        // Sign out the user
-        auth.signOut()
-
-        // Show logout message
-        Toast.makeText(requireContext(), "You have been logged out", Toast.LENGTH_SHORT).show()
-
-        // Navigate to login screen
-        val intent = Intent(activity, LoginActivity::class.java)
-        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        startActivity(intent)
-        activity?.finish()
     }
 
     companion object {
