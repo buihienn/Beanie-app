@@ -12,8 +12,6 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.bh.beanie.MainActivity
-import com.bh.beanie.utils.NavigationUtils
 import com.bh.beanie.R
 import com.bh.beanie.admin.AdminMainActivity
 import com.bh.beanie.user.UserMainActivity

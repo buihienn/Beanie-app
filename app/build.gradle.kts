@@ -85,4 +85,6 @@ dependencies {
 
     implementation(libs.cloudinary.android)
     implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.zxing.core)
+    implementation(libs.zxing.embedded)
 }
