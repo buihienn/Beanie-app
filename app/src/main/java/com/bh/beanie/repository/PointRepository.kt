@@ -79,34 +79,6 @@ class PointsRepository(private val db: FirebaseFirestore) {
         }
     }
 
-    // Reset điểm hiện tại vào tháng 6 hàng năm
-    fun resetPresentPoints() {
-        // Lấy thời gian hiện tại
-        val now = Calendar.getInstance()
-        val currentMonth = now.get(Calendar.MONTH)
-        val currentDay = now.get(Calendar.DAY_OF_MONTH)
-
-        // Nếu là ngày 1 tháng 6
-        if (currentMonth == Calendar.JUNE && currentDay == 1) {
-            // Lấy danh sách tất cả người dùng
-            db.collection("users").get().addOnSuccessListener { snapshot ->
-                for (document in snapshot.documents) {
-                    val userRef = db.collection("users").document(document.id)
-
-                    // Reset presentPoints về 0 và cập nhật thời gian reset
-                    db.runTransaction { transaction ->
-                        transaction.update(userRef,
-                            mapOf(
-                                "presentPoints" to 0,
-                                "lastPointReset" to com.google.firebase.Timestamp.now()
-                            )
-                        )
-                    }
-                }
-            }
-        }
-    }
-
     // Tính số điểm từ giá trị đơn hàng
     private fun calculatePoints(orderAmount: Double): Int {
         // Ví dụ: 1 điểm cho mỗi 10,000đ

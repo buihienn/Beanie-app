@@ -15,6 +15,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.firestore.FirebaseFirestore
 import java.util.*
+import kotlin.Int
 
 class SignupActivity : AppCompatActivity() {
 
@@ -226,7 +227,7 @@ class SignupActivity : AppCompatActivity() {
             email = email, // Lưu email vào profile luôn
             phone = phone,
             dob = dob,
-            gender = gender
+            gender = gender,
             // role và createdAt sẽ tự động được gán giá trị mặc định/server
         )
 
