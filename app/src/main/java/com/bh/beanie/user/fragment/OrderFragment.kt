@@ -9,22 +9,12 @@ import androidx.fragment.app.Fragment
 import com.bh.beanie.databinding.FragmentOrderBinding
 import com.bh.beanie.user.UserOrderActivity
 
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
-
 class OrderFragment : Fragment() {
-    private var param1: String? = null
-    private var param2: String? = null
-
     private var _binding: FragmentOrderBinding? = null
     private val binding get() = _binding!!
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        arguments?.let {
-            param1 = it.getString(ARG_PARAM1)
-            param2 = it.getString(ARG_PARAM2)
-        }
     }
 
     override fun onCreateView(
@@ -45,22 +35,32 @@ class OrderFragment : Fragment() {
 
         // Thiết lập sự kiện cho card Take Away
         binding.takeAwayCard.setOnClickListener {
-            // Mở trực tiếp Categories Activity
-            startActivity(Intent(requireContext(), UserOrderActivity::class.java))
+            showBranchSelectionAndOpenCategories()
         }
     }
 
     private fun showAddressSelectionAndOpenCategories() {
-        // Tạo và hiển thị bottom sheet chọn địa chỉ
         val selectAddressFragment = SelectAddressFragment.newInstance()
 
-        // Thiết lập listener để biết khi nào địa chỉ được chọn
         selectAddressFragment.setAddressSelectedListener { address ->
-            // Mở Categories Activity
-            startActivity(Intent(requireContext(), UserOrderActivity::class.java))
+            startActivity(Intent(requireContext(), UserOrderActivity::class.java).apply {
+                putExtra("order_mode", "delivery")
+            })
         }
 
         selectAddressFragment.show(childFragmentManager, "addressSelector")
+    }
+
+    private fun showBranchSelectionAndOpenCategories() {
+        val selectBranchFragment = SelectBranchFragment.newInstance()
+
+        selectBranchFragment.setBranchSelectedListener { branch ->
+            startActivity(Intent(requireContext(), UserOrderActivity::class.java).apply {
+                putExtra("order_mode", "take_away")
+            })
+        }
+
+        selectBranchFragment.show(childFragmentManager, "branchSelector")
     }
 
     override fun onDestroyView() {
@@ -69,22 +69,7 @@ class OrderFragment : Fragment() {
     }
 
     companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment OrderFragment.
-         */
-        // TODO: Rename and change types and number of parameters
         @JvmStatic
-        fun newInstance(param1: String, param2: String) =
-            OrderFragment().apply {
-                arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
-                }
-            }
+        fun newInstance() = OrderFragment()
     }
 }

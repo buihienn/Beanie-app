@@ -10,7 +10,11 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.bh.beanie.R
 import com.bh.beanie.customer.LoginActivity
-import com.bh.beanie.user.fragment.*
+import com.bh.beanie.user.fragment.HomeFragment
+import com.bh.beanie.user.fragment.OrderFragment
+import com.bh.beanie.user.fragment.VoucherFragment
+import com.bh.beanie.user.fragment.OtherFragment
+import com.bh.beanie.user.fragment.RewardFragment
 import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class UserMainActivity : AppCompatActivity() {
@@ -51,7 +55,7 @@ class UserMainActivity : AppCompatActivity() {
             // Chọn fragment tương ứng với item được nhấn
             val selectedFragment = when (item.itemId) {
                 R.id.navigation_home -> HomeFragment.newInstance()
-                R.id.navigation_order -> OrderFragment.newInstance("param1", "param2")
+                R.id.navigation_order -> OrderFragment.newInstance()
                 R.id.navigation_reward -> RewardFragment.newInstance("param1", "param2")
                 R.id.navigation_voucher -> VoucherFragment.newInstance("param1", "param2")
                 R.id.navigation_other -> OtherFragment.newInstance("param1", "param2")

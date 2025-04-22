@@ -29,7 +29,6 @@ import kotlinx.coroutines.launch
 
 class HomeFragment : Fragment() {
     private lateinit var popularItemsRecyclerView: RecyclerView
-    private lateinit var productAdapter: ProductAdapter
     private val productList = mutableListOf<Product>()
     private lateinit var productRepository: ProductRepository
     private lateinit var barcodeImageView: ImageView
@@ -59,13 +58,6 @@ class HomeFragment : Fragment() {
         popularItemsRecyclerView = view.findViewById(R.id.popularItemsRecyclerView)
         popularItemsRecyclerView.layoutManager =
             LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
-
-        // Khởi tạo adapter và gắn vào RecyclerView
-        productAdapter = ProductAdapter(requireContext(), productList)
-        popularItemsRecyclerView.adapter = productAdapter
-
-        // Tải dữ liệu từ Firebase
-        loadPopularProducts()
 
         // Lấy userId
         val userId = BeanieApplication.instance.getUserId()
@@ -114,37 +106,6 @@ class HomeFragment : Fragment() {
         }
 
         return bitmap
-    }
-
-    private fun loadPopularProducts() {
-        val branchId = "braches_q5" // Hoặc lấy từ settings/preferences
-
-        // Hiển thị loading
-        view?.findViewById<View>(R.id.progressBar)?.visibility = View.VISIBLE
-
-        viewLifecycleOwner.lifecycleScope.launch {
-            try {
-                // Tải sản phẩm phổ biến từ repository
-                val products = productRepository.fetchBestSellersSuspend(branchId)
-
-                productList.clear()
-                productList.addAll(products)
-                productAdapter.notifyDataSetChanged()
-
-                // Ẩn loading
-                view?.findViewById<View>(R.id.progressBar)?.visibility = View.GONE
-            } catch (e: Exception) {
-                // Ẩn loading
-                view?.findViewById<View>(R.id.progressBar)?.visibility = View.GONE
-
-                // Hiển thị thông báo lỗi
-                Toast.makeText(
-                    context,
-                    "Lỗi khi tải sản phẩm: ${e.message}",
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
-        }
     }
 
     companion object {

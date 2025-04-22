@@ -8,7 +8,6 @@
     android:orientation="vertical"
     android:paddingBottom="24dp">
 
-    <!-- Header -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -19,7 +18,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:text="Select delivery address"
+            android:text="Select branch"
             android:textColor="@color/text_primary"
             android:textSize="18sp"
             android:textStyle="bold"
@@ -43,19 +42,17 @@
             app:tint="@color/black" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <!-- Divider -->
     <View
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:background="@color/divider" />
 
-    <!-- Saved Addresses Header -->
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:paddingHorizontal="16dp"
         android:paddingVertical="12dp"
-        android:text="Saved address"
+        android:text="Nearby"
         android:textColor="@color/text_secondary"
         android:textSize="16sp" />
 
@@ -108,25 +105,10 @@
             android:textSize="14sp" />
     </LinearLayout>
 
-    <!-- Address List -->
+    <!-- Branch List -->
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/addressRecyclerView"
+        android:id="@+id/branchRecyclerView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        tools:listitem="@layout/item_address" />
-
-
-    <!-- Add New Address Button -->
-    <TextView
-        android:id="@+id/addNewAddressButton"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:drawableStart="@drawable/ic_plus"
-        android:drawablePadding="8dp"
-        android:paddingHorizontal="16dp"
-        android:text="Add new address"
-        android:textColor="@color/black"
-        android:textSize="16sp" />
-
+        tools:listitem="@layout/item_branch" />
 </LinearLayout>

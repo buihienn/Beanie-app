@@ -19,8 +19,24 @@ import com.bumptech.glide.Glide
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
-class ProductAdapter(private val context: Context, private val productList: List<Product>) :
-    RecyclerView.Adapter<ProductAdapter.ProductViewHolder>() {
+class ProductAdapter(
+    private val context: Context,
+    private val productList: List<Product>,
+    private val branchId: String,
+    private val categoryId: String
+) : RecyclerView.Adapter<ProductAdapter.ProductViewHolder>() {
+
+    // Interface cho callback
+    interface OnCartUpdateListener {
+        fun onCartCountUpdated(count: Int)
+    }
+
+    private var cartUpdateListener: OnCartUpdateListener? = null
+
+    // Phương thức để thiết lập listener
+    fun setOnCartUpdateListener(listener: OnCartUpdateListener) {
+        this.cartUpdateListener = listener
+    }
 
     private val favoriteRepository = FavoriteRepository(FirebaseFirestore.getInstance())
     private val userId = FirebaseAuth.getInstance().currentUser?.uid
@@ -85,7 +101,20 @@ class ProductAdapter(private val context: Context, private val productList: List
         }
 
         holder.itemView.setOnClickListener {
-            val productDetailFragment = ProductDetailFragment.newInstance(product)
+            val productDetailFragment = ProductDetailFragment.newInstance(
+                branchId = branchId,
+                categoryId = categoryId,
+                productId = product.id
+            )
+
+            // Thiết lập listener cho fragment
+            productDetailFragment.setProductDetailListener(object : ProductDetailFragment.ProductDetailListener {
+                override fun onCartUpdated(itemCount: Int) {
+                    // Chuyển cập nhật đến activity thông qua listener
+                    cartUpdateListener?.onCartCountUpdated(itemCount)
+                }
+            })
+
             val fragmentManager = (context as FragmentActivity).supportFragmentManager
             productDetailFragment.show(fragmentManager, "productDetail")
         }

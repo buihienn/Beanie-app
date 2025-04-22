@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.kapt)
+    id("kotlin-parcelize")
     id("com.google.gms.google-services")
 }
 
@@ -87,4 +88,5 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.zxing.core)
     implementation(libs.zxing.embedded)
+    implementation(libs.gson)
 }

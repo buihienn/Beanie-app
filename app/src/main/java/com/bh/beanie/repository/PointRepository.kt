@@ -4,7 +4,7 @@ import com.bh.beanie.model.User
 import com.google.firebase.firestore.FirebaseFirestore
 import java.util.Calendar
 
-class PointsRepository(private val db: FirebaseFirestore) {
+class PointRepository(private val db: FirebaseFirestore) {
 
     // Thêm điểm khi người dùng hoàn thành đơn hàng
     fun addPoints(userId: String, orderAmount: Double, orderId: String) {
@@ -76,34 +76,6 @@ class PointsRepository(private val db: FirebaseFirestore) {
             )
 
             transaction.set(transactionRef, pointTransaction)
-        }
-    }
-
-    // Reset điểm hiện tại vào tháng 6 hàng năm
-    fun resetPresentPoints() {
-        // Lấy thời gian hiện tại
-        val now = Calendar.getInstance()
-        val currentMonth = now.get(Calendar.MONTH)
-        val currentDay = now.get(Calendar.DAY_OF_MONTH)
-
-        // Nếu là ngày 1 tháng 6
-        if (currentMonth == Calendar.JUNE && currentDay == 1) {
-            // Lấy danh sách tất cả người dùng
-            db.collection("users").get().addOnSuccessListener { snapshot ->
-                for (document in snapshot.documents) {
-                    val userRef = db.collection("users").document(document.id)
-
-                    // Reset presentPoints về 0 và cập nhật thời gian reset
-                    db.runTransaction { transaction ->
-                        transaction.update(userRef,
-                            mapOf(
-                                "presentPoints" to 0,
-                                "lastPointReset" to com.google.firebase.Timestamp.now()
-                            )
-                        )
-                    }
-                }
-            }
         }
     }
 

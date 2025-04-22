@@ -7,6 +7,14 @@
     android:layout_height="match_parent"
     android:background="@color/background_light">
 
+    <!-- Thêm ProgressBar cho loading -->
+    <ProgressBar
+        android:id="@+id/loadingProgressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:visibility="gone"/>
+
     <androidx.core.widget.NestedScrollView
         android:id="@+id/scrollView"
         android:layout_width="match_parent"
@@ -30,7 +38,6 @@
                     android:layout_width="match_parent"
                     android:layout_height="300dp"
                     android:scaleType="centerCrop"
-                    android:src="@drawable/matcha"
                     android:contentDescription="Product image" />
 
                 <ImageButton
@@ -61,7 +68,6 @@
                         android:id="@+id/productName"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Matcha latte"
                         android:textColor="@color/text_primary"
                         android:textSize="24sp"
                         android:textStyle="bold" />
@@ -71,7 +77,6 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
-                        android:text="49.000đ"
                         android:textColor="@color/text_primary"
                         android:textSize="18sp" />
                 </LinearLayout>
@@ -113,6 +118,7 @@
                 android:paddingTop="16dp">
 
                 <TextView
+                    android:id="@+id/sizeLabel"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Size"
@@ -128,99 +134,13 @@
                     android:textColor="@color/text_secondary"
                     android:textSize="14sp" />
 
-                <!-- Size L -->
+                <!-- Size Radio Group -->
                 <RadioGroup
                     android:id="@+id/sizeRadioGroup"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical">
-
-                        <RadioButton
-                            android:id="@+id/sizeL"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content" />
-
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="L"
-                            android:textColor="@color/text_primary"
-                            android:textSize="16sp" />
-
-                        <TextView
-                            android:id="@+id/priceSizeL"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="55.000đ"
-                            android:textColor="@color/text_primary"
-                            android:textSize="16sp" />
-                    </LinearLayout>
-
-                    <!-- Size M -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical">
-
-                        <RadioButton
-                            android:id="@+id/sizeM"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content" />
-
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="M"
-                            android:textColor="@color/text_primary"
-                            android:textSize="16sp" />
-
-                        <TextView
-                            android:id="@+id/priceSizeM"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="49.000đ"
-                            android:textColor="@color/text_primary"
-                            android:textSize="16sp" />
-                    </LinearLayout>
-
-                    <!-- Size S -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical">
-
-                        <RadioButton
-                            android:id="@+id/sizeS"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:checked="true" />
-
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="S"
-                            android:textColor="@color/text_primary"
-                            android:textSize="16sp" />
-
-                        <TextView
-                            android:id="@+id/priceSizeS"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="45.000đ"
-                            android:textColor="@color/text_primary"
-                            android:textSize="16sp" />
-                    </LinearLayout>
+                    <!-- Đây là nơi các size sẽ được thêm động từ code -->
                 </RadioGroup>
             </LinearLayout>
 
@@ -238,6 +158,7 @@
                 android:paddingTop="16dp">
 
                 <TextView
+                    android:id="@+id/toppingLabel"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Topping"
@@ -253,89 +174,13 @@
                     android:textColor="@color/text_secondary"
                     android:textSize="14sp" />
 
-                <!-- Black pearl -->
+                <!-- Container cho topping -->
                 <LinearLayout
+                    android:id="@+id/toppingContainer"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical">
-
-                    <CheckBox
-                        android:id="@+id/blackPearlCheckbox"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content" />
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="Black pearl"
-                        android:textColor="@color/text_primary"
-                        android:textSize="16sp" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="10.000đ"
-                        android:textColor="@color/text_primary"
-                        android:textSize="16sp" />
-                </LinearLayout>
-
-                <!-- Cheese pearl -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical">
-
-                    <CheckBox
-                        android:id="@+id/cheesePearlCheckbox"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content" />
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="Cheese pearl"
-                        android:textColor="@color/text_primary"
-                        android:textSize="16sp" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="10.000đ"
-                        android:textColor="@color/text_primary"
-                        android:textSize="16sp" />
-                </LinearLayout>
-
-                <!-- White pearl -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical">
-
-                    <CheckBox
-                        android:id="@+id/whitePearlCheckbox"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:checked="true" />
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="White pearl"
-                        android:textColor="@color/text_primary"
-                        android:textSize="16sp" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="10.000đ"
-                        android:textColor="@color/text_primary"
-                        android:textSize="16sp" />
+                    android:orientation="vertical">
+                    <!-- Đây là nơi các topping sẽ được thêm động từ code -->
                 </LinearLayout>
             </LinearLayout>
 
@@ -447,8 +292,14 @@
                 android:layout_marginStart="16dp"
                 android:contentDescription="Increase product" />
 
-
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/deleteButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Delete"
+                android:textColor="@color/white"
+                android:visibility="gone"
+                android:layout_marginStart="16dp" />
         </LinearLayout>
-
     </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

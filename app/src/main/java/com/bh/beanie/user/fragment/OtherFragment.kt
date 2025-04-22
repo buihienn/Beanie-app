@@ -14,6 +14,7 @@ import com.bh.beanie.customer.LoginActivity
 import com.bh.beanie.utils.NavigationUtils.logout
 import com.google.android.material.card.MaterialCardView
 import com.google.firebase.auth.FirebaseAuth
+import kotlin.text.replace
 
 // Define constants for this fragment specifically
 private const val ARG_PARAM1 = "param1"
@@ -57,7 +58,11 @@ class OtherFragment : Fragment() {
 
         // Order History card
         view.findViewById<MaterialCardView>(R.id.cardOrderHistory)?.setOnClickListener {
-            // Handle order history click
+            val orderHistoryFragment = OrderHistoryFragment.newInstance()
+            requireActivity().supportFragmentManager.beginTransaction()
+                .replace(R.id.fragment_container, orderHistoryFragment)
+                .addToBackStack(null)
+                .commit()
         }
 
         // Terms & Conditions card
