@@ -23,7 +23,7 @@ import com.bh.beanie.repository.FavoriteRepository
 import com.bh.beanie.repository.OrderRepository
 import com.bh.beanie.repository.ProductRepository
 import com.bh.beanie.user.adapter.ProductAdapter
-import com.bh.beanie.user.fragment.OrderDetailFragment
+import com.bh.beanie.user.fragment.ConfirmOrderFragment
 import com.bh.beanie.user.fragment.SelectAddressFragment
 import com.bh.beanie.user.fragment.SelectBranchFragment
 //import com.bh.beanie.user.fragment.OrderConfirmationBottomSheet
@@ -105,8 +105,8 @@ class UserOrderActivity : AppCompatActivity() {
     }
 
     private fun showOrderDetail() {
-        val orderDetailFragment = OrderDetailFragment.newInstance(currentBranchId)
-        orderDetailFragment.show(supportFragmentManager, OrderDetailFragment.TAG)
+        val orderDetailFragment = ConfirmOrderFragment.newInstance(currentBranchId)
+        orderDetailFragment.show(supportFragmentManager, ConfirmOrderFragment.TAG)
     }
 
     // Lắng nghe thay đổi

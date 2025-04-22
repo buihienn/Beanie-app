@@ -1,6 +1,7 @@
 package com.bh.beanie.repository
 
 import android.content.Context
+import android.util.Log
 import com.bh.beanie.model.Order
 import com.bh.beanie.model.OrderItem
 import com.bh.beanie.model.Product
@@ -12,6 +13,7 @@ import kotlinx.coroutines.tasks.await
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import androidx.core.content.edit
+import kotlin.text.get
 
 class OrderRepository(private val db: FirebaseFirestore, private val context: Context) {
     private val firebaseRepository = FirebaseRepository(db)
@@ -161,55 +163,88 @@ class OrderRepository(private val db: FirebaseFirestore, private val context: Co
     suspend fun getUserOrders(): List<Order> {
         if (userId.isEmpty()) return emptyList()
 
-        val snapshot = db.collection("orders")
-            .whereEqualTo("userId", userId)
-            .orderBy("orderTime")
-            .get()
-            .await()
+        try {
+            val snapshot = db.collection("orders")
+                .whereEqualTo("userId", userId)
+                .get()
+                .await()
 
-        return snapshot.documents.mapNotNull { doc ->
-            val order = doc.toObject(Order::class.java)
-            order?.copy(id = doc.id)
+            return snapshot.documents.mapNotNull { doc ->
+                try {
+                    val order = doc.toObject(Order::class.java)
+                    order?.copy(id = doc.id)
+                } catch (e: Exception) {
+                    android.util.Log.e("OrderRepository", "Error converting document to Order: ${e.message}")
+                    null
+                }
+            }.sortedByDescending {
+                try {
+                    it.orderTime.seconds
+                } catch (e: Exception) {
+                    0
+                }
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("OrderRepository", "Error getting user orders: ${e.message}")
+            return emptyList()
         }
     }
 
     // Lấy đơn hàng theo id
     suspend fun getOrderById(orderId: String): Order? {
-        val doc = db.collection("orders").document(orderId).get().await()
-        val order = doc.toObject(Order::class.java) ?: return null
+        try {
+            val doc = db.collection("orders").document(orderId).get().await()
+            if (!doc.exists()) return null
 
-        // Lấy các items của đơn hàng
-        val items = fetchOrderItems(orderId)
-        return order.copy(id = doc.id, items = items)
+            // Tạo đối tượng Order cơ bản (chưa có items)
+            val order = doc.toObject(Order::class.java) ?: return null
+
+            // Lấy các items của đơn hàng riêng biệt
+            val items = fetchOrderItems(orderId)
+
+            // Trả về order với items đã được xử lý
+            return order.copy(id = doc.id, items = items)
+        } catch (e: Exception) {
+            Log.e("OrderRepository", "Error getting order: ${e.message}")
+            throw e
+        }
     }
 
-    // Lấy danh sách sản phẩm trong đơn hàng
-    suspend fun fetchOrderItems(orderId: String): List<OrderItem> {
-        val itemsSnapshot = db.collection("orders")
-            .document(orderId)
-            .collection("order_items")
-            .get()
-            .await()
+    // Hàm fetchOrderItems xử lý items riêng biệt
+    private suspend fun fetchOrderItems(orderId: String): List<OrderItem> {
+        val itemsCollection = db.collection("orders").document(orderId).collection("items")
+        val snapshot = itemsCollection.get().await()
 
-        return itemsSnapshot.map { doc ->
-            // Tạo một đối tượng ProductSize từ thông tin trong document
-            val sizeName = doc.getString("size") ?: ""
-            val sizePrice = doc.getDouble("sizePrice") ?: 0.0
+        return snapshot.documents.mapNotNull { doc ->
+            try {
+                // Lấy dữ liệu cơ bản
+                val productId = doc.getString("productId") ?: ""
+                val productName = doc.getString("productName") ?: ""
+                val quantity = doc.getLong("quantity")?.toInt() ?: 0
+                val unitPrice = doc.getDouble("unitPrice") ?: 0.0
 
-            // Nếu không có thông tin size, đặt thành null
-            val productSize = if (sizeName.isNotEmpty()) {
-                ProductSize(name = sizeName, price = sizePrice)
-            } else {
+                // Xử lý size một cách an toàn
+                val sizeData = doc.get("size") as? Map<String, Any>
+                val size = if (sizeData != null) {
+                    ProductSize(
+                        id = sizeData["id"] as? String ?: "",
+                        name = sizeData["name"] as? String ?: "",
+                        price = (sizeData["price"] as? Number)?.toDouble() ?: 0.0
+                    )
+                } else null
+
+                // Tạo OrderItem với dữ liệu đã xử lý
+                OrderItem(
+                    productId = productId,
+                    productName = productName,
+                    quantity = quantity,
+                    unitPrice = unitPrice,
+                    size = size,
+                )
+            } catch (e: Exception) {
+                Log.e("OrderRepository", "Error parsing order item: ${e.message}")
                 null
             }
-
-            OrderItem(
-                productId = doc.getString("productId") ?: "",
-                productName = doc.getString("productName") ?: "",
-                size = productSize,
-                quantity = doc.getLong("quantity")?.toInt() ?: 0,
-                unitPrice = doc.getDouble("unitPrice") ?: 0.0
-            )
         }
     }
 
