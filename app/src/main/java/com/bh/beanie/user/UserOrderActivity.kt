@@ -3,6 +3,7 @@ package com.bh.beanie.user
 import android.annotation.SuppressLint
 import android.os.Bundle
 import android.view.View
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -10,6 +11,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.bh.beanie.R
 import com.bh.beanie.databinding.ActivityUserOrderBinding
 import com.bh.beanie.model.Branch
@@ -18,8 +20,10 @@ import com.bh.beanie.model.Product
 import com.bh.beanie.repository.BranchRepository
 import com.bh.beanie.repository.CategoryRepository
 import com.bh.beanie.repository.FavoriteRepository
+import com.bh.beanie.repository.OrderRepository
 import com.bh.beanie.repository.ProductRepository
 import com.bh.beanie.user.adapter.ProductAdapter
+import com.bh.beanie.user.fragment.OrderDetailFragment
 import com.bh.beanie.user.fragment.SelectAddressFragment
 import com.bh.beanie.user.fragment.SelectBranchFragment
 //import com.bh.beanie.user.fragment.OrderConfirmationBottomSheet
@@ -52,15 +56,13 @@ class UserOrderActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        setContentView(R.layout.activity_user_order)
+        binding = ActivityUserOrderBinding.inflate(layoutInflater)
+        setContentView(binding.root)
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.order)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
-
-        binding = ActivityUserOrderBinding.inflate(layoutInflater)
-        setContentView(binding.root)
 
         orderMode = intent.getStringExtra("order_mode")?:""
 
@@ -79,10 +81,11 @@ class UserOrderActivity : AppCompatActivity() {
 
         setupBranchSelector()
 
+        loadCartCount()
+
         binding.cartBtn.setOnClickListener {
             try {
-//                val orderConfirmationSheet = OrderConfirmationBottomSheet.newInstance()
-//                orderConfirmationSheet.show(supportFragmentManager, OrderConfirmationBottomSheet.TAG)
+                showOrderDetail()
             } catch (e: Exception) {
                 e.printStackTrace()
                 Toast.makeText(this, "Lỗi: ${e.message}", Toast.LENGTH_LONG).show()
@@ -99,6 +102,11 @@ class UserOrderActivity : AppCompatActivity() {
 
         // Tải categories và sản phẩm từ Firebase
         loadCategories()
+    }
+
+    private fun showOrderDetail() {
+        val orderDetailFragment = OrderDetailFragment.newInstance(currentBranchId)
+        orderDetailFragment.show(supportFragmentManager, OrderDetailFragment.TAG)
     }
 
     // Lắng nghe thay đổi
@@ -240,7 +248,91 @@ class UserOrderActivity : AppCompatActivity() {
         binding.branchSelectorText.text = branchName ?: "Chọn chi nhánh"
     }
 
-    // Hàm tải lại dữ liệu theo branch được chọn
+    private fun setupFixedRecyclerViews() {
+        // Thiết lập adapter và RecyclerView cho Your fav
+        val favAdapter = ProductAdapter(
+            this,
+            favProducts,
+            currentBranchId,
+            "favorites"  // Dùng category đặc biệt cho yêu thích
+        )
+        favAdapter.setOnCartUpdateListener(object : ProductAdapter.OnCartUpdateListener {
+            override fun onCartCountUpdated(count: Int) {
+                updateCartCount(count)
+            }
+        })
+        binding.yourFavRecyclerView.apply {
+            layoutManager = GridLayoutManager(this@UserOrderActivity, 2)
+            adapter = favAdapter
+        }
+
+        // Thiết lập adapter và RecyclerView cho Best seller
+        val bestSellerAdapter = ProductAdapter(
+            this,
+            bestSellerProducts,
+            currentBranchId,
+            "bestSellers"  // Dùng category đặc biệt cho best seller
+        )
+        bestSellerAdapter.setOnCartUpdateListener(object : ProductAdapter.OnCartUpdateListener {
+            override fun onCartCountUpdated(count: Int) {
+                updateCartCount(count)
+            }
+        })
+        binding.bestSellerRecyclerView.apply {
+            layoutManager = GridLayoutManager(this@UserOrderActivity, 2)
+            adapter = bestSellerAdapter
+        }
+    }
+
+
+    private fun setupCategoryRecyclerViews() {
+        // Xóa các category layout đã tạo trước đó (nếu có)
+        binding.categoriesContainer.removeAllViews()
+
+        // Với mỗi category, tạo một layout Title + RecyclerView
+        for (category in categories) {
+            // Tạo danh sách sản phẩm cho category này
+            val productList = mutableListOf<Product>()
+            categoryProducts[category.id] = productList
+
+            // Tạo adapter với branchId và categoryId
+            val adapter = ProductAdapter(
+                this,
+                productList,
+                currentBranchId,
+                category.id
+            )
+            adapter.setOnCartUpdateListener(object : ProductAdapter.OnCartUpdateListener {
+                override fun onCartCountUpdated(count: Int) {
+                    updateCartCount(count)
+                }
+            })
+            categoryAdapters[category.id] = adapter
+
+            // Inflate layout cho category
+            val categoryView = layoutInflater.inflate(
+                R.layout.category_section_layout,
+                binding.categoriesContainer,
+                false
+            )
+
+            // Thiết lập title và RecyclerView
+            val titleTextView = categoryView.findViewById<TextView>(
+                R.id.categoryTitleTextView
+            )
+            titleTextView.text = category.name
+
+            val recyclerView = categoryView.findViewById<RecyclerView>(
+                R.id.categoryRecyclerView
+            )
+            recyclerView.layoutManager = GridLayoutManager(this, 2)
+            recyclerView.adapter = adapter
+
+            // Thêm vào container
+            binding.categoriesContainer.addView(categoryView)
+        }
+    }
+
     @SuppressLint("NotifyDataSetChanged")
     private fun reloadDataForSelectedBranch() {
         // Hiển thị loading
@@ -253,65 +345,46 @@ class UserOrderActivity : AppCompatActivity() {
         categoryProducts.clear()
         binding.categoriesContainer.removeAllViews()
 
-        // Cập nhật adapters
-        binding.bestSellerRecyclerView.adapter?.notifyDataSetChanged()
-        binding.yourFavRecyclerView.adapter?.notifyDataSetChanged()
+        // Cập nhật adapter với branchId mới
+        setupFixedRecyclerViews()
 
         // Tải lại danh mục và sản phẩm
         loadCategories()
     }
 
-    private fun setupFixedRecyclerViews() {
-        // Thiết lập adapter và RecyclerView cho Your fav
-        val favAdapter = ProductAdapter(this, favProducts)
-        binding.yourFavRecyclerView.apply {
-            layoutManager = GridLayoutManager(this@UserOrderActivity, 2)
-            adapter = favAdapter
-        }
+    private fun loadProductData() {
+        val userId = FirebaseAuth.getInstance().currentUser?.uid
 
-        // Thiết lập adapter và RecyclerView cho Best seller
-        val bestSellerAdapter = ProductAdapter(this, bestSellerProducts)
-        binding.bestSellerRecyclerView.apply {
-            layoutManager = GridLayoutManager(this@UserOrderActivity, 2)
-            adapter = bestSellerAdapter
-        }
-    }
+        // Sử dụng chi nhánh đã chọn
+        val branchId = currentBranchId
 
-    private fun setupCategoryRecyclerViews() {
-        // Xóa các category layout đã tạo trước đó (nếu có)
-        binding.categoriesContainer.removeAllViews()
+        lifecycleScope.launch {
+            try {
+                // Tải sản phẩm yêu thích
+                if (userId != null) {
+                    val favorites = favoriteRepository.getFavorites(userId)
+                    favProducts.clear()
+                    favProducts.addAll(favorites)
+                    (binding.yourFavRecyclerView.adapter as ProductAdapter).notifyDataSetChanged()
+                }
 
-        // Với mỗi category, tạo một layout Title + RecyclerView
-        for (category in categories) {
-            // Tạo danh sách sản phẩm cho category này
-            val productList = mutableListOf<Product>()
-            categoryProducts[category.id] = productList
+                // Tải sản phẩm bán chạy
+                val bestSellers = productRepository.fetchBestSellersSuspend(branchId)
+                bestSellerProducts.clear()
+                bestSellerProducts.addAll(bestSellers)
+                (binding.bestSellerRecyclerView.adapter as ProductAdapter).notifyDataSetChanged()
 
-            // Tạo adapter
-            val adapter = ProductAdapter(this, productList)
-            categoryAdapters[category.id] = adapter
-
-            // Inflate layout cho category
-            val categoryView = layoutInflater.inflate(
-                com.bh.beanie.R.layout.category_section_layout,
-                binding.categoriesContainer,
-                false
-            )
-
-            // Thiết lập title và RecyclerView
-            val titleTextView = categoryView.findViewById<android.widget.TextView>(
-                com.bh.beanie.R.id.categoryTitleTextView
-            )
-            titleTextView.text = category.name
-
-            val recyclerView = categoryView.findViewById<androidx.recyclerview.widget.RecyclerView>(
-                com.bh.beanie.R.id.categoryRecyclerView
-            )
-            recyclerView.layoutManager = GridLayoutManager(this, 2)
-            recyclerView.adapter = adapter
-
-            // Thêm vào container
-            binding.categoriesContainer.addView(categoryView)
+                // Tải sản phẩm cho từng category
+                for (category in categories) {
+                    val products = categoryRepository.fetchCategoryItems(branchId, category.id)
+                    categoryProducts[category.id]?.clear()
+                    categoryProducts[category.id]?.addAll(products)
+                    categoryAdapters[category.id]?.notifyDataSetChanged()
+                }
+            } catch (e: Exception) {
+                Toast.makeText(baseContext, "Lỗi khi tải dữ liệu: ${e.message}",
+                    Toast.LENGTH_LONG).show()
+            }
         }
     }
 
@@ -358,39 +431,26 @@ class UserOrderActivity : AppCompatActivity() {
         }
     }
 
-    private fun loadProductData() {
-        val userId = FirebaseAuth.getInstance().currentUser?.uid
+    // Cập nhật hiển thị số lượng sản phẩm trong giỏ hàng
+    fun updateCartCount(count: Int) {
+        if (count > 0) {
+            binding.cartCountText.visibility = View.VISIBLE
+            binding.cartCountText.text = count.toString()
+        } else {
+            binding.cartCountText.visibility = View.GONE
+        }
+    }
 
-        // Sử dụng chi nhánh đã chọn
-        val branchId = currentBranchId
-
-        // Phần còn lại của phương thức loadProductData, nhưng sử dụng biến branchId thay vì giá trị cứng
+    // Tải số lượng sản phẩm trong giỏ hàng khi mở màn hình
+    private fun loadCartCount() {
+        val orderRepository = OrderRepository(FirebaseFirestore.getInstance(), this)
         lifecycleScope.launch {
             try {
-                // Tải sản phẩm yêu thích
-                if (userId != null) {
-                    val favorites = favoriteRepository.getFavorites(userId)
-                    favProducts.clear()
-                    favProducts.addAll(favorites)
-                    (binding.yourFavRecyclerView.adapter as ProductAdapter).notifyDataSetChanged()
-                }
-
-                // Tải sản phẩm bán chạy
-                val bestSellers = productRepository.fetchBestSellersSuspend(branchId)
-                bestSellerProducts.clear()
-                bestSellerProducts.addAll(bestSellers)
-                (binding.bestSellerRecyclerView.adapter as ProductAdapter).notifyDataSetChanged()
-
-                // Tải sản phẩm cho từng category
-                for (category in categories) {
-                    val products = categoryRepository.fetchCategoryItems(branchId, category.id)
-                    categoryProducts[category.id]?.clear()
-                    categoryProducts[category.id]?.addAll(products)
-                    categoryAdapters[category.id]?.notifyDataSetChanged()
-                }
+                val cartItems = orderRepository.getCartItems()
+                val totalCount = cartItems.sumOf { it.quantity }
+                updateCartCount(totalCount)
             } catch (e: Exception) {
-                Toast.makeText(baseContext, "Lỗi khi tải dữ liệu: ${e.message}",
-                    Toast.LENGTH_LONG).show()
+                // Xử lý lỗi nếu cần
             }
         }
     }

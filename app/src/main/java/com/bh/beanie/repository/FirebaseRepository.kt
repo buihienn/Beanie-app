@@ -5,6 +5,7 @@ import com.bh.beanie.model.Category
 import com.bh.beanie.model.Order
 import com.bh.beanie.model.OrderItem
 import com.bh.beanie.model.Product
+import com.bh.beanie.model.ProductSize
 import com.bh.beanie.model.User
 import com.bh.beanie.model.Voucher
 import com.google.firebase.Timestamp
@@ -146,10 +147,21 @@ class FirebaseRepository(private val db: FirebaseFirestore) {
             .await()
 
         return itemsSnapshot.map { doc ->
+            // Tạo một đối tượng ProductSize từ thông tin trong document
+            val sizeName = doc.getString("size") ?: ""
+            val sizePrice = doc.getDouble("sizePrice") ?: 0.0
+
+            // Nếu không có thông tin size, đặt thành null
+            val productSize = if (sizeName.isNotEmpty()) {
+                ProductSize(name = sizeName, price = sizePrice)
+            } else {
+                null
+            }
+
             OrderItem(
                 productId = doc.getString("productId") ?: "",
                 productName = doc.getString("productName") ?: "",
-                size = doc.getString("size") ?: "",
+                size = productSize,
                 quantity = doc.getLong("quantity")?.toInt() ?: 0,
                 unitPrice = doc.getDouble("unitPrice") ?: 0.0
             )

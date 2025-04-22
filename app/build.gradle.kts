@@ -88,4 +88,5 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.zxing.core)
     implementation(libs.zxing.embedded)
+    implementation(libs.gson)
 }

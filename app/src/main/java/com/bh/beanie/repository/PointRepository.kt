@@ -4,7 +4,7 @@ import com.bh.beanie.model.User
 import com.google.firebase.firestore.FirebaseFirestore
 import java.util.Calendar
 
-class PointsRepository(private val db: FirebaseFirestore) {
+class PointRepository(private val db: FirebaseFirestore) {
 
     // Thêm điểm khi người dùng hoàn thành đơn hàng
     fun addPoints(userId: String, orderAmount: Double, orderId: String) {
