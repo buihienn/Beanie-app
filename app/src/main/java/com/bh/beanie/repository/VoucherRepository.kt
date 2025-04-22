@@ -22,7 +22,7 @@ class VoucherRepository {
                     imageUrl = doc.getString("imageUrl") ?: "",
                     discountType = doc.getString("discountType") ?: "PERCENTAGE",
                     discountValue = doc.getDouble("discountValue") ?: 0.0,
-                    minOrderAmount = doc.getDouble("minOrderAmount")
+                    minOrderAmount = doc.getDouble("minOrderAmount") ?: 0.0
                 )
             }
         } catch (e: Exception) {
@@ -49,7 +49,7 @@ class VoucherRepository {
                     imageUrl = doc.getString("imageUrl") ?: "",
                     discountType = doc.getString("discountType") ?: "PERCENTAGE",
                     discountValue = doc.getDouble("discountValue") ?: 0.0,
-                    minOrderAmount = doc.getDouble("minOrderAmount")
+                    minOrderAmount = doc.getDouble("minOrderAmount") ?: 0.0
                 )
             }
         } catch (e: Exception) {
@@ -70,7 +70,7 @@ class VoucherRepository {
                     imageUrl = document.getString("imageUrl") ?: "",
                     discountType = document.getString("discountType") ?: "PERCENTAGE",
                     discountValue = document.getDouble("discountValue") ?: 0.0,
-                    minOrderAmount = document.getDouble("minOrderAmount")
+                    minOrderAmount = document.getDouble("minOrderAmount") ?: 0.0
                 )
             } else {
                 null

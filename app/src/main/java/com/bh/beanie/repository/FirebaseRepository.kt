@@ -131,7 +131,7 @@ class FirebaseRepository(private val db: FirebaseFirestore) {
                 imageUrl = doc.getString("imageUrl") ?: "",
                 discountType = doc.getString("discountType") ?: "PERCENT",
                 discountValue = doc.getDouble("discountValue") ?: 0.0,
-                minOrderAmount = doc.getDouble("minOrderAmount")
+                minOrderAmount = doc.getDouble("minOrderAmount") ?: 0.0
             )
         }
     }

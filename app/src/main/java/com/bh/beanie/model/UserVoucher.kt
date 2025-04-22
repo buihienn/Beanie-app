@@ -9,7 +9,7 @@ data class UserVoucher(
     val id: String = "",
     val userId: String = "",
     val voucherId: String = "",
-    val isUsed: Boolean = false,
+    val used: Boolean = false,
     @ServerTimestamp
     val acquiredDate: Timestamp? = null,
     val usedDate: Timestamp? = null
