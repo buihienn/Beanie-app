@@ -69,21 +69,6 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Price"
-            android:textStyle="bold"
-            android:paddingTop="8dp" />
-
-        <EditText
-            android:id="@+id/editTextPrice"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:minHeight="48dp"
-            android:hint="Price"
-            android:inputType="numberDecimal" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
             android:text="Stock"
             android:textStyle="bold"
             android:paddingTop="8dp" />
@@ -95,6 +80,53 @@
             android:hint="Number of items"
             android:minHeight="48dp"
             android:inputType="number" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Size Prices"
+            android:textStyle="bold"
+            android:paddingTop="8dp" />
+
+        <!-- Size M mặc định -->
+        <LinearLayout
+            android:id="@+id/sizeMContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="M:"
+                android:layout_marginEnd="8dp" />
+
+            <EditText
+                android:id="@+id/editTextSizeM"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="Enter price"
+                android:inputType="numberDecimal" />
+        </LinearLayout>
+
+        <!-- Container cho các size thêm sau này (S, L) -->
+        <LinearLayout
+            android:id="@+id/sizeExtraContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+
+        <!-- Nút thêm size -->
+        <Button
+            android:id="@+id/btnAddSize"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:text="+ Add Size"
+            android:layout_marginTop="4dp" />
+
 
         <Button
             android:id="@+id/btnSave"

@@ -38,7 +38,7 @@ class AdminCategoryItemAdapter(
 
         fun bind(item: Product) {
             itemName.text = item.name
-            itemStock.text = "Stock: ${item.stockQuantity} | Price: $${item.price}"
+            itemStock.text = "Stock: ${item.stockQuantity} | Price M: $${item.size["M"]}"
 
             editButton.setOnClickListener { onEditClick(item) }
             deleteButton.setOnClickListener { onDeleteClick(item) }
