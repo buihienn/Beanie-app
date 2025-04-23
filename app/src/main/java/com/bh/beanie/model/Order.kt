@@ -1,6 +1,7 @@
 package com.bh.beanie.model
 
 import com.google.firebase.Timestamp
+import java.util.Date
 
 data class Order(
     val id: String = "",
@@ -18,4 +19,8 @@ data class Order(
     val orderTime: Timestamp = Timestamp.now(),
     val paymentMethod: String = "CASH", // "MOMO", "VNPAY", ...
     val note: String = ""
-)
+) {
+    fun getOrderDate(): Date {
+        return orderTime.toDate()
+    }
+}

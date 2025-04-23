@@ -1,26 +1,24 @@
 package com.bh.beanie.user.fragment
 
+import android.app.Dialog
 import android.content.Context
 import android.os.Bundle
-import com.google.android.material.bottomsheet.BottomSheetDialogFragment
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import com.bh.beanie.databinding.ItemAddressBinding
-import com.bh.beanie.databinding.FragmentSelectAddressBinding
-import com.bh.beanie.model.Address
 import androidx.core.content.edit
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.bh.beanie.BeanieApplication
+import com.bh.beanie.R
+import com.bh.beanie.databinding.FragmentSelectAddressBinding
+import com.bh.beanie.databinding.ItemAddressBinding
+import com.bh.beanie.model.Address
+import com.bh.beanie.repository.AddressRepository
+import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 
-/**
- * A fragment that shows a list of addresses as a modal bottom sheet.
- *
- * You can show this modal bottom sheet from your activity like this:
- * <pre>
- *    SelectAddressFragment.newInstance().show(supportFragmentManager, "dialog")
- * </pre>
- */
 class SelectAddressFragment : BottomSheetDialogFragment() {
 
     private var _binding: FragmentSelectAddressBinding? = null
@@ -28,6 +26,7 @@ class SelectAddressFragment : BottomSheetDialogFragment() {
 
     private val addressList = mutableListOf<Address>()
     private lateinit var addressAdapter: AddressAdapter
+    private val addressRepository = AddressRepository()
 
     private var addressSelectedListener: ((Address) -> Unit)? = null
 
@@ -49,11 +48,41 @@ class SelectAddressFragment : BottomSheetDialogFragment() {
         // Thiết lập các thành phần UI
         setupUI()
 
-        // Tạo dữ liệu mẫu
-        createSampleAddresses()
-
         // Thiết lập RecyclerView
         setupRecyclerView()
+
+        // Tải địa chỉ từ Firebase
+        loadAddresses()
+    }
+
+    override fun getTheme(): Int {
+        return R.style.BottomSheetStyle_Level1
+    }
+
+    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+        val dialog = super.onCreateDialog(savedInstanceState) as BottomSheetDialog
+
+        dialog.setOnShowListener { dialogInterface ->
+            val bottomSheet = (dialogInterface as BottomSheetDialog)
+                .findViewById<View>(com.google.android.material.R.id.design_bottom_sheet)
+                ?: return@setOnShowListener
+
+            val behavior = BottomSheetBehavior.from(bottomSheet)
+
+            // Đặt chiều cao hiển thị là 90% màn hình
+            val displayMetrics = requireContext().resources.displayMetrics
+            val screenHeight = displayMetrics.heightPixels
+
+            val layoutParams = bottomSheet.layoutParams
+            layoutParams.height = (screenHeight * 0.9).toInt()
+            bottomSheet.layoutParams = layoutParams
+
+            behavior.peekHeight = (screenHeight * 0.9).toInt()
+            behavior.state = BottomSheetBehavior.STATE_EXPANDED
+            behavior.skipCollapsed = true
+        }
+
+        return dialog
     }
 
     private fun setupUI() {
@@ -64,14 +93,7 @@ class SelectAddressFragment : BottomSheetDialogFragment() {
 
         // Thiết lập nút thêm địa chỉ mới
         binding.addNewAddressButton.setOnClickListener {
-            // TODO: Xử lý thêm địa chỉ mới
-        }
-    }
-
-    private fun createSampleAddresses() {
-        addressList.apply {
-            add(Address(1, "Address A","Vinh", "0334435678", "227 Nguyễn Văn Cừ, Phường 4, Quận 5, TP.HCM", true))
-            add(Address(2, "Address B","Vinh", "0334435678", "227 Nguyễn Văn Cừ, Phường 4, Quận 5, TP.HCM", false))
+            showAddEditAddressFragment()
         }
     }
 
@@ -81,6 +103,49 @@ class SelectAddressFragment : BottomSheetDialogFragment() {
             layoutManager = LinearLayoutManager(requireContext())
             adapter = addressAdapter
         }
+    }
+
+    private fun loadAddresses() {
+        binding.progressBar.visibility = View.VISIBLE
+        binding.emptyStateLayout.visibility = View.GONE
+
+        val userId = BeanieApplication.instance.getUserId()
+        if (userId.isEmpty()) {
+            showEmptyState("Không tìm thấy người dùng, vui lòng đăng nhập lại")
+            return
+        }
+
+        addressRepository.getAddresses(userId) { addresses ->
+            requireActivity().runOnUiThread {
+                binding.progressBar.visibility = View.GONE
+
+                if (addresses.isEmpty()) {
+                    showEmptyState("Chưa có địa chỉ nào")
+                } else {
+                    binding.emptyStateLayout.visibility = View.GONE
+                    binding.addressRecyclerView.visibility = View.VISIBLE
+
+                    addressList.clear()
+                    addressList.addAll(addresses)
+                    addressAdapter.notifyDataSetChanged()
+                }
+            }
+        }
+    }
+
+    private fun showEmptyState(message: String) {
+        binding.progressBar.visibility = View.GONE
+        binding.addressRecyclerView.visibility = View.GONE
+        binding.emptyStateLayout.visibility = View.VISIBLE
+        binding.emptyStateText.text = message
+    }
+
+    private fun showAddEditAddressFragment(address: Address? = null) {
+        val fragment = AddEditAddressFragment.newInstance(address)
+        fragment.setOnAddressUpdatedListener {
+            loadAddresses()
+        }
+        fragment.show(parentFragmentManager, "AddEditAddressFragment")
     }
 
     inner class AddressAdapter(private val addresses: List<Address>) :
@@ -108,14 +173,10 @@ class SelectAddressFragment : BottomSheetDialogFragment() {
             fun bind(address: Address) {
                 binding.apply {
                     // Thiết lập tiêu đề địa chỉ
-                    addressTitle.text = "Address ${address.id}"
+                    addressTitle.text = address.nameAddress
 
                     // Hiển thị "Default address" nếu là địa chỉ mặc định
-                    if (address.isDefault) {
-                        defaultAddressText.visibility = View.VISIBLE
-                    } else {
-                        defaultAddressText.visibility = View.GONE
-                    }
+                    defaultAddressText.visibility = if (address.isDefault) View.VISIBLE else View.GONE
 
                     // Thiết lập thông tin người nhận
                     recipientNameText.text = address.name
@@ -124,18 +185,14 @@ class SelectAddressFragment : BottomSheetDialogFragment() {
 
                     // Thiết lập sự kiện chỉnh sửa
                     editButton.setOnClickListener {
-                        // TODO: Xử lý chỉnh sửa địa chỉ
+                        showAddEditAddressFragment(address)
                     }
 
                     // Thiết lập sự kiện chọn địa chỉ
                     root.setOnClickListener {
-                        // TODO: Xử lý chọn địa chỉ và đóng dialog
-                        // Lưu địa chỉ vào SharedPreferences
-                        saveSelectedAddress(address)
-
-                        // Thông báo cho activity biết địa chỉ đã được chọn
+                        val userId = BeanieApplication.instance.getUserId()
+                        saveSelectedAddress(userId, address)
                         addressSelectedListener?.invoke(address)
-
                         dismiss()
                     }
                 }
@@ -143,11 +200,12 @@ class SelectAddressFragment : BottomSheetDialogFragment() {
         }
     }
 
-    private fun saveSelectedAddress(address: Address) {
+    private fun saveSelectedAddress(userId: String, address: Address) {
         val sharedPreferences = requireActivity().getSharedPreferences("BeaniePref", Context.MODE_PRIVATE)
-        sharedPreferences.edit() {
+        sharedPreferences.edit {
             // Lưu thông tin địa chỉ
-            putInt("selected_address_id", address.id)
+            putString("selected_user_id", userId)
+            putString("selected_address_id", address.id)
             putString("selected_address_name", address.name)
             putString("selected_address_phone", address.phoneNumber)
             putString("selected_address_detail", address.addressDetail)
@@ -155,7 +213,6 @@ class SelectAddressFragment : BottomSheetDialogFragment() {
 
             // Lưu địa chỉ dưới dạng String để hiển thị
             putString("selected_address_display", address.addressDetail)
-
         }
     }
 

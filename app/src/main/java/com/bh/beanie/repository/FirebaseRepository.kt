@@ -5,6 +5,8 @@ import com.bh.beanie.model.Category
 import com.bh.beanie.model.Order
 import com.bh.beanie.model.OrderItem
 import com.bh.beanie.model.Product
+import com.bh.beanie.model.ProductSize
+import com.bh.beanie.model.User
 import com.bh.beanie.model.Voucher
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.DocumentSnapshot
@@ -145,10 +147,21 @@ class FirebaseRepository(private val db: FirebaseFirestore) {
             .await()
 
         return itemsSnapshot.map { doc ->
+            // Tạo một đối tượng ProductSize từ thông tin trong document
+            val sizeName = doc.getString("size") ?: ""
+            val sizePrice = doc.getDouble("sizePrice") ?: 0.0
+
+            // Nếu không có thông tin size, đặt thành null
+            val productSize = if (sizeName.isNotEmpty()) {
+                ProductSize(name = sizeName, price = sizePrice)
+            } else {
+                null
+            }
+
             OrderItem(
                 productId = doc.getString("productId") ?: "",
                 productName = doc.getString("productName") ?: "",
-                size = doc.getString("size") ?: "",
+                size = productSize,
                 quantity = doc.getLong("quantity")?.toInt() ?: 0,
                 unitPrice = doc.getDouble("unitPrice") ?: 0.0
             )
@@ -199,9 +212,69 @@ class FirebaseRepository(private val db: FirebaseFirestore) {
         orderRef.update("status", newStatus).await()
     }
 
+    suspend fun fetchCustomersPaginated(lastVisibleDocument: DocumentSnapshot? = null): Pair<List<User>, DocumentSnapshot?> {
+        return try {
+            var query = db.collection("users")
+                .whereEqualTo("role", "customer")
+                .orderBy("createdAt", Query.Direction.DESCENDING)
+                .limit(10)
 
+            // Nếu có document cuối cùng từ lần trước, thì phân trang tiếp theo
+            if (lastVisibleDocument != null) {
+                query = query.startAfter(lastVisibleDocument)
+            }
 
+            val snapshot = query.get().await()
 
+            val customers = snapshot.map { doc ->
+                User(
+                    username = doc.getString("username") ?: "",
+                    email = doc.getString("email") ?: "",
+                    phone = doc.getString("phone") ?: "",
+                    dob = doc.getString("dob") ?: "",
+                    gender = doc.getString("gender") ?: "",
+                    avatarUrl = doc.getString("avatarUrl"),
+                    role = doc.getString("role") ?: "customer",
+                    createdAt = doc.getDate("createdAt")
+                )
+            }
 
+            val lastDoc = snapshot.documents.lastOrNull()
+            Pair(customers, lastDoc)
+        } catch (e: Exception) {
+            Log.e("FirebaseRepo", "Error fetching paginated customers: ${e.message}")
+            Pair(emptyList(), null)
+        }
+    }
+
+    suspend fun updateCustomer(user: User) {
+        try {
+            val querySnapshot = db.collection("users")
+                .whereEqualTo("email", user.email)
+                .get()
+                .await()
+            if (querySnapshot.isEmpty) {
+                throw Exception("User with email ${user.email} not found.")
+            }
+
+            val userRef = querySnapshot.documents.first().reference
+
+            val updatedData = mapOf(
+                "username" to user.username,
+                "email" to user.email,
+                "phone" to user.phone,
+                "dob" to user.dob,
+                "gender" to user.gender,
+                "avatarUrl" to user.avatarUrl,
+                "role" to user.role,
+                "createdAt" to user.createdAt
+            )
+            userRef.update(updatedData).await()
+            Log.d("FirebaseRepository", "Customer updated successfully: ${user.email}")
+        } catch (e: Exception) {
+            Log.e("FirebaseRepository", "Error updating customer: ${e.message}")
+            throw e
+        }
+    }
 
 }

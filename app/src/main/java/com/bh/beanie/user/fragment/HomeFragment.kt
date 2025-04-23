@@ -1,12 +1,15 @@
 package com.bh.beanie.user.fragment
 
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.Color
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.ImageView
 import android.widget.Toast
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -14,18 +17,22 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bh.beanie.R
 import com.bh.beanie.model.Product
 import com.bh.beanie.repository.ProductRepository
+import com.bh.beanie.BeanieApplication
 import com.bh.beanie.user.UserOrderActivity
 import com.bh.beanie.user.adapter.ProductAdapter
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.card.MaterialCardView
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.zxing.BarcodeFormat
+import com.google.zxing.MultiFormatWriter
+import com.google.zxing.common.BitMatrix
 import kotlinx.coroutines.launch
 
 class HomeFragment : Fragment() {
     private lateinit var popularItemsRecyclerView: RecyclerView
-    private lateinit var productAdapter: ProductAdapter
     private val productList = mutableListOf<Product>()
     private lateinit var productRepository: ProductRepository
+    private lateinit var barcodeImageView: ImageView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,19 +53,20 @@ class HomeFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         setupFortuneWheelCard(view)
         val notificationButton = view.findViewById<MaterialButton>(R.id.notificationButton)
-
+        barcodeImageView = view.findViewById(R.id.ivBarcode)
 
         // Khởi tạo RecyclerView
         popularItemsRecyclerView = view.findViewById(R.id.popularItemsRecyclerView)
         popularItemsRecyclerView.layoutManager =
             LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
 
-        // Khởi tạo adapter và gắn vào RecyclerView
-        productAdapter = ProductAdapter(requireContext(), productList)
-        popularItemsRecyclerView.adapter = productAdapter
+        // Lấy userId
+        val userId = BeanieApplication.instance.getUserId()
 
-        // Tải dữ liệu từ Firebase
-        loadPopularProducts()
+        if (userId.isNotEmpty()) {
+            // Tạo barcode từ userId
+            generateAndSetBarcode(userId)
+        }
 
         val deliveryBtn: Button = view.findViewById(R.id.deliveryButton)
         deliveryBtn.setOnClickListener {
@@ -71,36 +79,36 @@ class HomeFragment : Fragment() {
         }
     }
 
-    private fun loadPopularProducts() {
-        val branchId = "braches_q5" // Hoặc lấy từ settings/preferences
+    private fun generateAndSetBarcode(userId: String) {
+        try {
+            // Tạo barcode từ userId
+            val barcodeBitmap = generateBarcode(userId, BarcodeFormat.CODE_128, 350, 150)
 
-        // Hiển thị loading
-        view?.findViewById<View>(R.id.progressBar)?.visibility = View.VISIBLE
-
-        viewLifecycleOwner.lifecycleScope.launch {
-            try {
-                // Tải sản phẩm phổ biến từ repository
-                val products = productRepository.fetchBestSellersSuspend(branchId)
-
-                productList.clear()
-                productList.addAll(products)
-                productAdapter.notifyDataSetChanged()
-
-                // Ẩn loading
-                view?.findViewById<View>(R.id.progressBar)?.visibility = View.GONE
-            } catch (e: Exception) {
-                // Ẩn loading
-                view?.findViewById<View>(R.id.progressBar)?.visibility = View.GONE
-
-                // Hiển thị thông báo lỗi
-                Toast.makeText(
-                    context,
-                    "Lỗi khi tải sản phẩm: ${e.message}",
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
+            // Gán bitmap vào ImageView
+            barcodeImageView.setImageBitmap(barcodeBitmap)
+        } catch (e: Exception) {
+            Toast.makeText(
+                context,
+                "Lỗi khi tạo mã barcode: ${e.message}",
+                Toast.LENGTH_SHORT
+            ).show()
         }
     }
+
+    private fun generateBarcode(content: String, format: BarcodeFormat, width: Int, height: Int): Bitmap {
+        val writer = MultiFormatWriter()
+        val bitMatrix: BitMatrix = writer.encode(content, format, width, height)
+        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+
+        for (x in 0 until width) {
+            for (y in 0 until height) {
+                bitmap.setPixel(x, y, if (bitMatrix[x, y]) Color.BLACK else Color.WHITE)
+            }
+        }
+
+        return bitmap
+    }
+
     private fun setupFortuneWheelCard(view: View) {
         // Get reference to the Fortune Wheel card
         val fortuneWheelCard = view.findViewById<MaterialCardView>(R.id.fortuneWheelCard)
@@ -117,6 +125,7 @@ class HomeFragment : Fragment() {
                 .commit()
         }
     }
+
     companion object {
         @JvmStatic
         fun newInstance() = HomeFragment()
