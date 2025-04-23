@@ -49,7 +49,7 @@ object NavigationUtils {
 
     fun navigateToCustomer(activity: Activity, userId: String) {
         // Kiểm tra và reset điểm nếu cần
-        val userRepository = UserRepository(FirebaseFirestore.getInstance())
+        val userRepository = UserRepository()
         userRepository.checkAndResetPointsIfNeeded(userId)
 
         val intent = Intent(activity, UserMainActivity::class.java)
