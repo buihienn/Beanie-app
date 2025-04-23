@@ -59,16 +59,15 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="Price:"
+            android:text="Price size:"
             android:textStyle="bold" />
 
-        <EditText
-            android:id="@+id/editTextPrice"
+        <LinearLayout
+            android:id="@+id/sizeContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Enter price"
-            android:inputType="numberDecimal"
-            android:minHeight="48dp" />
+            android:orientation="vertical"
+            android:gravity="center_vertical" />
 
         <TextView
             android:layout_width="wrap_content"

@@ -5,10 +5,9 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.provider.OpenableColumns
+import android.text.InputType
 import android.util.Log
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.widget.*
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
@@ -19,10 +18,10 @@ import com.bh.beanie.repository.CloudinaryRepository
 import com.bh.beanie.repository.FirebaseRepository
 import com.bumptech.glide.Glide
 import com.google.firebase.firestore.FirebaseFirestore
-import java.io.File
-import java.io.FileOutputStream
 import kotlinx.coroutines.launch
 import androidx.lifecycle.lifecycleScope
+import java.io.File
+import java.io.FileOutputStream
 
 class EditItemDialogFragment(
     private val item: Product,
@@ -35,6 +34,7 @@ class EditItemDialogFragment(
     private var selectedImageUri: Uri? = null
     private val cloudinaryRepository = CloudinaryRepository()
     private val repository = FirebaseRepository(FirebaseFirestore.getInstance())
+    private val sizeEditTextMap = mutableMapOf<String, EditText>()
 
     override fun onStart() {
         super.onStart()
@@ -46,7 +46,6 @@ class EditItemDialogFragment(
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         imagePickerLauncher = registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()
         ) { result ->
@@ -72,11 +71,11 @@ class EditItemDialogFragment(
 
         imageView = view.findViewById(R.id.imageViewItem)
         val nameEditText = view.findViewById<EditText>(R.id.editTextName)
-        val priceEditText = view.findViewById<EditText>(R.id.editTextPrice)
         val stockEditText = view.findViewById<EditText>(R.id.editTextStock)
         val saveButton = view.findViewById<Button>(R.id.btnSave)
         val changeImageButton = view.findViewById<Button>(R.id.btnChangeImage)
         val cancelButton = view.findViewById<ImageButton>(R.id.btnDialogCancel)
+        val sizeContainer = view.findViewById<LinearLayout>(R.id.sizeContainer)
 
         cancelButton.setOnClickListener { dismiss() }
 
@@ -87,8 +86,48 @@ class EditItemDialogFragment(
             .into(imageView)
 
         nameEditText.setText(item.name)
-        priceEditText.setText(item.price.toString())
         stockEditText.setText(item.stockQuantity.toString())
+
+        // Hiển thị từng size (ví dụ: S, M, L) với EditText nhập giá tương ứng
+        item.size.forEach { (size, price) ->
+            val rowLayout = LinearLayout(requireContext()).apply {
+                orientation = LinearLayout.HORIZONTAL
+                gravity = Gravity.CENTER_VERTICAL
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                ).apply {
+                    topMargin = 8
+                }
+            }
+
+            val sizeTextView = TextView(requireContext()).apply {
+                text = size
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                ).apply {
+                    marginEnd = 16
+                }
+            }
+
+            val priceEditText = EditText(requireContext()).apply {
+                setText(price.toString())
+                hint = "Enter price"
+                inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL
+                layoutParams = LinearLayout.LayoutParams(
+                    0,
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    1f
+                )
+            }
+
+            rowLayout.addView(sizeTextView)
+            rowLayout.addView(priceEditText)
+            sizeContainer.addView(rowLayout)
+
+            sizeEditTextMap[size] = priceEditText
+        }
 
         changeImageButton.setOnClickListener {
             val intent = Intent(Intent.ACTION_PICK).apply {
@@ -98,10 +137,18 @@ class EditItemDialogFragment(
         }
 
         saveButton.setOnClickListener {
+            val updatedSizes = mutableMapOf<String, Double>()
+            sizeEditTextMap.forEach { (size, editText) ->
+                val price = editText.text.toString().toDoubleOrNull()
+                if (price != null) {
+                    updatedSizes[size] = price
+                }
+            }
+
             val updatedItem = item.copy(
                 name = nameEditText.text.toString(),
-                price = priceEditText.text.toString().toDoubleOrNull() ?: 0.0,
-                stockQuantity = stockEditText.text.toString().toIntOrNull() ?: 0
+                stockQuantity = stockEditText.text.toString().toIntOrNull() ?: 0,
+                size = updatedSizes
             )
 
             selectedImageUri?.let { uri ->
@@ -136,7 +183,6 @@ class EditItemDialogFragment(
             val outputStream = FileOutputStream(tempFile)
 
             inputStream.copyTo(outputStream)
-
             inputStream.close()
             outputStream.close()
             tempFile
@@ -162,8 +208,8 @@ class EditItemDialogFragment(
         lifecycleScope.launch {
             try {
                 repository.editCategoryItemSuspend(branchId, updatedItem.categoryId, updatedItem)
-                onItemUpdated(updatedItem)  // Gọi callback sau khi cập nhật thành công
-                dismiss()  // Đóng dialog
+                onItemUpdated(updatedItem)
+                dismiss()
             } catch (exception: Exception) {
                 Log.e("EditItemDialog", "Error updating item", exception)
                 Toast.makeText(requireContext(), "Update failed", Toast.LENGTH_SHORT).show()
