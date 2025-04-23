@@ -30,9 +30,13 @@ class AdminVoucherAdapter(
             nameVoucher.text = voucher.name
             contentVoucher.text = voucher.content
 
-            val expiryDate = voucher.expiryDate.toDate()
+            val expiryDate = voucher.expiryDate?.toDate()
             val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-            expiryDateText.text = "Hạn: ${dateFormat.format(expiryDate)}"
+            expiryDateText.text = if (expiryDate != null) {
+                "Hạn: ${dateFormat.format(expiryDate)}"
+            } else {
+                "Hạn: N/A"
+            }
 
             stateVoucher.text = voucher.state
             val colorRes = if (voucher.state == "ACTIVE") R.color.green else R.color.button_red

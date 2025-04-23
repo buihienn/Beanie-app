@@ -21,6 +21,7 @@ import com.bh.beanie.BeanieApplication
 import com.bh.beanie.user.UserOrderActivity
 import com.bh.beanie.user.adapter.ProductAdapter
 import com.google.android.material.button.MaterialButton
+import com.google.android.material.card.MaterialCardView
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.MultiFormatWriter
@@ -50,7 +51,7 @@ class HomeFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
+        setupFortuneWheelCard(view)
         val notificationButton = view.findViewById<MaterialButton>(R.id.notificationButton)
         barcodeImageView = view.findViewById(R.id.ivBarcode)
 
@@ -106,6 +107,23 @@ class HomeFragment : Fragment() {
         }
 
         return bitmap
+    }
+
+    private fun setupFortuneWheelCard(view: View) {
+        // Get reference to the Fortune Wheel card
+        val fortuneWheelCard = view.findViewById<MaterialCardView>(R.id.fortuneWheelCard)
+
+        // Set onClick listener to open LuckyWheel fragment
+        fortuneWheelCard.setOnClickListener {
+            // Create instance of LuckyWheelFragment
+            val luckyWheelFragment = LuckyWheelFragment.newInstance()
+
+            // Replace current fragment with LuckyWheelFragment
+            requireActivity().supportFragmentManager.beginTransaction()
+                .replace(R.id.fragment_container, luckyWheelFragment)
+                .addToBackStack(null)
+                .commit()
+        }
     }
 
     companion object {

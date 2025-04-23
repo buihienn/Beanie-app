@@ -48,7 +48,12 @@ class OtherFragment : Fragment() {
     private fun setupCardViewListeners(view: View) {
         // Profile card
         view.findViewById<MaterialCardView>(R.id.cardProfile)?.setOnClickListener {
-            // Handle profile click
+            // Navigate to EditProfile fragment
+            val editProfileFragment = EditProfile.newInstance()
+            requireActivity().supportFragmentManager.beginTransaction()
+                .replace(R.id.fragment_container, editProfileFragment) // Ensure this ID matches your container
+                .addToBackStack(null) // So user can press back to return to previous fragment
+                .commit()
         }
 
         // Settings card
