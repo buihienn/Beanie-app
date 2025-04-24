@@ -87,7 +87,8 @@ class FirebaseRepository(private val db: FirebaseFirestore) {
             "description" to item.description,
             "price" to item.price,
             "imageUrl" to item.imageUrl,
-            "stock" to item.stockQuantity
+            "stock" to item.stockQuantity,
+            "size" to item.size
         )
 
         itemRef.update(updatedData).await()
