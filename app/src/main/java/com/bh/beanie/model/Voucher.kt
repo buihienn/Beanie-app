@@ -4,13 +4,12 @@ import com.google.firebase.Timestamp
 
 data class Voucher(
     val id: String = "",
-    val name: String,
-    val content: String,
-    val expiryDate: Timestamp,
-    val state: String,  // ACTIVE, EXPIRED, DISABLED
-    val imageUrl: String,
-
-    val discountType: String,
-    val discountValue: Double,
-    val minOrderAmount: Double?
+    val name: String = "",
+    val content: String = "",
+    val discountValue: Double = 0.0,
+    val discountType: String = "",
+    val state: String = "",
+    val expiryDate: com.google.firebase.Timestamp? = null,
+    val minOrderAmount: Double = 0.0,
+    val imageUrl: String = ""
 )

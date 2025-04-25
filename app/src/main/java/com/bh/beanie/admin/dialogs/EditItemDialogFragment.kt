@@ -5,10 +5,9 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.provider.OpenableColumns
+import android.text.InputType
 import android.util.Log
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.widget.*
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
@@ -19,10 +18,10 @@ import com.bh.beanie.repository.CloudinaryRepository
 import com.bh.beanie.repository.FirebaseRepository
 import com.bumptech.glide.Glide
 import com.google.firebase.firestore.FirebaseFirestore
-import java.io.File
-import java.io.FileOutputStream
 import kotlinx.coroutines.launch
 import androidx.lifecycle.lifecycleScope
+import java.io.File
+import java.io.FileOutputStream
 
 class EditItemDialogFragment(
     private val item: Product,
@@ -35,6 +34,8 @@ class EditItemDialogFragment(
     private var selectedImageUri: Uri? = null
     private val cloudinaryRepository = CloudinaryRepository()
     private val repository = FirebaseRepository(FirebaseFirestore.getInstance())
+    private val sizeEditTextMap = mutableMapOf<String, EditText>()
+    private lateinit var progressBar: ProgressBar
 
     override fun onStart() {
         super.onStart()
@@ -46,7 +47,6 @@ class EditItemDialogFragment(
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         imagePickerLauncher = registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()
         ) { result ->
@@ -72,11 +72,13 @@ class EditItemDialogFragment(
 
         imageView = view.findViewById(R.id.imageViewItem)
         val nameEditText = view.findViewById<EditText>(R.id.editTextName)
-        val priceEditText = view.findViewById<EditText>(R.id.editTextPrice)
         val stockEditText = view.findViewById<EditText>(R.id.editTextStock)
         val saveButton = view.findViewById<Button>(R.id.btnSave)
         val changeImageButton = view.findViewById<Button>(R.id.btnChangeImage)
         val cancelButton = view.findViewById<ImageButton>(R.id.btnDialogCancel)
+        val sizeContainer = view.findViewById<LinearLayout>(R.id.sizeContainer)
+        val addSizeButton = view.findViewById<Button>(R.id.btnAddSize)
+        progressBar = view.findViewById(R.id.progressBar)
 
         cancelButton.setOnClickListener { dismiss() }
 
@@ -87,8 +89,11 @@ class EditItemDialogFragment(
             .into(imageView)
 
         nameEditText.setText(item.name)
-        priceEditText.setText(item.price.toString())
         stockEditText.setText(item.stockQuantity.toString())
+
+        item.size.forEach { (size, price) ->
+            sizeContainer.addView(createSizeRow(size, price))
+        }
 
         changeImageButton.setOnClickListener {
             val intent = Intent(Intent.ACTION_PICK).apply {
@@ -97,16 +102,51 @@ class EditItemDialogFragment(
             imagePickerLauncher.launch(intent)
         }
 
+        addSizeButton.setOnClickListener {
+            val popupMenu = PopupMenu(requireContext(), addSizeButton)
+            listOf("S", "M", "L").forEach { size ->
+                popupMenu.menu.add(size)
+            }
+
+            popupMenu.setOnMenuItemClickListener { menuItem ->
+                val selectedSize = menuItem.title.toString()
+                if (sizeEditTextMap.containsKey(selectedSize)) {
+                    Toast.makeText(requireContext(), "Size $selectedSize đã tồn tại", Toast.LENGTH_SHORT).show()
+                } else {
+                    sizeContainer.addView(createSizeRow(selectedSize))
+                }
+                true
+            }
+
+            popupMenu.show()
+        }
+
         saveButton.setOnClickListener {
+            val updatedSizes = mutableMapOf<String, Double>()
+            sizeEditTextMap.forEach { (size, editText) ->
+                val price = editText.text.toString().toDoubleOrNull()
+                if (price != null) {
+                    updatedSizes[size] = price
+                }
+            }
+
+            val name = nameEditText.text.toString().trim()
+            val stock = stockEditText.text.toString().toIntOrNull()
+            if (name.isEmpty() || stock == null || updatedSizes.isEmpty()) {
+                Toast.makeText(requireContext(), "Vui lòng nhập đầy đủ thông tin hợp lệ", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
             val updatedItem = item.copy(
-                name = nameEditText.text.toString(),
-                price = priceEditText.text.toString().toDoubleOrNull() ?: 0.0,
-                stockQuantity = stockEditText.text.toString().toIntOrNull() ?: 0
+                name = name,
+                stockQuantity = stock,
+                size = updatedSizes
             )
 
             selectedImageUri?.let { uri ->
                 val file = uriToFile(uri)
                 if (file != null) {
+                    showProgress(true)
                     cloudinaryRepository.uploadImage(
                         filePath = file.absolutePath,
                         folderName = "menu-items",
@@ -116,16 +156,67 @@ class EditItemDialogFragment(
                         },
                         onFailure = { exception ->
                             Log.e("EditItemDialog", "Upload error", exception)
-                            Toast.makeText(requireContext(), "Upload failed", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(requireContext(), "Error when upload on Cloudinary", Toast.LENGTH_SHORT).show()
+                            showProgress(false)
                         }
                     )
                 } else {
-                    Toast.makeText(requireContext(), "Cannot process selected image", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), "Error: Can't solve image uploaded", Toast.LENGTH_SHORT).show()
                 }
             } ?: updateItemInDatabase(updatedItem)
         }
 
         return view
+    }
+
+    private fun showProgress(show: Boolean) {
+        progressBar.visibility = if (show) View.VISIBLE else View.GONE
+    }
+
+    private fun createSizeRow(size: String, price: Double? = null): View {
+        val context = requireContext()
+        val rowLayout = LinearLayout(context).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply { topMargin = 8 }
+        }
+
+        val sizeTextView = TextView(context).apply {
+            text = size
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply { marginEnd = 16 }
+        }
+
+        val priceEditText = EditText(context).apply {
+            hint = "Enter price"
+            inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL
+            setText(price?.toString() ?: "")
+            layoutParams = LinearLayout.LayoutParams(
+                0,
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                1f
+            )
+        }
+
+        val removeButton = Button(context).apply {
+            text = "Xóa"
+            setOnClickListener {
+                (rowLayout.parent as LinearLayout).removeView(rowLayout)
+                sizeEditTextMap.remove(size)
+            }
+        }
+
+        rowLayout.addView(sizeTextView)
+        rowLayout.addView(priceEditText)
+        rowLayout.addView(removeButton)
+        sizeEditTextMap[size] = priceEditText
+
+        return rowLayout
     }
 
     private fun uriToFile(uri: Uri): File? {
@@ -136,7 +227,6 @@ class EditItemDialogFragment(
             val outputStream = FileOutputStream(tempFile)
 
             inputStream.copyTo(outputStream)
-
             inputStream.close()
             outputStream.close()
             tempFile
@@ -161,12 +251,16 @@ class EditItemDialogFragment(
     private fun updateItemInDatabase(updatedItem: Product) {
         lifecycleScope.launch {
             try {
+                showProgress(true)
                 repository.editCategoryItemSuspend(branchId, updatedItem.categoryId, updatedItem)
-                onItemUpdated(updatedItem)  // Gọi callback sau khi cập nhật thành công
-                dismiss()  // Đóng dialog
+                Toast.makeText(requireContext(), "Update successful", Toast.LENGTH_SHORT).show()
+                onItemUpdated(updatedItem)
+                dismiss()
             } catch (exception: Exception) {
                 Log.e("EditItemDialog", "Error updating item", exception)
                 Toast.makeText(requireContext(), "Update failed", Toast.LENGTH_SHORT).show()
+            } finally {
+                showProgress(false)
             }
         }
     }

@@ -73,7 +73,11 @@ class EditVoucherDialogFragment(
         editTextName.setText(voucher.name)
         editTextContent.setText(voucher.content)
         editTextValue.setText(voucher.discountValue.toString())
-        editTextExpiryDate.setText(SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(voucher.expiryDate.toDate()))
+        editTextExpiryDate.setText(
+            voucher.expiryDate?.let {
+                SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(it.toDate())
+            } ?: "No expiry date"
+        )
         Glide.with(this).load(voucher.imageUrl).placeholder(R.drawable.placeholder).into(imageView)
 
         val discountTypeList = listOf("PERCENT", "FIXED")
@@ -90,12 +94,25 @@ class EditVoucherDialogFragment(
 
         // Date picker
         editTextExpiryDate.setOnClickListener {
+            // Create calendar instance outside the let block
             val calendar = Calendar.getInstance()
-            calendar.time = voucher.expiryDate.toDate()
-            val datePicker = DatePickerDialog(requireContext(), { _, year, month, dayOfMonth ->
-                val selectedDate = String.format("%02d/%02d/%04d", dayOfMonth, month + 1, year)
-                editTextExpiryDate.setText(selectedDate)
-            }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH))
+
+            // Set date from voucher if available, otherwise use current date
+            voucher.expiryDate?.let { timestamp ->
+                calendar.time = timestamp.toDate()
+            }
+
+            val datePicker = DatePickerDialog(
+                requireContext(),
+                { _, year, month, dayOfMonth ->
+                    val selectedDate = String.format("%02d/%02d/%04d", dayOfMonth, month + 1, year)
+                    editTextExpiryDate.setText(selectedDate)
+                },
+                calendar.get(Calendar.YEAR),
+                calendar.get(Calendar.MONTH),
+                calendar.get(Calendar.DAY_OF_MONTH)
+            )
+
             datePicker.show()
         }
 

@@ -66,7 +66,7 @@ dependencies {
     implementation(libs.androidx.ui.text.android)
     implementation(libs.androidx.legacy.support.v4)
     implementation(libs.androidx.recyclerview)
-    implementation(libs.firebase.firestore.ktx)
+    implementation("com.google.firebase:firebase-firestore-ktx:25.1.3")
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

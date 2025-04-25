@@ -45,7 +45,8 @@ class FirebaseRepository(private val db: FirebaseFirestore) {
                 price = doc.getDouble("price") ?: 0.0,
                 imageUrl = doc.getString("imageUrl") ?: "",
                 stockQuantity = doc.getLong("stock")?.toInt() ?: 0,
-                categoryId = categoryId
+                categoryId = categoryId,
+                size = doc.get("size") as? Map<String, Double> ?: emptyMap(),
             )
         }
     }
@@ -69,7 +70,8 @@ class FirebaseRepository(private val db: FirebaseFirestore) {
             "description" to item.description,
             "price" to item.price,
             "imageUrl" to item.imageUrl,
-            "stock" to item.stockQuantity
+            "stock" to item.stockQuantity,
+            "size" to item.size
         )
 
         productsRef.set(itemData).await()
@@ -85,7 +87,8 @@ class FirebaseRepository(private val db: FirebaseFirestore) {
             "description" to item.description,
             "price" to item.price,
             "imageUrl" to item.imageUrl,
-            "stock" to item.stockQuantity
+            "stock" to item.stockQuantity,
+            "size" to item.size
         )
 
         itemRef.update(updatedData).await()
@@ -133,7 +136,7 @@ class FirebaseRepository(private val db: FirebaseFirestore) {
                 imageUrl = doc.getString("imageUrl") ?: "",
                 discountType = doc.getString("discountType") ?: "PERCENT",
                 discountValue = doc.getDouble("discountValue") ?: 0.0,
-                minOrderAmount = doc.getDouble("minOrderAmount")
+                minOrderAmount = doc.getDouble("minOrderAmount") ?: 0.0
             )
         }
     }

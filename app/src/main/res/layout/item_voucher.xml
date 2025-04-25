@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="12dp"
+    android:background="@drawable/bg_voucher"
+    android:padding="16dp">
+
+    <!-- Số tiền giảm -->
+
+    <!-- Nội dung mô tả -->
+    <TextView
+        android:id="@+id/tvDiscountAmount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_marginStart="40dp"
+        android:text="30k"
+        android:textColor="#636032"
+        android:textSize="30sp" />
+
+    <TextView
+        android:id="@+id/tvVoucherContent"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@id/tvDiscountAmount"
+        android:layout_marginStart="16dp"
+        android:layout_toEndOf="@id/tvDiscountAmount"
+        android:text="30K OFF FOR ORDERS\nFROM 100K"
+        android:textColor="#000000"
+        android:textSize="20sp" />
+
+    <!-- Icon đồng hồ -->
+
+    <!-- Text "Time Expired" -->
+
+    <ImageView
+        android:id="@+id/imgClock"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_below="@id/tvVoucherContent"
+        android:layout_marginStart="-34dp"
+        android:layout_marginTop="23dp"
+        android:layout_toEndOf="@id/tvDiscountAmount"
+        android:src="@drawable/ic_clock" />
+
+    <TextView
+        android:id="@+id/tvTimeLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Time Expired"
+        android:textSize="12sp"
+        android:layout_toEndOf="@id/imgClock"
+        android:layout_alignTop="@id/imgClock"
+        android:layout_marginStart="6dp"
+        android:textColor="#000000" />
+
+    <!-- Ngày hết hạn -->
+    <TextView
+        android:id="@+id/tvExpireDate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="12/05/2025"
+        android:textSize="12sp"
+        android:layout_below="@id/tvTimeLabel"
+        android:layout_alignStart="@id/tvTimeLabel"
+        android:layout_marginTop="2dp"
+        android:textColor="#000000" />
+
+    <!-- Nút Select -->
+    <Button
+        android:id="@+id/btnSelect"
+        android:layout_width="120dp"
+        android:layout_height="40dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginTop="64dp"
+        android:layout_marginEnd="24dp"
+        android:background="@drawable/btn_voucher"
+        android:text="Select"
+        android:textColor="#FFFFFF"
+        android:textSize="14sp" />
+
+</RelativeLayout>

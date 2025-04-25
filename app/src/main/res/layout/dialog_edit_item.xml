@@ -6,6 +6,23 @@
     android:padding="16dp">
 
 
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <ProgressBar
+            android:id="@+id/progressBar"
+            style="?android:attr/progressBarStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:visibility="gone"/>
+    </FrameLayout>
+
     <ImageButton
         android:id="@+id/btnDialogCancel"
         android:layout_width="wrap_content"
@@ -59,16 +76,23 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="Price:"
+            android:text="Price size:"
             android:textStyle="bold" />
 
-        <EditText
-            android:id="@+id/editTextPrice"
+        <LinearLayout
+            android:id="@+id/sizeContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Enter price"
-            android:inputType="numberDecimal"
-            android:minHeight="48dp" />
+            android:gravity="center_vertical"
+            android:orientation="vertical" />
+
+        <Button
+            android:id="@+id/btnAddSize"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:layout_marginTop="4dp"
+            android:text="+ Add Size" />
 
         <TextView
             android:layout_width="wrap_content"
