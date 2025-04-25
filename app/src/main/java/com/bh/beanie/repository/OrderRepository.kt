@@ -131,14 +131,12 @@ class OrderRepository(private val db: FirebaseFirestore, private val context: Co
         // Tạo document order
         val orderRef = db.collection("orders").document()
         val order = Order(
-            id = orderRef.id,
             branchId = branchId,
             userId = userId,
             customerName = customerName,
             phoneNumber = phoneNumber,
             deliveryAddress = deliveryAddress,
             type = type,
-            items = cartItems,
             totalPrice = totalPrice,
             paymentMethod = paymentMethod,
             note = note
