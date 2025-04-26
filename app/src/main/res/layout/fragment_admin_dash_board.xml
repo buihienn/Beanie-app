@@ -29,6 +29,15 @@
             android:contentDescription="notification icon"
             app:srcCompat="@drawable/notification_bell" />
 
+        <ImageButton
+            android:id="@+id/imageBtnLogOut"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:src="@drawable/ic_logout"
+            android:backgroundTint="#00FFFFFF"
+            android:layout_marginEnd="50dp"/>
+
     </FrameLayout>
 
     <LinearLayout
@@ -41,7 +50,7 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1"
+            android:layout_weight="0.3"
             android:orientation="horizontal">
 
             <LinearLayout
@@ -49,7 +58,7 @@
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:background="#E7AAAA"
+                android:background="#FCF9F1"
                 android:gravity="center"
                 android:orientation="vertical">
 
@@ -72,13 +81,18 @@
                     android:textSize="50sp"
                     android:textStyle="bold" />
             </LinearLayout>
+            <View
+                android:layout_width="1dp"
+                android:layout_height="match_parent"
+                android:background="#000000"
+                android:layout_gravity="end" />
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/constraintLayout"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:background="#DC7D7D">
+                android:background="#FCF9F1">
 
                 <androidx.constraintlayout.widget.Guideline
                     android:id="@+id/guideline"

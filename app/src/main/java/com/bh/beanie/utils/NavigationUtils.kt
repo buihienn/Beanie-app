@@ -18,9 +18,27 @@ object NavigationUtils {
             .get()
             .addOnSuccessListener { document ->
                 val role = document.getString("role")
+                val name: String = document.getString("username") ?: ""
 
                 when (role?.lowercase()) {
-                    "admin" -> navigateToAdmin(activity)
+                    "admin" -> {
+                        // Query the branch managed by this admin
+                        db.collection("branches")
+                            .whereEqualTo("manageID", userId)
+                            .get()
+                            .addOnSuccessListener { branchSnapshot ->
+                                if (!branchSnapshot.isEmpty) {
+                                    val branchId = branchSnapshot.documents.first().id
+                                    navigateToAdmin(activity, branchId, name) // Pass Branch ID
+                                } else {
+                                    // Handle case where no branch is found
+                                    navigateToLogin(activity)
+                                }
+                            }
+                            .addOnFailureListener {
+                                navigateToLogin(activity)
+                            }
+                    }
                     else -> navigateToCustomer(activity, userId)
                 }
             }
@@ -40,8 +58,10 @@ object NavigationUtils {
         activity.finish()
     }
 
-    fun navigateToAdmin(activity: Activity) {
+    fun navigateToAdmin(activity: Activity, branchId: String, name: String) {
         val intent = Intent(activity, AdminMainActivity::class.java)
+        intent.putExtra("branchId", branchId)
+        intent.putExtra("nameAdmin", name)
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         activity.startActivity(intent)
         activity.finish()
