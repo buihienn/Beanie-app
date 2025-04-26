@@ -1,16 +1,16 @@
 package com.bh.beanie.user
 
 import android.annotation.SuppressLint
-import android.content.Context
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.widget.NestedScrollView
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -28,13 +28,12 @@ import com.bh.beanie.user.adapter.ProductAdapter
 import com.bh.beanie.user.fragment.ConfirmOrderFragment
 import com.bh.beanie.user.fragment.SelectAddressFragment
 import com.bh.beanie.user.fragment.SelectBranchFragment
-//import com.bh.beanie.user.fragment.OrderConfirmationBottomSheet
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
 
 class UserOrderActivity : AppCompatActivity() {
-
     private lateinit var binding: ActivityUserOrderBinding
     private lateinit var productRepository: ProductRepository
     private lateinit var favoriteRepository: FavoriteRepository
@@ -53,7 +52,18 @@ class UserOrderActivity : AppCompatActivity() {
     // Giữ danh sách categories
     private val categories = mutableListOf<Category>()
 
+    // Order mdoe
     private var orderMode = ""
+
+    // Thêm các biến để theo dõi pagination
+    private var lastVisibleCategory: DocumentSnapshot? = null
+    private var isCategoryLoading = false
+    private var isLastCategoryPage = false
+
+    // Map lưu trữ lastVisibleDocument cho mỗi category
+    private val lastVisibleProducts = mutableMapOf<String, DocumentSnapshot?>()
+    private val isProductLoading = mutableMapOf<String, Boolean>()
+    private val isLastProductPage = mutableMapOf<String, Boolean>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -112,8 +122,269 @@ class UserOrderActivity : AppCompatActivity() {
         // Thiết lập RecyclerViews cố định
         setupFixedRecyclerViews()
 
-        // Tải categories và sản phẩm từ Firebase
-        loadCategories()
+        setupPagination()
+
+        // Tải categories đầu tiên
+        loadInitialCategories()
+    }
+
+    private fun setupPagination() {
+        // Thiết lập scroll listener cho nested scrollview để detect khi scroll xuống cuối
+        binding.mainScrollView.setOnScrollChangeListener { v, scrollX, scrollY, oldScrollX, oldScrollY ->
+            val view = v as NestedScrollView
+            val diffY = scrollY - oldScrollY
+
+            if (diffY > 0) {
+                // Scrolling down
+                val child = view.getChildAt(0)
+                if (child != null) {
+                    if ((view.height + scrollY) >= child.measuredHeight - 200) {
+                        // Đã scroll gần cuối, tải thêm categories
+//                        if (!isCategoryLoading && !isLastCategoryPage) {
+                            loadMoreCategories()
+//                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private fun findCategoryViewById(categoryId: String): View? {
+        for (i in 0 until binding.categoriesContainer.childCount) {
+            val categoryView = binding.categoriesContainer.getChildAt(i)
+            val titleTextView = categoryView.findViewById<TextView>(R.id.categoryTitleTextView)
+            val recyclerView = categoryView.findViewById<RecyclerView>(R.id.categoryRecyclerView)
+            val adapter = recyclerView.adapter
+            if (adapter is ProductAdapter) {
+                val adapterCategoryId = categoryAdapters.entries.find { it.value == adapter }?.key
+                if (adapterCategoryId == categoryId) {
+                    return categoryView
+                }
+            }
+        }
+        return null
+    }
+
+    private fun loadInitialCategories() {
+        if (currentBranchId.isEmpty()) {
+            binding.progressBar.visibility = View.GONE
+            Toast.makeText(this, "Vui lòng chọn chi nhánh", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        binding.progressBar.visibility = View.VISIBLE
+        isCategoryLoading = true
+
+        lifecycleScope.launch {
+            try {
+                val (fetchedCategories, lastDoc) = categoryRepository.fetchCategoriesPaginated(currentBranchId)
+
+                categories.clear()
+                categories.addAll(fetchedCategories)
+                lastVisibleCategory = lastDoc
+                isLastCategoryPage = fetchedCategories.isEmpty()
+
+                // Thiết lập RecyclerViews cho từng category
+                setupCategoryRecyclerViews()
+
+                // Tải product cho mỗi category
+                for (category in fetchedCategories) {
+                    loadInitialProductsForCategory(category.id)
+                }
+
+                // Tải dữ liệu cố định (favorites, bestsellers)
+                loadProductData()
+
+            } catch (e: Exception) {
+                Toast.makeText(baseContext, "Lỗi khi tải categories: ${e.message}",
+                    Toast.LENGTH_LONG).show()
+            } finally {
+                binding.progressBar.visibility = View.GONE
+                isCategoryLoading = false
+            }
+        }
+    }
+
+    private fun loadMoreCategories() {
+        if (isCategoryLoading || isLastCategoryPage) return
+
+        binding.loadMoreCategoriesProgress.visibility = View.VISIBLE
+        isCategoryLoading = true
+
+        lifecycleScope.launch {
+            try {
+                val (fetchedCategories, lastDoc) = categoryRepository.fetchCategoriesPaginated(
+                    currentBranchId,
+                    lastVisibleCategory
+                )
+
+                if (fetchedCategories.isEmpty()) {
+                    isLastCategoryPage = true
+                } else {
+                    // Lưu vị trí cuối cùng để tải tiếp
+                    lastVisibleCategory = lastDoc
+
+                    // Thêm vào danh sách categories
+                    categories.addAll(fetchedCategories)
+
+                    // Tạo và thêm views cho categories mới
+                    addNewCategoryViews(fetchedCategories)
+
+                    // Tải products cho các categories mới
+                    for (category in fetchedCategories) {
+                        loadInitialProductsForCategory(category.id)
+                    }
+                }
+
+            } catch (e: Exception) {
+                Toast.makeText(baseContext, "Lỗi khi tải thêm categories: ${e.message}",
+                    Toast.LENGTH_LONG).show()
+            } finally {
+                binding.loadMoreCategoriesProgress.visibility = View.GONE
+                isCategoryLoading = false
+            }
+        }
+    }
+
+    private fun addNewCategoryViews(newCategories: List<Category>) {
+        for (category in newCategories) {
+            // Tạo danh sách sản phẩm cho category này
+            val productList = mutableListOf<Product>()
+            categoryProducts[category.id] = productList
+
+            // Tạo adapter
+            val adapter = ProductAdapter(
+                this,
+                productList,
+                currentBranchId,
+                category.id
+            )
+            adapter.setOnCartUpdateListener(object : ProductAdapter.OnCartUpdateListener {
+                override fun onCartCountUpdated(count: Int) {
+                    updateCartCount(count)
+                }
+            })
+            categoryAdapters[category.id] = adapter
+
+            // Inflate layout cho category
+            val categoryView = layoutInflater.inflate(
+                R.layout.category_section_layout,
+                binding.categoriesContainer,
+                false
+            )
+
+            // Thiết lập title và RecyclerView
+            val titleTextView = categoryView.findViewById<TextView>(R.id.categoryTitleTextView)
+            titleTextView.text = category.name
+
+            val recyclerView = categoryView.findViewById<RecyclerView>(R.id.categoryRecyclerView)
+            recyclerView.layoutManager = GridLayoutManager(this, 2)
+            recyclerView.adapter = adapter
+
+            // Thiết lập listener cuộn ngang cho RecyclerView
+            setupProductPagination(category.id, recyclerView)
+
+            // Thêm vào container
+            binding.categoriesContainer.addView(categoryView)
+        }
+    }
+
+    private fun setupProductPagination(categoryId: String, recyclerView: RecyclerView) {
+        // Khởi tạo trạng thái cho category này
+        isProductLoading[categoryId] = false
+        isLastProductPage[categoryId] = false
+
+        recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                super.onScrolled(recyclerView, dx, dy)
+
+                val layoutManager = recyclerView.layoutManager as GridLayoutManager
+                val visibleItemCount = layoutManager.childCount
+                val totalItemCount = layoutManager.itemCount
+                val firstVisibleItemPosition = layoutManager.findFirstVisibleItemPosition()
+
+                if (dx > 0) { // Scroll to right
+                    if ((visibleItemCount + firstVisibleItemPosition) >= totalItemCount - 2
+                        && firstVisibleItemPosition >= 0
+                        && !isProductLoading.getOrDefault(categoryId, false)
+                        && !isLastProductPage.getOrDefault(categoryId, false)) {
+
+                        loadMoreProductsForCategory(categoryId)
+                    }
+                }
+            }
+        })
+    }
+
+    private fun loadInitialProductsForCategory(categoryId: String) {
+        isProductLoading[categoryId] = true
+
+        lifecycleScope.launch {
+            try {
+                val (products, lastDoc) = productRepository.fetchProductsPaginated(
+                    currentBranchId,
+                    categoryId
+                )
+
+                lastVisibleProducts[categoryId] = lastDoc
+                isLastProductPage[categoryId] = products.isEmpty()
+
+                categoryProducts[categoryId]?.clear()
+                categoryProducts[categoryId]?.addAll(products)
+                categoryAdapters[categoryId]?.notifyDataSetChanged()
+
+            } catch (e: Exception) {
+                Log.e("UserOrderActivity", "Error loading products for category $categoryId: ${e.message}")
+            } finally {
+                isProductLoading[categoryId] = false
+            }
+        }
+    }
+
+    private fun loadMoreProductsForCategory(categoryId: String) {
+        val isLoading = isProductLoading.getOrDefault(categoryId, false)
+        val isLastPage = isLastProductPage.getOrDefault(categoryId, false)
+
+        if (isLoading || isLastPage) return
+
+        isProductLoading[categoryId] = true
+
+        // Tìm loading container của category hiện tại
+        val categoryView = findCategoryViewById(categoryId)
+        val loadingContainer = categoryView?.findViewById<View>(R.id.productLoadingContainer)
+        loadingContainer?.visibility = View.VISIBLE
+
+        lifecycleScope.launch {
+            try {
+                val lastVisible = lastVisibleProducts[categoryId]
+                val (products, lastDoc) = productRepository.fetchProductsPaginated(
+                    currentBranchId,
+                    categoryId,
+                    lastVisible
+                )
+
+                if (products.isEmpty()) {
+                    isLastProductPage[categoryId] = true
+                } else {
+                    lastVisibleProducts[categoryId] = lastDoc
+
+                    // Lấy vị trí bắt đầu để thêm
+                    val startPosition = categoryProducts[categoryId]?.size ?: 0
+
+                    // Thêm sản phẩm mới vào danh sách
+                    categoryProducts[categoryId]?.addAll(products)
+
+                    // Thông báo adapter về các mục đã thêm mới
+                    categoryAdapters[categoryId]?.notifyItemRangeInserted(startPosition, products.size)
+                }
+
+            } catch (e: Exception) {
+                Log.e("UserOrderActivity", "Error loading more products for category $categoryId: ${e.message}")
+            } finally {
+                isProductLoading[categoryId] = false
+                loadingContainer?.visibility = View.GONE
+            }
+        }
     }
 
     private fun showConfirmOrder() {
@@ -401,14 +672,18 @@ class UserOrderActivity : AppCompatActivity() {
     }
 
     private fun loadCategories() {
-        // Cập nhật để sử dụng currentBranchId thay vì giá trị cứng
         if (currentBranchId.isEmpty()) {
             binding.progressBar.visibility = View.GONE
             Toast.makeText(this, "Vui lòng chọn chi nhánh", Toast.LENGTH_SHORT).show()
             return
         }
 
-        binding.progressBar.visibility = View.VISIBLE
+        // Reset trạng thái pagination
+        lastVisibleCategory = null
+        isLastCategoryPage = false
+        lastVisibleProducts.clear()
+        isProductLoading.clear()
+        isLastProductPage.clear()
 
         // Xóa dữ liệu hiện tại
         bestSellerProducts.clear()
@@ -421,26 +696,8 @@ class UserOrderActivity : AppCompatActivity() {
         binding.bestSellerRecyclerView.adapter?.notifyDataSetChanged()
         binding.yourFavRecyclerView.adapter?.notifyDataSetChanged()
 
-        lifecycleScope.launch {
-            try {
-                // Sử dụng ID chi nhánh đã chọn
-                val fetchedCategories = categoryRepository.fetchCategories(currentBranchId)
-                categories.clear()
-                categories.addAll(fetchedCategories)
-
-                // Thiết lập RecyclerViews cho từng category
-                setupCategoryRecyclerViews()
-
-                // Tải dữ liệu sản phẩm cho chi nhánh đã chọn
-                loadProductData()
-
-                binding.progressBar.visibility = View.GONE
-            } catch (e: Exception) {
-                binding.progressBar.visibility = View.GONE
-                Toast.makeText(baseContext, "Lỗi khi tải categories: ${e.message}",
-                    Toast.LENGTH_LONG).show()
-            }
-        }
+        // Gọi đến loadInitialCategories để tải dữ liệu theo trang
+        loadInitialCategories()
     }
 
     // Cập nhật hiển thị số lượng sản phẩm trong giỏ hàng

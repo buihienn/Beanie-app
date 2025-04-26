@@ -122,6 +122,10 @@ class ProductAdapter(
 
     override fun getItemCount(): Int = productList.size
 
+    fun getCategoryId(): String {
+        return categoryId
+    }
+
     class ProductViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val productImageView: ImageView = itemView.findViewById(R.id.productImageView)
         val productNameTextView: TextView = itemView.findViewById(R.id.productNameTextView)

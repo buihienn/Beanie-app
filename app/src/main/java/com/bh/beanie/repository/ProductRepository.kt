@@ -8,6 +8,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 import kotlin.String
 import kotlin.text.get
+import kotlin.text.toInt
 
 class ProductRepository(private val db: FirebaseFirestore) {
     // Lấy thông tin sản phẩm
@@ -137,5 +138,41 @@ class ProductRepository(private val db: FirebaseFirestore) {
             println("Lỗi khi lấy thông tin chi tiết toppings: ${e.message}")
             return emptyList()
         }
+    }
+
+    suspend fun fetchProductsPaginated(
+        branchId: String,
+        categoryId: String,
+        lastVisibleDocument: DocumentSnapshot? = null,
+        pageSize: Int = 4
+    ): Pair<List<Product>, DocumentSnapshot?> {
+        var query = db.collection("branches").document(branchId)
+            .collection("categories").document(categoryId)
+            .collection("products")
+            .limit(pageSize.toLong())
+
+        lastVisibleDocument?.let {
+            query = query.startAfter(it)
+        }
+
+        val snapshot = query.get().await()
+
+        val products = snapshot.documents.map { doc ->
+            Product(
+                id = doc.id,
+                name = doc.getString("name") ?: "",
+                description = doc.getString("description") ?: "",
+                price = doc.getDouble("price") ?: 0.0,
+                imageUrl = doc.getString("imageUrl") ?: "",
+                stockQuantity = doc.getLong("stock")?.toInt() ?: 0,
+                categoryId = categoryId,
+                size = emptyMap(), // Lấy đầy đủ thông tin nếu cần
+                toppingsAvailable = emptyList()
+            )
+        }
+
+        val lastDoc = snapshot.documents.lastOrNull()
+
+        return Pair(products, lastDoc)
     }
 }
