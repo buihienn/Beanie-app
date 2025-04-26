@@ -206,13 +206,9 @@ class SelectAddressFragment : BottomSheetDialogFragment() {
             // Lưu thông tin địa chỉ
             putString("selected_user_id", userId)
             putString("selected_address_id", address.id)
-            putString("selected_address_name", address.name)
-            putString("selected_address_phone", address.phoneNumber)
+            putString("selected_customer_name", address.name)
+            putString("selected_phone", address.phoneNumber)
             putString("selected_address_detail", address.addressDetail)
-            putBoolean("selected_address_default", address.isDefault)
-
-            // Lưu địa chỉ dưới dạng String để hiển thị
-            putString("selected_address_display", address.addressDetail)
         }
     }
 

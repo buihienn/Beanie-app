@@ -1,12 +1,14 @@
 package com.bh.beanie.user
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.os.Bundle
 import android.view.View
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
@@ -64,7 +66,8 @@ class UserOrderActivity : AppCompatActivity() {
             insets
         }
 
-        orderMode = intent.getStringExtra("order_mode")?:""
+        val sharedPrefs = this.getSharedPreferences("OrderMode", MODE_PRIVATE)
+        orderMode = sharedPrefs.getString("order_mode", "") ?: ""
 
         if (orderMode == "take_away") {
             binding.orderMode.text = "Take away"
@@ -84,11 +87,20 @@ class UserOrderActivity : AppCompatActivity() {
         loadCartCount()
 
         binding.cartBtn.setOnClickListener {
-            try {
-                showConfirmOrder()
-            } catch (e: Exception) {
-                e.printStackTrace()
-                Toast.makeText(this, "Lỗi: ${e.message}", Toast.LENGTH_LONG).show()
+            lifecycleScope.launch {
+                try {
+                    val orderRepository = OrderRepository(FirebaseFirestore.getInstance(), this@UserOrderActivity)
+                    val cartItems = orderRepository.getCartItems()
+
+                    if (cartItems.isEmpty()) {
+                        Toast.makeText(this@UserOrderActivity, "Giỏ hàng trống. Vui lòng thêm sản phẩm trước khi đặt hàng.", Toast.LENGTH_SHORT).show()
+                    } else {
+                        showConfirmOrder()
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    Toast.makeText(this@UserOrderActivity, "Lỗi: ${e.message}", Toast.LENGTH_LONG).show()
+                }
             }
         }
 

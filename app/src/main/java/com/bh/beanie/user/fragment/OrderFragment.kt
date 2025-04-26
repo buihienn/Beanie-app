@@ -1,10 +1,12 @@
 package com.bh.beanie.user.fragment
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.content.edit
 import androidx.fragment.app.Fragment
 import com.bh.beanie.databinding.FragmentOrderBinding
 import com.bh.beanie.user.UserOrderActivity
@@ -15,6 +17,7 @@ class OrderFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
     }
 
     override fun onCreateView(
@@ -45,6 +48,7 @@ class OrderFragment : Fragment() {
         selectAddressFragment.setAddressSelectedListener { address ->
             startActivity(Intent(requireContext(), UserOrderActivity::class.java).apply {
                 putExtra("order_mode", "delivery")
+                saveOrderMode("delivery")
             })
         }
 
@@ -57,10 +61,22 @@ class OrderFragment : Fragment() {
         selectBranchFragment.setBranchSelectedListener { branch ->
             startActivity(Intent(requireContext(), UserOrderActivity::class.java).apply {
                 putExtra("order_mode", "take_away")
+                saveOrderMode("take_away")
             })
         }
 
         selectBranchFragment.show(childFragmentManager, "branchSelector")
+    }
+
+    private fun saveOrderMode(orderMode: String) {
+        val sharedPreferences = requireActivity().getSharedPreferences("OrderMode", Context.MODE_PRIVATE)
+        sharedPreferences.edit {
+            if (orderMode == "delivery") {
+                putString("order_mode", "delivery")
+            } else {
+                putString("order_mode", "take_away")
+            }
+        }
     }
 
     override fun onDestroyView() {

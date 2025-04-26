@@ -1,5 +1,10 @@
 package com.bh.beanie.user.fragment
 
+import android.app.DatePickerDialog
+import android.app.TimePickerDialog
+import android.content.Context
+import android.icu.text.SimpleDateFormat
+import android.icu.util.Calendar
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -8,25 +13,41 @@ import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.bh.beanie.BeanieApplication
 import com.bh.beanie.databinding.FragmentConfirmOrderBinding
 import com.bh.beanie.model.Order
 import com.bh.beanie.model.OrderItem
+import com.bh.beanie.repository.BranchRepository
 import com.bh.beanie.repository.OrderRepository
+import com.bh.beanie.repository.UserRepository
 import com.bh.beanie.user.adapter.CartItemAdapter
 import com.bh.beanie.utils.BranchPreferences.getBranchId
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
 import java.text.NumberFormat
+import java.util.Date
 import java.util.Locale
+import kotlin.text.format
 
 class ConfirmOrderFragment : BottomSheetDialogFragment() {
     private var _binding: FragmentConfirmOrderBinding? = null
     private val binding get() = _binding!!
     private lateinit var orderRepository: OrderRepository
+    private lateinit var branchRepository: BranchRepository
+    private lateinit var userRepository: UserRepository
     private var cartItems = listOf<OrderItem>()
     private var order: Order = Order()
+
+    private var orderMode: String = ""
+    private var branchId: String = ""
+    private var customerName: String = ""
+    private var phoneNumber: String = ""
+    private var deliveryAddress: String = ""
+    private var selectedDate: String = ""
+    private var selectedTime: String = ""
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -37,6 +58,8 @@ class ConfirmOrderFragment : BottomSheetDialogFragment() {
 
         // Khởi tạo OrderRepository
         orderRepository = OrderRepository(FirebaseFirestore.getInstance(), requireContext())
+        branchRepository = BranchRepository(FirebaseFirestore.getInstance())
+        userRepository = UserRepository()
 
         return binding.root
     }
@@ -50,8 +73,67 @@ class ConfirmOrderFragment : BottomSheetDialogFragment() {
         // Tải dữ liệu giỏ hàng
         loadCartItems()
 
+        // Lấy order mode
+        val sharedPrefs = requireContext().getSharedPreferences("OrderMode", Context.MODE_PRIVATE)
+        orderMode = sharedPrefs.getString("order_mode", "") ?: ""
+
+        branchId = getBranchId(requireContext())
+
+        loadUserAndStoreInfo()
+
+        // Init time
+        initTime()
+
         // Thiết lập các listener
         setupListeners()
+    }
+
+    private fun loadUserAndStoreInfo() {
+        if (orderMode == "delivery") {
+            // Lấy thông tin địa chỉ giao hàng
+            val addressSharedPrefs = requireContext().getSharedPreferences("BeaniePref", Context.MODE_PRIVATE)
+            customerName = addressSharedPrefs.getString("selected_customer_name", "") ?: ""
+            phoneNumber = addressSharedPrefs.getString("selected_phone", "") ?: ""
+            deliveryAddress = addressSharedPrefs.getString("selected_address_detail", "") ?: ""
+
+            binding.storeNameTextView.text = customerName
+            binding.storeAddressTextView.text = deliveryAddress
+        } else {
+            lifecycleScope.launch {
+                try {
+                    // Lấy thông tin người dùng
+                    val user = userRepository.getCurrentUser()
+                    if (user != null) {
+                        customerName = user.username
+                        phoneNumber = user.phone
+                    }
+
+                    // Lấy thông tin chi nhánh
+                    val branch = branchRepository.fetchBranchById(branchId)
+                    if (branch != null) {
+                        activity?.runOnUiThread {
+                            binding.storeNameTextView.text = branch.name
+                            binding.storeAddressTextView.text = branch.location
+                        }
+                    } else {
+                        Log.e("ConfirmOrder", "Branch not found with ID: $branchId")
+                    }
+                } catch (e: Exception) {
+                    Log.e("ConfirmOrder", "Error fetching data: ${e.message}")
+                }
+            }
+        }
+    }
+
+    private fun initTime() {
+        // Khởi tạo giá trị mặc định cho ngày và giờ (thời gian hiện tại + 30 phút)
+        val calendar = Calendar.getInstance()
+        calendar.add(Calendar.MINUTE, 30) // Thêm 30 phút
+        selectedDate = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(calendar.time)
+        selectedTime = SimpleDateFormat("HH:mm", Locale.getDefault()).format(calendar.time)
+
+        // Cập nhật UI thời gian
+        updateTimeUI()
     }
 
     private fun setupFullscreenBottomSheet() {
@@ -101,7 +183,7 @@ class ConfirmOrderFragment : BottomSheetDialogFragment() {
                 cartItems = orderRepository.getCartItems()
 
                 // Log danh sách sản phẩm trong giỏ hàng
-                android.util.Log.d("OrderDetail", "Cart items loaded: ${cartItems.size}")
+                Log.d("OrderDetail", "Cart items loaded: ${cartItems.size}")
                 cartItems.forEachIndexed { index, item ->
                     android.util.Log.d("OrderDetail", "Item $index: ${item.productId}, ${item.productName}, size=${item.size}, toppings=${item.toppings.size}")
                 }
@@ -112,24 +194,16 @@ class ConfirmOrderFragment : BottomSheetDialogFragment() {
                 // Cập nhật UI với thông tin giỏ hàng
                 updateCartUI(cartItems, totalPrice)
             } catch (e: Exception) {
-                android.util.Log.e("OrderDetail", "Error loading cart items", e)
+                Log.e("OrderDetail", "Error loading cart items", e)
             }
         }
     }
 
     private fun editCartItem(item: OrderItem, position: Int) {
-        // Log chi tiết về item được chỉnh sửa
-        android.util.Log.d("OrderDetail", "Editing item at position $position:")
-        android.util.Log.d("OrderDetail", "- productId: ${item.productId}")
-        Log.d("OrderDetail", "- categoryId: ${item.categoryId}")
-        android.util.Log.d("OrderDetail", "- productName: ${item.productName}")
-        android.util.Log.d("OrderDetail", "- size: ${item.size ?: "None"}, ${item.unitPrice ?: 0.0}đ")
-        android.util.Log.d("OrderDetail", "- quantity: ${item.quantity}")
-        android.util.Log.d("OrderDetail", "- toppings: ${item.toppings.size}")
         item.toppings.forEachIndexed { index, topping ->
-            android.util.Log.d("OrderDetail", "  + Topping $index: ${topping.id}, ${topping.name}, ${topping.price}đ")
+            Log.d("OrderDetail", "  + Topping $index: ${topping.id}, ${topping.name}, ${topping.price}đ")
         }
-        android.util.Log.d("OrderDetail", "- note: ${item.note}")
+        Log.d("OrderDetail", "- note: ${item.note}")
 
         // Hiển thị ProductDetailFragment để sửa sản phẩm
         val productDetailFragment = ProductDetailFragment.newInstance(
@@ -165,19 +239,133 @@ class ConfirmOrderFragment : BottomSheetDialogFragment() {
             dismiss()
         }
 
-        // Các listener khác
-        binding.changeStoreButton.setOnClickListener {
-            // Hiển thị dialog chọn cửa hàng
-        }
-
         binding.addMoreButton.setOnClickListener {
-            // Quay lại màn hình sản phẩm
             dismiss()
         }
 
         binding.delButton.setOnClickListener {
             deleteOrder()
         }
+
+        binding.storeInfoLayout.setOnClickListener {
+            if (orderMode == "delivery") {
+                showSelectAddressFragment()
+            } else {
+                showSelectBranchFragment()
+            }
+        }
+
+        binding.timeLayout.setOnClickListener {
+            if (orderMode == "delivery") {
+                showDateTimePicker()
+            } else {
+                selectedDate = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Calendar.getInstance().time)
+                showTimePicker()
+            }
+        }
+    }
+
+    private fun showDateTimePicker() {
+        // Tạo Calendar với ngày giờ hiện tại
+        val calendar = Calendar.getInstance()
+
+        // Hiển thị DatePickerDialog
+        val datePickerDialog = DatePickerDialog(
+            requireContext(),
+            { _, year, month, dayOfMonth ->
+                // Lưu ngày đã chọn
+                calendar.set(Calendar.YEAR, year)
+                calendar.set(Calendar.MONTH, month)
+                calendar.set(Calendar.DAY_OF_MONTH, dayOfMonth)
+
+                // Format ngày
+                val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+                selectedDate = dateFormat.format(calendar.time)
+
+                // Tiếp tục hiển thị TimePicker sau khi chọn ngày
+                showTimePicker()
+            },
+            calendar.get(Calendar.YEAR),
+            calendar.get(Calendar.MONTH),
+            calendar.get(Calendar.DAY_OF_MONTH)
+        )
+
+        // Thiết lập ngày tối thiểu là ngày hiện tại
+        datePickerDialog.datePicker.minDate = calendar.timeInMillis
+
+        // Tính ngày tối đa (ví dụ: cho phép đặt trước 7 ngày)
+        val maxDate = Calendar.getInstance()
+        maxDate.add(Calendar.DAY_OF_MONTH, 7)
+        datePickerDialog.datePicker.maxDate = maxDate.timeInMillis
+
+        datePickerDialog.show()
+    }
+
+    private fun showTimePicker() {
+        // Tạo Calendar với giờ hiện tại
+        val calendar = Calendar.getInstance()
+
+        val hour = calendar.get(Calendar.HOUR_OF_DAY)
+        val minute = calendar.get(Calendar.MINUTE)
+
+        val timePickerDialog = TimePickerDialog(
+            requireContext(),
+            { _, hourOfDay, minuteOfDay ->
+                // Lưu giờ đã chọn
+                selectedTime = String.format("%02d:%02d", hourOfDay, minuteOfDay)
+
+                // Cập nhật UI
+                updateTimeUI()
+            },
+            hour,
+            minute,
+            true // 24h format
+        )
+
+        timePickerDialog.show()
+    }
+
+    private fun updateTimeUI() {
+        val today = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Calendar.getInstance().time)
+
+        if (selectedDate == today) {
+            binding.dateTextView.text = "Today"
+        } else {
+            binding.dateTextView.text = selectedDate
+        }
+        binding.timeTextView.text = selectedTime
+    }
+
+    private fun showSelectAddressFragment() {
+        val selectAddressFragment = SelectAddressFragment.newInstance()
+
+        selectAddressFragment.setAddressSelectedListener { address ->
+            // Cập nhật địa chỉ giao hàng
+            deliveryAddress = address.addressDetail
+            customerName = address.name
+            phoneNumber = address.phoneNumber
+
+            // Cập nhật UI hiển thị địa chỉ mới
+            binding.storeNameTextView.text = address.name
+            binding.storeAddressTextView.text = address.addressDetail
+        }
+
+        selectAddressFragment.show(parentFragmentManager, "addressSelector")
+    }
+
+    private fun showSelectBranchFragment() {
+        val selectBranchFragment = SelectBranchFragment.newInstance()
+
+        selectBranchFragment.setBranchSelectedListener { branch ->
+            // Cập nhật thông tin chi nhánh
+            branchId = branch.id
+
+            // Cập nhật UI hiển thị chi nhánh mới
+            binding.storeNameTextView.text = branch.name
+            binding.storeAddressTextView.text = branch.location
+        }
+
+        selectBranchFragment.show(parentFragmentManager, "branchSelector")
     }
 
     private fun deleteOrder() {
@@ -217,7 +405,18 @@ class ConfirmOrderFragment : BottomSheetDialogFragment() {
                 binding.progressBar.visibility = View.VISIBLE
                 binding.confirmButton.isEnabled = false
 
-                val branchId = arguments?.getString("branchId") ?: ""
+                order.userId = BeanieApplication.instance.getUserId()
+                order.branchId = branchId
+                order.customerName = customerName
+                order.phoneNumber = phoneNumber
+                order.orderTime = processTime(selectedDate, selectedTime)
+
+                if (orderMode == "delivery") {
+                    order.deliveryAddress = deliveryAddress
+                    order.type = "DELIVERY"
+                } else {
+                    order.type = "TAKEAWAY"
+                }
 
                 val orderId = orderRepository.createOrder(order)
 
@@ -253,6 +452,21 @@ class ConfirmOrderFragment : BottomSheetDialogFragment() {
             }
         }
     }
+
+    fun processTime(selectedDate: String, selectedTime: String): Timestamp {
+        // Kết hợp selectedDate và selectedTime thành một chuỗi datetime duy nhất
+        val combinedDateTime = "$selectedDate $selectedTime" // Ví dụ: "26/04/2025 04:19"
+
+        // Định dạng chuỗi ngày và giờ theo kiểu dd/MM/yyyy HH:mm
+        val dateTimeFormat = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
+
+        // Chuyển chuỗi thành Date
+        val orderDate: Date? = dateTimeFormat.parse(combinedDateTime)
+
+        // Nếu orderDate là null, dùng thời gian hiện tại
+        return Timestamp(orderDate ?: Date())
+    }
+
 
     override fun onDestroyView() {
         super.onDestroyView()

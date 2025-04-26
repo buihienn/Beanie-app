@@ -9,8 +9,6 @@ import com.bh.beanie.model.ProductTopping
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
-import com.google.gson.Gson
-import androidx.core.content.edit
 
 class OrderRepository(private val db: FirebaseFirestore, private val context: Context) {
     private val cartPreferences = CartPreferences(context)
@@ -119,7 +117,7 @@ class OrderRepository(private val db: FirebaseFirestore, private val context: Co
             "status" to "WAITING ACCEPT",
             "orderTime" to order.orderTime,
             "paymentMethod" to order.paymentMethod,
-            "note to" to order.note,
+            "note" to order.note,
         )
 
         // Lưu order
