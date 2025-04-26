@@ -5,9 +5,11 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageButton
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import com.bh.beanie.R
+import com.bh.beanie.utils.NavigationUtils
 import com.github.mikephil.charting.charts.BarChart
 import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.components.YAxis
@@ -35,16 +37,28 @@ class AdminDashBoardFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        val textUserName = view.findViewById<TextView>(R.id.textUserName)
+        val btnLogout = view.findViewById<ImageButton>(R.id.imageBtnLogOut)
+        val nameAdmin: String = arguments?.getString("nameAdmin") ?: "Admin"
+        val branchId = arguments?.getString("branchId") ?: "branches_q5"
+
         barChart = view.findViewById(R.id.barChart)
         textDay = view.findViewById(R.id.textDay)
         textMonth = view.findViewById(R.id.textMonth)
         textYear = view.findViewById(R.id.textYear)
+
+        textUserName.text = "Hi $nameAdmin!"
+
+        btnLogout.setOnClickListener {
+            NavigationUtils.logout(requireActivity())
+        }
 
         setupChart()
         updateDate()
     }
 
     private fun setupChart() {
+        barChart.setBackgroundColor(Color.WHITE)
         barChart.axisRight.setDrawLabels(false)
 
         val entries = arrayListOf(
@@ -65,10 +79,12 @@ class AdminDashBoardFragment : Fragment() {
         yAxis.axisLineColor = Color.GRAY
         yAxis.setLabelCount(10, true)
 
+
         barChart.axisRight.isEnabled = false
 
         val dataSet = BarDataSet(entries, "Sales")
-        dataSet.colors = ColorTemplate.MATERIAL_COLORS.toList()
+        dataSet.color = Color.parseColor("#90CAF9")
+//        dataSet.colors = ColorTemplate.MATERIAL_COLORS.toList()
         val barData = BarData(dataSet)
         barChart.data = barData
 

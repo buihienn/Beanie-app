@@ -2,6 +2,7 @@ package com.bh.beanie.admin
 
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -17,8 +18,9 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class AdminMainActivity : AppCompatActivity() {
 
-
+    private lateinit var branchId: String
     private lateinit var bottomNav: BottomNavigationView
+    private lateinit var nameAdmin: String
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         CloudinaryConfig.initialize(this)
@@ -31,12 +33,18 @@ class AdminMainActivity : AppCompatActivity() {
         }
         bottomNav = findViewById(R.id.bottomNavigationView)
 
-
-
+        branchId = intent.getStringExtra("branchId") ?: "braches_q5"
+        nameAdmin = intent.getStringExtra("nameAdmin") ?: "Admin"
 
         if (savedInstanceState == null) {
+            val dashboardFragment = AdminDashBoardFragment()
+            dashboardFragment.arguments = Bundle().apply {
+                putString("branchId", branchId)
+                putString("nameAdmin", nameAdmin)
+            }
+
             supportFragmentManager.beginTransaction()
-                .replace(R.id.fragment_container, AdminDashBoardFragment())
+                .replace(R.id.fragment_container, dashboardFragment)
                 .commit()
         }
 
@@ -53,6 +61,11 @@ class AdminMainActivity : AppCompatActivity() {
                 else -> null
             }
 
+            fragment?.arguments = Bundle().apply {
+                putString("branchId", branchId)
+                putString("nameAdmin", nameAdmin)
+            }
+
             fragment?.let {
                 supportFragmentManager.beginTransaction()
                     .replace(R.id.fragment_container, it)
@@ -62,6 +75,5 @@ class AdminMainActivity : AppCompatActivity() {
             } ?: false
         }
     }
-
 
 }
