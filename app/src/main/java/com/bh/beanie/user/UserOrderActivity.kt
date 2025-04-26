@@ -85,7 +85,7 @@ class UserOrderActivity : AppCompatActivity() {
 
         binding.cartBtn.setOnClickListener {
             try {
-                showOrderDetail()
+                showConfirmOrder()
             } catch (e: Exception) {
                 e.printStackTrace()
                 Toast.makeText(this, "Lỗi: ${e.message}", Toast.LENGTH_LONG).show()
@@ -104,9 +104,9 @@ class UserOrderActivity : AppCompatActivity() {
         loadCategories()
     }
 
-    private fun showOrderDetail() {
-        val orderDetailFragment = ConfirmOrderFragment.newInstance(currentBranchId)
-        orderDetailFragment.show(supportFragmentManager, ConfirmOrderFragment.TAG)
+    private fun showConfirmOrder() {
+        val confirmOrderFragment = ConfirmOrderFragment.newInstance()
+        confirmOrderFragment.show(supportFragmentManager, ConfirmOrderFragment.TAG)
     }
 
     // Lắng nghe thay đổi

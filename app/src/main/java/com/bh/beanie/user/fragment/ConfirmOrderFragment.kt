@@ -1,6 +1,7 @@
 package com.bh.beanie.user.fragment
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -8,9 +9,11 @@ import android.widget.FrameLayout
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bh.beanie.databinding.FragmentConfirmOrderBinding
+import com.bh.beanie.model.Order
 import com.bh.beanie.model.OrderItem
 import com.bh.beanie.repository.OrderRepository
 import com.bh.beanie.user.adapter.CartItemAdapter
+import com.bh.beanie.utils.BranchPreferences.getBranchId
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.firebase.firestore.FirebaseFirestore
@@ -19,11 +22,11 @@ import java.text.NumberFormat
 import java.util.Locale
 
 class ConfirmOrderFragment : BottomSheetDialogFragment() {
-
     private var _binding: FragmentConfirmOrderBinding? = null
     private val binding get() = _binding!!
     private lateinit var orderRepository: OrderRepository
     private var cartItems = listOf<OrderItem>()
+    private var order: Order = Order()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -34,11 +37,6 @@ class ConfirmOrderFragment : BottomSheetDialogFragment() {
 
         // Khởi tạo OrderRepository
         orderRepository = OrderRepository(FirebaseFirestore.getInstance(), requireContext())
-
-        // Thiết lập sự kiện cho nút đóng
-        binding.closeButton.setOnClickListener {
-            dismiss()
-        }
 
         return binding.root
     }
@@ -94,12 +92,6 @@ class ConfirmOrderFragment : BottomSheetDialogFragment() {
 
         binding.cartItemsRecyclerView.layoutManager = LinearLayoutManager(requireContext())
         binding.cartItemsRecyclerView.adapter = adapter
-
-        // Xóa các order item hiện tại (nếu có)
-        // (Cần thêm container cho order items trong layout)
-
-        // Thêm các sản phẩm vào UI (mẫu đã có sẵn trong XML)
-        // Cách tốt hơn là sử dụng RecyclerView thay vì linear layout cố định
     }
 
     private fun loadCartItems() {
@@ -111,7 +103,7 @@ class ConfirmOrderFragment : BottomSheetDialogFragment() {
                 // Log danh sách sản phẩm trong giỏ hàng
                 android.util.Log.d("OrderDetail", "Cart items loaded: ${cartItems.size}")
                 cartItems.forEachIndexed { index, item ->
-                    android.util.Log.d("OrderDetail", "Item $index: ${item.productId}, ${item.productName}, size=${item.size?.name}, toppings=${item.toppings.size}")
+                    android.util.Log.d("OrderDetail", "Item $index: ${item.productId}, ${item.productName}, size=${item.size}, toppings=${item.toppings.size}")
                 }
 
                 // Tính tổng giá trị đơn hàng
@@ -129,8 +121,9 @@ class ConfirmOrderFragment : BottomSheetDialogFragment() {
         // Log chi tiết về item được chỉnh sửa
         android.util.Log.d("OrderDetail", "Editing item at position $position:")
         android.util.Log.d("OrderDetail", "- productId: ${item.productId}")
+        Log.d("OrderDetail", "- categoryId: ${item.categoryId}")
         android.util.Log.d("OrderDetail", "- productName: ${item.productName}")
-        android.util.Log.d("OrderDetail", "- size: ${item.size?.name ?: "None"}, ${item.size?.price ?: 0.0}đ")
+        android.util.Log.d("OrderDetail", "- size: ${item.size ?: "None"}, ${item.unitPrice ?: 0.0}đ")
         android.util.Log.d("OrderDetail", "- quantity: ${item.quantity}")
         android.util.Log.d("OrderDetail", "- toppings: ${item.toppings.size}")
         item.toppings.forEachIndexed { index, topping ->
@@ -140,21 +133,22 @@ class ConfirmOrderFragment : BottomSheetDialogFragment() {
 
         // Hiển thị ProductDetailFragment để sửa sản phẩm
         val productDetailFragment = ProductDetailFragment.newInstance(
-            branchId = arguments?.getString("branchId") ?: "",
-            categoryId = "",
+            branchId = getBranchId(requireContext()),
+            categoryId = item.categoryId,
             productId = item.productId,
             isEditing = true,
             itemPosition = position,
-            initialSize = item.size,
+            initialSize = Pair(item.size, item.unitPrice),
             initialToppings = item.toppings,
             initialQuantity = item.quantity,
-            initialNote = item.note ?: ""
+            initialNote = item.note
         )
+        Log.d("OrderDetail", "${getBranchId(requireContext())}, ${item.categoryId}, ${item.productId}")
 
         productDetailFragment.setProductDetailListener(object : ProductDetailFragment.ProductDetailListener {
             override fun onCartUpdated(itemCount: Int) {
                 // Cập nhật lại giỏ hàng sau khi sửa
-                android.util.Log.d("OrderDetail", "Cart updated, reloading items")
+                Log.d("OrderDetail", "Cart updated, reloading items")
                 loadCartItems()
             }
         })
@@ -164,7 +158,11 @@ class ConfirmOrderFragment : BottomSheetDialogFragment() {
 
     private fun setupListeners() {
         binding.confirmButton.setOnClickListener {
-            confirmOrder()
+            confirmOrder(order)
+        }
+
+        binding.closeButton.setOnClickListener {
+            dismiss()
         }
 
         // Các listener khác
@@ -176,31 +174,52 @@ class ConfirmOrderFragment : BottomSheetDialogFragment() {
             // Quay lại màn hình sản phẩm
             dismiss()
         }
+
+        binding.delButton.setOnClickListener {
+            deleteOrder()
+        }
     }
 
-    private fun confirmOrder() {
+    private fun deleteOrder() {
+        android.app.AlertDialog.Builder(requireContext())
+            .setTitle("Xác nhận xóa giỏ hàng")
+            .setMessage("Bạn có chắc chắn muốn xóa tất cả sản phẩm trong giỏ hàng không?")
+            .setPositiveButton("Xóa") { _, _ ->
+                lifecycleScope.launch {
+                    // Xóa giỏ hàng
+                    orderRepository.clearCart()
+
+                    // Cập nhật UI trước khi đóng fragment
+                    cartItems = emptyList()
+                    updateCartUI(cartItems, 0.0)
+
+                    // Thông báo và đóng fragment
+                    android.widget.Toast.makeText(
+                        requireContext(),
+                        "Đã xóa tất cả sản phẩm trong giỏ hàng",
+                        android.widget.Toast.LENGTH_SHORT
+                    ).show()
+
+                    if (activity is com.bh.beanie.user.UserOrderActivity) {
+                        (activity as com.bh.beanie.user.UserOrderActivity).updateCartCount(0)
+                    }
+                    dismiss()
+                }
+            }
+            .setNegativeButton("Hủy", null)
+            .show()
+    }
+
+    private fun confirmOrder(order: Order) {
         lifecycleScope.launch {
             try {
                 // Show loading indicator
                 binding.progressBar.visibility = View.VISIBLE
                 binding.confirmButton.isEnabled = false
 
-                // Get required information for the order
                 val branchId = arguments?.getString("branchId") ?: ""
-                // In a real app, these would come from user profile
-                val customerName = "Khách hàng"
-                val phoneNumber = ""
 
-                // Create the order in Firebase
-                val orderId = orderRepository.createOrder(
-                    branchId = branchId,
-                    customerName = customerName,
-                    phoneNumber = phoneNumber,
-                    deliveryAddress = "",
-                    type = "TAKEAWAY", // or "DELIVERY" based on selection
-                    paymentMethod = "CASH", // or selected payment method
-                    note = "",
-                )
+                val orderId = orderRepository.createOrder(order)
 
                 // Success - show confirmation
                 activity?.runOnUiThread {
@@ -247,12 +266,8 @@ class ConfirmOrderFragment : BottomSheetDialogFragment() {
 
     companion object {
         const val TAG = "OrderDetailFragment"
-
-        fun newInstance(branchId: String): ConfirmOrderFragment {
+        fun newInstance(): ConfirmOrderFragment {
             val fragment = ConfirmOrderFragment()
-            val args = Bundle()
-            args.putString("branchId", branchId)
-            fragment.arguments = args
             return fragment
         }
     }

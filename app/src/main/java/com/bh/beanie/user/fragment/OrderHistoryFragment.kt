@@ -156,7 +156,7 @@ class OrderHistoryFragment : Fragment() {
                     // Hiển thị ngày đặt hàng - xử lý trường hợp timestamp từ Firestore
                     val dateFormat = SimpleDateFormat("dd/MM/yyyy - HH:mm", Locale.getDefault())
                     val dateStr = try {
-                        dateFormat.format(order.getOrderDate())
+                        dateFormat.format(order.orderTime.toDate())
                     } catch (e: Exception) {
                         "N/A"
                     }

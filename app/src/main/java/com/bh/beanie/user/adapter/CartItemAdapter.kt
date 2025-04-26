@@ -51,7 +51,7 @@ class CartItemAdapter(
             // Hiển thị size
             if (item.size != null) {
                 sizeTextView.visibility = View.VISIBLE
-                sizeTextView.text = "Size: ${item.size.name}"
+                sizeTextView.text = "Size: ${item.size}"
             } else {
                 sizeTextView.visibility = View.GONE
             }

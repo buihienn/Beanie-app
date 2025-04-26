@@ -24,14 +24,6 @@
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
-            <ImageButton
-                android:id="@+id/backButton"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="Back button"
-                android:src="@drawable/ic_back" />
-
             <ImageView
                 android:id="@+id/categoriesIcon"
                 android:layout_width="24dp"

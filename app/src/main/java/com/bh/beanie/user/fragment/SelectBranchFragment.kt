@@ -1,13 +1,11 @@
 package com.bh.beanie.user.fragment
 
 import android.app.Dialog
-import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.core.content.edit
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -16,6 +14,8 @@ import com.bh.beanie.databinding.FragmentSelectBranchBinding
 import com.bh.beanie.databinding.ItemBranchBinding
 import com.bh.beanie.model.Branch
 import com.bh.beanie.repository.BranchRepository
+import com.bh.beanie.utils.BranchPreferences.clearBranch
+import com.bh.beanie.utils.BranchPreferences.saveBranchId
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
@@ -55,6 +55,8 @@ class SelectBranchFragment : BottomSheetDialogFragment() {
 
         // Tải chi nhánh từ Firebase
         loadBranches()
+
+        clearBranch(requireContext())
     }
 
     override fun getTheme(): Int {
@@ -173,28 +175,12 @@ class SelectBranchFragment : BottomSheetDialogFragment() {
 
                     // Thiết lập sự kiện chọn chi nhánh
                     root.setOnClickListener {
-                        saveSelectedBranch(branch)
+                        saveBranchId(requireContext(), branch.id)
                         branchSelectedListener?.invoke(branch)
                         dismiss()
                     }
                 }
             }
-        }
-    }
-
-    private fun saveSelectedBranch(branch: Branch) {
-        val sharedPreferences = requireActivity().getSharedPreferences("BeaniePref", Context.MODE_PRIVATE)
-        sharedPreferences.edit {
-            // Lưu thông tin chi nhánh
-            putString("selected_branch_id", branch.id)
-            putString("selected_branch_name", branch.name)
-            putString("selected_branch_location", branch.location)
-            putString("selected_branch_phone", branch.phone)
-            putString("selected_branch_image", branch.imageUrl)
-
-            // Lưu chi nhánh dưới dạng String để hiển thị
-            val displayText = "${branch.name}, ${branch.location}"
-            putString("selected_branch_display", displayText)
         }
     }
 
