@@ -16,6 +16,8 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import java.util.Calendar
+import java.util.Date
 
 class FirebaseRepository(private val db: FirebaseFirestore) {
 
@@ -285,5 +287,69 @@ class FirebaseRepository(private val db: FirebaseFirestore) {
             throw e
         }
     }
+
+    // Dashboard
+    suspend fun countOrdersInDay(date: Date, branchId: String): Int {
+        // Chuyển ngày về đầu ngày (00:00:00) và cuối ngày (23:59:59)
+        val calendar = Calendar.getInstance().apply {
+            time = date
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+        val startOfDay = calendar.time
+
+        calendar.apply {
+            set(Calendar.HOUR_OF_DAY, 23)
+            set(Calendar.MINUTE, 59)
+            set(Calendar.SECOND, 59)
+            set(Calendar.MILLISECOND, 999)
+        }
+        val endOfDay = calendar.time
+
+        // Convert Date -> Firebase Timestamp
+        val startTimestamp = com.google.firebase.Timestamp(startOfDay)
+        val endTimestamp = com.google.firebase.Timestamp(endOfDay)
+
+        // Query Firestore với thêm điều kiện branchId
+        val snapshot = db.collection("orders")
+            .whereEqualTo("branchId", branchId)
+            .whereGreaterThanOrEqualTo("orderTime", startTimestamp)
+            .whereLessThanOrEqualTo("orderTime", endTimestamp)
+            .get()
+            .await()
+
+        Log.d("FirebaseRepository", "Count of orders in day for branchId $branchId: ${snapshot.size()}")
+
+        return snapshot.size()
+    }
+
+    suspend fun getOrdersForMonth(month: Int, year: Int, branchId: String): List<Order> {
+        val calendar = Calendar.getInstance()
+        calendar.set(year, month - 1, 1)
+        val startOfMonth = calendar.time
+
+        calendar.set(year, month - 1, calendar.getActualMaximum(Calendar.DAY_OF_MONTH))
+        val endOfMonth = calendar.time
+
+        val startTimestamp = com.google.firebase.Timestamp(startOfMonth)
+        val endTimestamp = com.google.firebase.Timestamp(endOfMonth)
+
+        val snapshot = db.collection("orders")
+            .whereEqualTo("branchId", branchId)
+            .whereGreaterThanOrEqualTo("orderTime", startTimestamp)
+            .whereLessThanOrEqualTo("orderTime", endTimestamp)
+            .get()
+            .await()
+
+        val orders = snapshot.documents.map { document ->
+            document.toObject(Order::class.java)!!
+        }
+
+        return orders
+    }
+
+
 
 }
