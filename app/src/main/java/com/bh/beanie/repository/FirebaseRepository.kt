@@ -149,14 +149,6 @@ class FirebaseRepository(private val db: FirebaseFirestore) {
             .await()
 
         return itemsSnapshot.map { doc ->
-            val sizeName = doc.getString("size") ?: ""
-            val sizePrice = doc.getDouble("sizePrice") ?: 0.0
-
-            val productSize = if (sizeName.isNotEmpty()) {
-                ProductSize(name = sizeName, price = sizePrice)
-            } else {
-                null
-            }
 
             OrderItem(
                 productId = doc.getString("productId") ?: "",
