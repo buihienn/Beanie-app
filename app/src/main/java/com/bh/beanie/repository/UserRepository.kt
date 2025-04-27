@@ -99,6 +99,49 @@ class UserRepository {
         }
     }
 
+
+    suspend fun getUserMembershipInfo(userId: String): Map<String, Any?>? = withContext(Dispatchers.IO) {
+        try {
+            val snapshot = usersCollection.document(userId).get().await()
+            if (snapshot.exists()) {
+                val membershipLevel = snapshot.getString("membershipLevel")
+                val points = snapshot.getLong("points")?.toInt()
+                val presentPoints = snapshot.getLong("presentPoints")?.toInt()
+
+                return@withContext mapOf(
+                    "membershipLevel" to membershipLevel,
+                    "points" to points,
+                    "presentPoints" to presentPoints
+                )
+            }
+            return@withContext null
+        } catch (e: Exception) {
+            throw e
+        }
+    }
+
+    suspend fun updateMembershipLevel(userId: String, loyalPointsRequired: Int, vipPointsRequired: Int): Boolean = withContext(Dispatchers.IO) {
+        try {
+            val userRef = usersCollection.document(userId)
+            val snapshot = userRef.get().await()
+
+            if (snapshot.exists()) {
+                val points = snapshot.getLong("points")?.toInt() ?: 0
+                val newMembershipLevel = when {
+                    points >= vipPointsRequired -> "VIP"
+                    points >= loyalPointsRequired -> "Loyal"
+                    else -> "New"
+                }
+
+                userRef.update("membershipLevel", newMembershipLevel).await()
+                return@withContext true
+            }
+            return@withContext false
+        } catch (e: Exception) {
+            throw e
+        }
+    }
+
     suspend fun getUserLastSpinDate(userId: String): Date? {
         return try {
             val userDoc = usersCollection.document(userId).get().await()
@@ -122,6 +165,7 @@ class UserRepository {
             throw e
         }
     }
+
 
     suspend fun canUserSpinToday(userId: String): Boolean {
         val lastSpinDate = getUserLastSpinDate(userId)

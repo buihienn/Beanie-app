@@ -70,7 +70,7 @@
                     app:layout_constraintTop_toTopOf="parent" />
 
                 <TextView
-                    android:id="@+id/textView2"
+                    android:id="@+id/textLevel"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="10dp"
@@ -94,7 +94,7 @@
                 </com.google.android.material.card.MaterialCardView>
 
                 <TextView
-                    android:id="@+id/textView5"
+                    android:id="@+id/textViewContent"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="36dp"
@@ -108,8 +108,8 @@
                     android:layout_width="320dp"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="5dp"
-                    app:layout_constraintStart_toStartOf="@+id/textView5"
-                    app:layout_constraintTop_toBottomOf="@+id/textView5" />
+                    app:layout_constraintStart_toStartOf="@+id/textViewContent"
+                    app:layout_constraintTop_toBottomOf="@+id/textViewContent" />
 
                 <LinearLayout
                     android:layout_width="wrap_content"
@@ -123,7 +123,7 @@
                     android:paddingVertical="12dp"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintHorizontal_bias="0.844"
-                    app:layout_constraintStart_toEndOf="@+id/textView2"
+                    app:layout_constraintStart_toEndOf="@+id/textLevel"
                     app:layout_constraintTop_toTopOf="parent">
 
                     <TextView
@@ -162,34 +162,34 @@
             android:orientation="horizontal">
 
             <Button
-                android:id="@+id/button2"
+                android:id="@+id/btnNew"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:backgroundTint="#00FFFFFF"
-                android:text="Silver"
+                android:text="New"
                 android:textColor="#000000"
                 app:cornerRadius="0dp"/>
 
             <Button
-                android:id="@+id/button3"
+                android:id="@+id/btnLoyal"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:backgroundTint="#00FFFFFF"
-                android:text="Gold"
+                android:text="Loyal"
                 android:textColor="#000000"
                 app:cornerRadius="0dp"/>
 
             <Button
-                android:id="@+id/button4"
+                android:id="@+id/btnVip"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:backgroundTint="#00FFFFFF"
-                android:text="Platinum"
+                android:text="VIP"
                 android:textColor="#000000"
-                app:cornerRadius="0dp" />
+                app:cornerRadius="0dp"/>
         </LinearLayout>
 
         <TextView

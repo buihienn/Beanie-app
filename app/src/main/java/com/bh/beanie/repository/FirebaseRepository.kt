@@ -6,6 +6,7 @@ import com.bh.beanie.model.Order
 import com.bh.beanie.model.OrderItem
 import com.bh.beanie.model.Product
 import com.bh.beanie.model.User
+import com.bh.beanie.model.UserVoucher
 import com.bh.beanie.model.Voucher
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.DocumentSnapshot
@@ -339,6 +340,38 @@ class FirebaseRepository(private val db: FirebaseFirestore) {
         }
 
         return orders
+    }
+
+    suspend fun createUserVouchersForLevel(
+        membershipLevel: String, // "All", "New", "Loyal", or "VIP"
+        voucherId: String
+    ) {
+        try {
+            val usersRef = db.collection("users")
+            val query = when (membershipLevel) {
+                "All" -> usersRef // Fetch all users
+                else -> usersRef.whereEqualTo("membershipLevel", membershipLevel) // Filter by level
+            }
+
+            val usersSnapshot = query.get().await()
+            val userVouchersRef = db.collection("user_vouchers")
+
+            for (userDoc in usersSnapshot) {
+                val userId = userDoc.id
+                val userVoucher = UserVoucher(
+                    id = userVouchersRef.document().id, // Generate a unique ID
+                    userId = userId,
+                    voucherId = voucherId,
+                    acquiredDate = Timestamp.now()
+                )
+
+                userVouchersRef.document(userVoucher.id).set(userVoucher).await()
+            }
+
+            Log.d("CreateUserVouchers", "User vouchers created successfully for $membershipLevel")
+        } catch (e: Exception) {
+            Log.e("CreateUserVouchers", "Error creating user vouchers: ${e.message}", e)
+        }
     }
 
 

@@ -90,6 +90,29 @@ class AdminManageCustomer : Fragment() {
             applyFilters()
         }
 
+        // Add scroll listener to fetch more customers when scrolling down
+        recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                super.onScrolled(recyclerView, dx, dy)
+
+                if (dy > 0) { // Check if scrolling down
+                    val layoutManager = recyclerView.layoutManager as LinearLayoutManager
+                    val visibleItemCount = layoutManager.childCount
+                    val totalItemCount = layoutManager.itemCount
+                    val firstVisibleItemPosition = layoutManager.findFirstVisibleItemPosition()
+
+                    if (!isLoading && !isLastPage) {
+                        if ((visibleItemCount + firstVisibleItemPosition) >= totalItemCount
+                            && firstVisibleItemPosition >= 0
+                            && totalItemCount >= 10
+                        ) {
+                            loadCustomers()
+                        }
+                    }
+                }
+            }
+        })
+
         loadCustomers()
     }
 

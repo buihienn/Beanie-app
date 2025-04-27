@@ -1,30 +1,42 @@
 package com.bh.beanie.user.fragment
 
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
+import android.widget.ProgressBar
+import android.widget.TextView
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.bh.beanie.BeanieApplication
 import com.bh.beanie.R
 import com.bh.beanie.adapter.MembershipBenefitsAdapter
-import com.bh.beanie.model.MemberBenefit
-
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
+import com.bh.beanie.model.Reward
+import com.bh.beanie.repository.MembershipRepository
+import com.bh.beanie.repository.UserRepository
+import kotlinx.coroutines.launch
 
 class RewardFragment : Fragment() {
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: MembershipBenefitsAdapter
-    private val listMemberBenefits = mutableListOf<MemberBenefit>()
+    private val rewardsList = mutableListOf<Reward>()
 
-    private var param1: String? = null
-    private var param2: String? = null
+    private lateinit var btnNew: Button
+    private lateinit var btnLoyal: Button
+    private lateinit var btnVip: Button
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        arguments?.let {
+    private var selectedButton: Button? = null
+
+    private val membershipRepository = MembershipRepository()
+    private val userRepository = UserRepository()
+
+    companion object {
+        fun newInstance(): RewardFragment {
+            return RewardFragment()
         }
     }
 
@@ -33,60 +45,125 @@ class RewardFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         val view = inflater.inflate(R.layout.fragment_reward, container, false)
-        recyclerView = view.findViewById(R.id.listMemberBenefits)
 
-        // Khởi tạo RecyclerView
+        val textLevel = view.findViewById<TextView>(R.id.textLevel)
+        val tvBeaniesCount = view.findViewById<TextView>(R.id.tvBeaniesCount)
+        // val fortuneWheelInfoButton = view.findViewById<Button>(R.id.fortuneWheelInfoButton) // doi thuong
+        recyclerView = view.findViewById(R.id.listMemberBenefits)
+        btnNew = view.findViewById(R.id.btnNew)
+        btnLoyal = view.findViewById(R.id.btnLoyal)
+        btnVip = view.findViewById(R.id.btnVip)
+
+        // Initialize RecyclerView
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
-        adapter = MembershipBenefitsAdapter(listMemberBenefits)
+        adapter = MembershipBenefitsAdapter(rewardsList)
         recyclerView.adapter = adapter
 
-        // Load data mẫu
-        loadFakeBenefits()
+        // Set button click listeners
+        btnNew.setOnClickListener { onButtonClicked(btnNew, "New") }
+        btnLoyal.setOnClickListener { onButtonClicked(btnLoyal, "Loyal") }
+        btnVip.setOnClickListener { onButtonClicked(btnVip, "VIP") }
+
+        val userId = BeanieApplication.instance.getUserId()
+        checkAndUpdateMembershipLevel(userId)
+
+        lifecycleScope.launch {
+            try {
+                val userInfo = userRepository.getUserMembershipInfo(userId)
+                userInfo?.let {
+                    val membershipLevel = it["membershipLevel"]?.toString()?.uppercase() ?: "UNKNOWN"
+                    val presentPoints = it["presentPoints"]?.toString() ?: "0"
+
+                    textLevel.text = membershipLevel
+                    tvBeaniesCount.text = presentPoints
+
+                    when (membershipLevel) {
+                        "NEW" -> onButtonClicked(btnNew, "New")
+                        "LOYAL" -> onButtonClicked(btnLoyal, "Loyal")
+                        "VIP" -> onButtonClicked(btnVip, "VIP")
+                    }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
 
         return view
     }
 
-    companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment OtherFragment.
-         */
-        // TODO: Rename and change types and number of parameters
-        @JvmStatic
-        fun newInstance(param1: String, param2: String) =
-            RewardFragment().apply {
-                arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
-                }
+    private fun fetchRewardsForLevel(level: String) {
+        lifecycleScope.launch {
+            try {
+                val membership = membershipRepository.fetchMembershipByLevel(level)
+                rewardsList.clear()
+                membership?.rewards?.let { rewardsList.addAll(it) }
+                adapter.notifyDataSetChanged()
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
+        }
     }
 
-    private fun loadFakeBenefits() {
-        listMemberBenefits.clear()
-        listMemberBenefits.addAll(
-            listOf(
-                MemberBenefit(
-                    imgURL = "https://via.placeholder.com/150",
-                    title = "Birthday Treat",
-                    description = "Get 50% off up to 30k when you're promoted."
-                ),
-                MemberBenefit(
-                    imgURL = "https://via.placeholder.com/150/FF5733/FFFFFF",
-                    title = "Welcome Gift",
-                    description = "Free drink for your first order."
-                ),
-                MemberBenefit(
-                    imgURL = "https://via.placeholder.com/150/33FF57/000000",
-                    title = "Loyalty Bonus",
-                    description = "10k voucher after 5 purchases."
-                )
-            )
-        )
-        adapter.notifyDataSetChanged()
+    private fun onButtonClicked(button: Button, level: String) {
+        selectedButton?.setBackgroundResource(android.R.color.transparent)
+        selectedButton?.setTextColor(resources.getColor(R.color.black, null))
+
+        selectedButton = button
+        selectedButton?.setBackgroundResource(R.color.selected_button_background)
+        selectedButton?.setTextColor(resources.getColor(R.color.white, null))
+
+        fetchRewardsForLevel(level)
+    }
+
+    private fun checkAndUpdateMembershipLevel(userId: String) {
+        lifecycleScope.launch {
+            try {
+                val loyalPointsRequired = membershipRepository.getPointsRequiredForLevel("Loyal") ?: 0
+                val vipPointsRequired = membershipRepository.getPointsRequiredForLevel("VIP") ?: 0
+                Log.d("RewardFragment", "Loyal point: $loyalPointsRequired")
+                Log.d ("RewardFragment2", "VIP point: $vipPointsRequired")
+                val success = userRepository.updateMembershipLevel(userId, loyalPointsRequired, vipPointsRequired)
+                if (success) {
+                    // Optionally, refresh the UI or notify the user
+                    val updatedUserInfo = userRepository.getUserMembershipInfo(userId)
+                    updatedUserInfo?.let {
+                        val membershipLevel = it["membershipLevel"]?.toString()?.uppercase() ?: "UNKNOWN"
+                        val presentPoints = it["presentPoints"]?.toString() ?: "0"
+
+                        // Update UI elements
+                        view?.findViewById<TextView>(R.id.textLevel)?.text = membershipLevel
+                        view?.findViewById<TextView>(R.id.tvBeaniesCount)?.text = presentPoints
+
+                        val presentPointsInt = it["presentPoints"]?.toString()?.toInt() ?: 0
+                        updateProgressBarAndContent(presentPointsInt, loyalPointsRequired, vipPointsRequired)
+                    }
+                }
+
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    private fun updateProgressBarAndContent(currentPoints: Int, loyalPointsRequired: Int, vipPointsRequired: Int) {
+        val progressBar = view?.findViewById<ProgressBar>(R.id.progressBar2)
+        val textViewContent = view?.findViewById<TextView>(R.id.textViewContent)
+
+        val nextLevelPointsRequired = when {
+            currentPoints < loyalPointsRequired -> loyalPointsRequired
+            currentPoints < vipPointsRequired -> vipPointsRequired
+            else -> null // Already at the highest level
+        }
+
+        if (nextLevelPointsRequired != null) {
+            val progress = (currentPoints * 100) / nextLevelPointsRequired
+            progressBar?.progress = progress
+
+            val pointsNeeded = nextLevelPointsRequired - currentPoints
+            textViewContent?.text = "Earn $pointsNeeded more points to reach the next level!"
+        } else {
+            progressBar?.progress = 100
+            textViewContent?.text = "You are at the highest membership level!"
+        }
     }
 }
