@@ -97,6 +97,11 @@ class HomeFragment : Fragment() {
         binding.takeawayButton.setOnClickListener {
             showBranchSelectionAndOpenCategories()
         }
+
+        binding.redeemButton.setOnClickListener {
+            val redeemFragment = RedeemFragment.newInstance()
+            redeemFragment.show(parentFragmentManager, RedeemFragment.TAG)
+        }
     }
 
     private fun generateAndSetBarcode(userId: String) {
@@ -176,6 +181,7 @@ class HomeFragment : Fragment() {
         }
     }
 
+    @ExperimentalBadgeUtils
     private fun checkUnreadNotifications() {
         viewLifecycleOwner.lifecycleScope.launch {
             try {
@@ -187,6 +193,7 @@ class HomeFragment : Fragment() {
         }
     }
 
+    @ExperimentalBadgeUtils
     private fun updateNotificationBadge(count: Int) {
         if (count > 0 && _binding != null) {
             // Create a badge drawable
@@ -215,6 +222,7 @@ class HomeFragment : Fragment() {
         }
     }
 
+    @ExperimentalBadgeUtils
     override fun onResume() {
         super.onResume()
         if (userId.isNotEmpty()) {

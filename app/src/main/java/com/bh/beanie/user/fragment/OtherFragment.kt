@@ -80,6 +80,11 @@ class OtherFragment : Fragment() {
                 logout(currentActivity)
             }
         }
+
+        binding.redeem.setOnClickListener {
+            val redeemFragment = RedeemFragment.newInstance()
+            redeemFragment.show(parentFragmentManager, RedeemFragment.TAG)
+        }
     }
 
     private fun showBranchSelectionDialog() {

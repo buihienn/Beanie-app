@@ -11,5 +11,6 @@ data class Voucher(
     var state: String = "",
     var expiryDate: Timestamp? = null,
     var minOrderAmount: Double = 0.0,
-    var imageUrl: String = ""
+    var imageUrl: String = "",
+    var redeemPoints: Int = 0,
 )

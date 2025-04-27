@@ -146,6 +146,7 @@
                     android:layout_width="160dp"
                     android:layout_height="48dp"
                     android:text="Rate"
+                    android:visibility="gone"
                     android:textColor="@color/white"
                     android:layout_marginHorizontal="@dimen/spacing_medium"
                     android:backgroundTint="@color/primary"/>
@@ -156,7 +157,19 @@
                     style="@style/Widget.App.Button.Icon"
                     android:layout_width="160dp"
                     android:layout_height="48dp"
-                    android:text="Cancle"
+                    android:text="Cancel"
+                    android:visibility="gone"
+                    android:textColor="@color/white"
+                    android:backgroundTint="@color/primary"/>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/doneButton"
+                    android:layout_marginHorizontal="@dimen/spacing_medium"
+                    style="@style/Widget.App.Button.Icon"
+                    android:layout_width="160dp"
+                    android:layout_height="48dp"
+                    android:visibility="gone"
+                    android:text="Done"
                     android:textColor="@color/white"
                     android:backgroundTint="@color/primary"/>
             </LinearLayout>

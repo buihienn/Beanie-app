@@ -3,10 +3,15 @@ package com.bh.beanie.repository
 import android.util.Log
 import com.bh.beanie.model.UserVoucher
 import com.bh.beanie.model.Voucher
+import com.bh.beanie.model.User
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 import java.util.UUID
+import kotlin.text.compareTo
+import kotlin.text.get
+import kotlin.text.set
+import kotlin.toString
 
 class UserVoucherRepository {
     private val firestore = FirebaseFirestore.getInstance()
@@ -110,6 +115,76 @@ class UserVoucherRepository {
 
             snapshot.documents.mapNotNull { it.toObject(Voucher::class.java) }
         } catch (e: Exception) {
+            emptyList()
+        }
+    }
+
+    suspend fun redeemVoucherWithPoints(voucher: Voucher): Boolean {
+        val currentUserId = auth.currentUser?.uid ?: return false
+
+        try {
+            // Thực hiện giao dịch để đảm bảo tính toàn vẹn dữ liệu
+            return firestore.runTransaction { transaction ->
+                // 1. Lấy thông tin user hiện tại
+                val userRef = firestore.collection("users").document(currentUserId)
+                val userSnapshot = transaction.get(userRef)
+                val user = userSnapshot.toObject(User::class.java) ?: throw Exception("User not found")
+
+                // 2. Kiểm tra người dùng có đủ điểm không
+                if (user.presentPoints < voucher.redeemPoints) {
+                    throw Exception("Không đủ điểm để đổi voucher này")
+                }
+
+                // 3. Tạo user_voucher mới
+                val userVoucher = UserVoucher(
+                    id = UUID.randomUUID().toString(),
+                    userId = currentUserId,
+                    voucherId = voucher.id,
+                    used = false
+                )
+
+                // 4. Trừ điểm người dùng
+                val newPoints = user.presentPoints - voucher.redeemPoints
+
+                // 5. Cập nhật điểm người dùng
+                transaction.update(userRef, "presentPoints", newPoints)
+
+                // 6. Lưu user_voucher mới
+                val userVoucherRef = userVouchersCollection.document(userVoucher.id)
+                transaction.set(userVoucherRef, userVoucher)
+
+                true
+            }.await()
+        } catch (e: Exception) {
+            Log.e("UserVoucherRepository", "Error redeeming voucher: ${e.message}")
+            throw e
+        }
+    }
+
+    suspend fun getActiveVouchersForRedeem(): List<Voucher> {
+        return try {
+            val currentTime = com.google.firebase.Timestamp.now()
+            // Chỉ sử dụng 2 điều kiện lọc
+            val snapshot = vouchersCollection
+                .whereEqualTo("state", "ACTIVE")
+                .whereGreaterThan("expiryDate", currentTime)
+                .get()
+                .await()
+
+            val vouchers = mutableListOf<Voucher>()
+            for (doc in snapshot.documents) {
+                val voucher = doc.toObject(Voucher::class.java)
+                if (voucher != null) {
+                    voucher.id = doc.id
+                    // Lọc thêm điều kiện trong ứng dụng
+                    if (voucher.redeemPoints > 0) {
+                        vouchers.add(voucher)
+                    }
+                }
+            }
+            vouchers
+        } catch (e: Exception) {
+            Log.e("UserVoucherRepository", "Error getting vouchers for redeem: ${e.message}")
             emptyList()
         }
     }
