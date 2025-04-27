@@ -2,6 +2,9 @@ package com.bh.beanie
 
 import com.bh.beanie.utils.UserPreferences
 import android.app.Application
+import android.util.Log
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.FirebaseDatabase
 
 class BeanieApplication : Application() {
     companion object {
@@ -15,7 +18,15 @@ class BeanieApplication : Application() {
         super.onCreate()
         instance = this
 
-        // Khôi phục userId từ SharedPreferences
+        // Set persistence correctly - this MUST happen before any Firebase Auth initialization
+        try {
+            FirebaseDatabase.getInstance().setPersistenceEnabled(true)
+            // Note: For FirebaseAuth, persistence is enabled by default in Android
+        } catch (e: Exception) {
+            Log.e("BeanieApplication", "Error setting Firebase persistence", e)
+        }
+
+        // Restore userId from SharedPreferences
         userId = UserPreferences.getUserId(this)
     }
 

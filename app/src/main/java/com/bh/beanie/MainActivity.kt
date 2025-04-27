@@ -1,10 +1,13 @@
 package com.bh.beanie
 
+import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import com.bh.beanie.customer.LoginActivity
 import com.bh.beanie.utils.NavigationUtils
 import com.google.firebase.auth.FirebaseAuth
 
@@ -27,15 +30,25 @@ class MainActivity : AppCompatActivity() {
         // Check if user is signed in (non-null)
         val currentUser = auth.currentUser
 
-        if (currentUser == null) {
-            // No user is signed in, go to login screen
-            NavigationUtils.navigateToLogin(this)
-        } else {
-            // Update userId vào BeanieApplication
-            BeanieApplication.instance.setUserId(currentUser.uid)
+        if (currentUser != null) {
+            Log.d("DEBUG", "User is signed in: ${currentUser.email}")
+            // User is already signed in
+            val userId = currentUser.uid  // Use currentUser directly since we know it's not null
 
-            // User is signed in, check role and navigate
-            NavigationUtils.navigateBasedOnRole(this, currentUser.uid)
+            // Store user ID in application for persistence
+            (application as BeanieApplication).setUserId(userId)
+
+            // Navigate based on stored role - pass the non-null userId
+            NavigationUtils.navigateBasedOnRole(this, userId)
+        } else {
+            // No user signed in, go to login
+
+            Log.d("DEBUG", "No user signed in, navigating to LoginActivity")
+
+
+            val intent = Intent(this, LoginActivity::class.java)
+            startActivity(intent)
+            finish()
         }
     }
 }

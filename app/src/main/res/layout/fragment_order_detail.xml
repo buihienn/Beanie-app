@@ -77,11 +77,11 @@
                     style="@style/Widget.App.Button.Icon"
                     android:layout_width="wrap_content"
                     android:layout_height="42dp"
-                    android:text="Rate"
-                    android:textColor="@color/white"
-                    android:backgroundTint="@color/primary"
                     android:layout_alignParentEnd="true"
-                    android:layout_centerVertical="true"/>
+                    android:layout_centerVertical="true"
+                    android:backgroundTint="@color/primary"
+                    android:text="Rate"
+                    android:textColor="@color/white" />
 
             </LinearLayout>
 

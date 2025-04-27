@@ -22,12 +22,26 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.bh.beanie.R
 import com.bh.beanie.model.Voucher
+import com.bh.beanie.repository.UserRepository
 import com.bh.beanie.repository.UserVoucherRepository
 import com.bh.beanie.repository.VoucherRepository
+import com.bh.beanie.repository.NotificationRepository
 import com.bh.beanie.utils.LuckyWheelView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 import java.util.Random
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
+import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.app.NotificationCompat
+import androidx.core.content.ContextCompat
+import android.Manifest
 
 class LuckyWheelFragment : Fragment() {
 
@@ -37,11 +51,14 @@ class LuckyWheelFragment : Fragment() {
     private lateinit var progressBar: ProgressBar
     private lateinit var userVoucherRepository: UserVoucherRepository
     private lateinit var voucherRepository: VoucherRepository
+    private lateinit var userRepository: UserRepository
+    private lateinit var notificationRepository: NotificationRepository
+
 
     private val random = Random()
-    private var spinCount = 1 // Default spin count
     private var isSpinning = false
     private var activeVouchers = listOf<Voucher>()
+    private var userId: String = ""
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -55,36 +72,39 @@ class LuckyWheelFragment : Fragment() {
 
         userVoucherRepository = UserVoucherRepository.getInstance()
         voucherRepository = VoucherRepository.getInstance()
+        userRepository = UserRepository.getInstance()
+        notificationRepository = NotificationRepository()
+        userId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
 
         luckyWheelView = view.findViewById(R.id.luckyWheelView)
         spinButton = view.findViewById(R.id.spinButton)
         spinCountText = view.findViewById(R.id.spinCountText)
         progressBar = view.findViewById(R.id.progressBar)
 
-        updateSpinCountDisplay()
-
+        checkNotificationPermission()
         // Back button handler
         view.findViewById<ImageView>(R.id.ivBackArrow).setOnClickListener {
             requireActivity().onBackPressed()
         }
 
         spinButton.setOnClickListener {
-            if (!isSpinning && spinCount > 0) {
-                spinWheel()
-            } else if (spinCount <= 0) {
-                Toast.makeText(requireContext(), "No spins left", Toast.LENGTH_SHORT).show()
+            if (!isSpinning) {
+                checkAndSpin()
             }
         }
 
-        // Load active vouchers
-        loadActiveVouchers()
+        // Load active vouchers and check spin availability
+        loadActiveVouchersAndCheckSpin()
     }
 
-    private fun loadActiveVouchers() {
+    private fun loadActiveVouchersAndCheckSpin() {
         showLoading(true)
         lifecycleScope.launch {
             try {
-                // Use the dedicated VoucherRepository to fetch vouchers
+                // Check if user can spin today
+                val canSpin = userRepository.canUserSpinToday(userId)
+
+                // Load vouchers
                 activeVouchers = voucherRepository.getActiveVouchers()
 
                 Log.d("LuckyWheel", "Loaded ${activeVouchers.size} active vouchers")
@@ -103,9 +123,44 @@ class LuckyWheelFragment : Fragment() {
                     val voucherTexts = activeVouchers.map { getVoucherDisplayText(it) }
                     luckyWheelView.setVoucherTexts(voucherTexts)
                 }
+
+                // Update UI based on spin availability
+                updateSpinAvailability(canSpin)
             } catch (e: Exception) {
-                Log.e("LuckyWheel", "Error loading vouchers", e)
-                Toast.makeText(requireContext(), "Error loading vouchers: ${e.message}", Toast.LENGTH_SHORT).show()
+                Log.e("LuckyWheel", "Error loading data", e)
+                Toast.makeText(requireContext(), "Error loading data: ${e.message}", Toast.LENGTH_SHORT).show()
+            } finally {
+                showLoading(false)
+            }
+        }
+    }
+
+    private fun updateSpinAvailability(canSpin: Boolean) {
+        spinButton.isEnabled = canSpin && activeVouchers.isNotEmpty()
+        spinCountText.text = if (canSpin) "Spins left: 1" else "No spins left today"
+
+        if (!canSpin) {
+            spinButton.text = "Come back tomorrow"
+        } else {
+            spinButton.text = "SPIN"
+        }
+    }
+
+    private fun checkAndSpin() {
+        lifecycleScope.launch {
+            showLoading(true)
+            try {
+                val canSpin = userRepository.canUserSpinToday(userId)
+
+                if (canSpin) {
+                    spinWheel()
+                } else {
+                    Toast.makeText(requireContext(), "You've already spun today! Come back tomorrow.", Toast.LENGTH_SHORT).show()
+                    updateSpinAvailability(false)
+                }
+            } catch (e: Exception) {
+                Log.e("LuckyWheel", "Error checking spin eligibility", e)
+                Toast.makeText(requireContext(), "Error: ${e.message}", Toast.LENGTH_SHORT).show()
             } finally {
                 showLoading(false)
             }
@@ -118,10 +173,6 @@ class LuckyWheelFragment : Fragment() {
             "FIXED" -> "$${voucher.discountValue.toInt()}"
             else -> "${voucher.discountValue.toInt()}"
         }
-    }
-
-    private fun updateSpinCountDisplay() {
-        spinCountText.text = "Spins left: $spinCount"
     }
 
     private fun spinWheel() {
@@ -145,8 +196,16 @@ class LuckyWheelFragment : Fragment() {
 
         luckyWheelView.spin(finalRotation, 4000) {
             isSpinning = false
-            spinCount--
-            updateSpinCountDisplay()
+
+            // Update the last spin date in Firestore
+            lifecycleScope.launch {
+                try {
+                    userRepository.updateUserLastSpinDate(userId)
+                    updateSpinAvailability(false)
+                } catch (e: Exception) {
+                    Log.e("LuckyWheel", "Error updating spin date", e)
+                }
+            }
 
             // Select a voucher based on the segment
             val selectedVoucher = if (activeVouchers.isNotEmpty()) {
@@ -155,13 +214,11 @@ class LuckyWheelFragment : Fragment() {
                 activeVouchers[voucherIndex]
             } else {
                 Toast.makeText(requireContext(), "No vouchers available", Toast.LENGTH_SHORT).show()
-                spinButton.isEnabled = spinCount > 0
                 return@spin
             }
 
             // Award the voucher to the user
             awardVoucher(selectedVoucher)
-            spinButton.isEnabled = spinCount > 0
         }
     }
 
@@ -172,7 +229,14 @@ class LuckyWheelFragment : Fragment() {
                 val success = userVoucherRepository.assignVoucherToUser(voucher)
 
                 if (success) {
+                    // Show dialog
                     showVoucherWonDialog(voucher)
+
+                    // Create Firestore notification
+                    createVoucherNotification(voucher)
+
+                    // Send local phone notification
+                    sendVoucherNotification(voucher)
                 } else {
                     Toast.makeText(requireContext(), "Failed to assign voucher", Toast.LENGTH_SHORT).show()
                 }
@@ -181,6 +245,42 @@ class LuckyWheelFragment : Fragment() {
                 Toast.makeText(requireContext(), "Error: ${e.message}", Toast.LENGTH_SHORT).show()
             } finally {
                 showLoading(false)
+            }
+        }
+    }
+
+    // Add this new function to create Firestore notification
+    private fun createVoucherNotification(voucher: Voucher) {
+        lifecycleScope.launch {
+            try {
+                val discountText = when (voucher.discountType) {
+                    "PERCENTAGE" -> "${voucher.discountValue}% off"
+                    "FIXED" -> "$${voucher.discountValue} off"
+                    else -> "${voucher.discountValue} off"
+                }
+
+                // Check your Voucher class - if the property isn't called 'code'
+                // replace this with the actual property name like 'voucherId' or 'voucherNumber'
+                val voucherCode = voucher.id // Using ID as fallback if code doesn't exist
+
+                val notification = com.bh.beanie.model.Notification(
+                    id = "", // Will be set by Firestore
+                    userId = userId,
+                    title = "New Voucher Received!",
+                    message = "You won a ${voucher.name}: $discountText",
+                    type = "VOUCHER",
+                    read = false,
+                    timestamp = System.currentTimeMillis(),
+                    data = mapOf(
+                        "voucherCode" to voucherCode,
+                        "voucherValue" to voucher.discountValue.toString()
+                    )
+                )
+
+                notificationRepository.addNotification(notification)
+                Log.d("LuckyWheel", "Firestore notification created for voucher: ${voucher.name}")
+            } catch (e: Exception) {
+                Log.e("LuckyWheel", "Failed to create Firestore notification", e)
             }
         }
     }
@@ -205,9 +305,91 @@ class LuckyWheelFragment : Fragment() {
             .show()
     }
 
+    private fun sendVoucherNotification(voucher: Voucher) {
+        try {
+            val notificationManager = requireContext().getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
+            // Create notification channel for Android O and above
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                val channelId = "voucher_channel"
+                val channelName = "Voucher Notifications"
+                val importance = NotificationManager.IMPORTANCE_HIGH
+                val channel = NotificationChannel(channelId, channelName, importance).apply {
+                    description = "Notifications for new vouchers"
+                    enableLights(true)
+                    lightColor = Color.GREEN
+                    enableVibration(true)
+                }
+                notificationManager.createNotificationChannel(channel)
+            }
+
+            // Format discount text for notification
+            val discountText = when (voucher.discountType) {
+                "PERCENTAGE" -> "${voucher.discountValue}% off"
+                "FIXED" -> "$${voucher.discountValue} off"
+                else -> "${voucher.discountValue} off"
+            }
+
+            // Build the notification
+            val notificationId = System.currentTimeMillis().toInt()
+            val intent = Intent(context, requireActivity()::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                putExtra("openVouchers", true)
+            }
+            val pendingIntent = PendingIntent.getActivity(
+                context, 0, intent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+
+            val builder = NotificationCompat.Builder(requireContext(), "voucher_channel")
+                .setSmallIcon(R.drawable.ic_notification) // Replace with your notification icon
+                .setContentTitle("New Voucher Received!")
+                .setContentText("You won a ${voucher.name}: $discountText")
+                .setStyle(NotificationCompat.BigTextStyle()
+                    .bigText("You won a ${voucher.name}: $discountText\n${voucher.content}"))
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setContentIntent(pendingIntent)
+                .setAutoCancel(true)
+
+            notificationManager.notify(notificationId, builder.build())
+
+            Log.d("LuckyWheel", "Notification sent for voucher: ${voucher.name}")
+        } catch (e: Exception) {
+            Log.e("LuckyWheel", "Error sending notification", e)
+        }
+    }
+
+    private fun checkNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(
+                    requireContext(),
+                    Manifest.permission.POST_NOTIFICATIONS
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                // Request permission
+                requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }
+        }
+    }
+
+    private val requestPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            Log.d("LuckyWheel", "Notification permission granted")
+        } else {
+            Log.d("LuckyWheel", "Notification permission denied")
+            Toast.makeText(
+                context,
+                "Notification permission denied. You won't receive voucher notifications.",
+                Toast.LENGTH_LONG
+            ).show()
+        }
+    }
+
     private fun showLoading(isLoading: Boolean) {
         progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
-        spinButton.isEnabled = !isLoading && spinCount > 0
+        spinButton.isEnabled = !isLoading
     }
 
     companion object {
