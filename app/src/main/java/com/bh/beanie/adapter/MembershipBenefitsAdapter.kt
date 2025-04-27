@@ -3,18 +3,17 @@ package com.bh.beanie.adapter
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.bh.beanie.R
-import com.bh.beanie.model.MemberBenefit
+import com.bh.beanie.model.Reward
 
-class MembershipBenefitsAdapter (private val memBenList: List<MemberBenefit>) :
-    RecyclerView.Adapter<MembershipBenefitsAdapter.ViewHolder>(){
-    class ViewHolder (itemView: View) : RecyclerView.ViewHolder(itemView){
-        val imgView: ImageView = itemView.findViewById(R.id.imgViewMemBen)
+class MembershipBenefitsAdapter(private val rewardsList: List<Reward>) :
+    RecyclerView.Adapter<MembershipBenefitsAdapter.ViewHolder>() {
+
+    class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val titleText: TextView = itemView.findViewById(R.id.textViewNameBen)
-        val descriptionText: TextView = itemView.findViewById(R.id.textView6)
+        val descriptionText: TextView = itemView.findViewById(R.id.textViewContentBen)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -24,11 +23,10 @@ class MembershipBenefitsAdapter (private val memBenList: List<MemberBenefit>) :
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val item = memBenList[position]
-//        holder.imgView.setImageResource(item.imgURL) img
-        holder.titleText.text = item.title
-        holder.descriptionText.text = item.description
+        val reward = rewardsList[position]
+        holder.titleText.text = reward.name
+        holder.descriptionText.text = reward.content
     }
 
-    override fun getItemCount(): Int = memBenList.size
+    override fun getItemCount(): Int = rewardsList.size
 }

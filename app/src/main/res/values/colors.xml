@@ -29,4 +29,6 @@
     <color name="grey_dark">#AAAAAA</color>       <!-- Màu chữ khi disabled -->
     <color name="button_red">#D32F2F</color>       <!-- Màu nút Delete -->
 
+    <color name="selected_button_background">#FF6200EE</color>
+
 </resources>

@@ -63,7 +63,7 @@ class AdminOrderFragment : Fragment() {
         orderAdapter = AdminOrderAdapter(
             orderList = filteredOrderList,
             onConfirmClick = { order -> updateOrderStatus(order.id, "PENDING") },
-            onCancelClick = { order -> updateOrderStatus(order.id, "CANCELED") },
+            onCancelClick = { order -> updateOrderStatus(order.id, "CANCELLED") },
             onCompleteClick = { order -> completeOrder(order.id, order.type) },
             onItemClick = { order -> viewOrderDetail(order) }
         )
@@ -95,7 +95,7 @@ class AdminOrderFragment : Fragment() {
                 selectedStatusFilter = when (checkedId) {
                     R.id.radioBtnCompleted -> "COMPLETED"
                     R.id.radioBtnPending -> "PENDING"
-                    R.id.radioBtnCancel -> "CANCELED"
+                    R.id.radioBtnCancel -> "CANCELLED"
                     else -> "" // All
                 }
                 applyFilters()
@@ -120,6 +120,28 @@ class AdminOrderFragment : Fragment() {
 
         radioFilterGroupRow1.setOnCheckedChangeListener(radioGroupRow1Listener)
         radioFilterGroupRow2.setOnCheckedChangeListener(radioGroupRow2Listener)
+
+        recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                super.onScrolled(recyclerView, dx, dy)
+
+                if (dy > 0) {
+                    val layoutManager = recyclerView.layoutManager as LinearLayoutManager
+                    val visibleItemCount = layoutManager.childCount
+                    val totalItemCount = layoutManager.itemCount
+                    val firstVisibleItemPosition = layoutManager.findFirstVisibleItemPosition()
+
+                    if (!isLoading && !isLastPage) {
+                        if ((visibleItemCount + firstVisibleItemPosition) >= totalItemCount
+                            && firstVisibleItemPosition >= 0
+                            && totalItemCount >= 7
+                        ) {
+                            loadOrders()
+                        }
+                    }
+                }
+            }
+        })
 
         loadOrders()
 
