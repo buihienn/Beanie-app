@@ -151,6 +151,52 @@ class UserRepository {
         return today.timeInMillis > lastSpinCalendar.timeInMillis
     }
 
+    suspend fun updateUserPoints(userId: String, orderTotal: Double): Boolean {
+        return try {
+            val userDoc = usersCollection.document(userId).get().await()
+            val user = userDoc.toObject(User::class.java) ?: return false
+
+            // Tính số điểm được cộng (1 điểm cho mỗi 1000đ)
+            val earnedPoints = (orderTotal / 1000).toInt()
+
+            // Cập nhật điểm
+            val currentPoints = user.points
+            val currentPresentPoints = user.presentPoints
+
+            // Cập nhật cả tổng điểm (points) và điểm hiện tại (presentPoints)
+            usersCollection.document(userId).update(
+                mapOf(
+                    "points" to currentPoints + earnedPoints,
+                    "presentPoints" to currentPresentPoints + earnedPoints
+                )
+            ).await()
+
+            // Kiểm tra và cập nhật cấp thành viên nếu cần
+            updateMembershipLevel(userId, currentPoints + earnedPoints)
+
+            Log.d("UserRepository", "Updated points for user $userId: +$earnedPoints points")
+            true
+        } catch (e: Exception) {
+            Log.e("UserRepository", "Error updating user points", e)
+            false
+        }
+    }
+
+    private suspend fun updateMembershipLevel(userId: String, totalPoints: Int) {
+        try {
+            val newLevel = when {
+                totalPoints >= 1500 -> "VIP"
+                totalPoints >= 500 -> "LOYAL"
+                else -> "NEW"
+            }
+
+            usersCollection.document(userId).update("membershipLevel", newLevel).await()
+            Log.d("UserRepository", "Updated membership level for user $userId to $newLevel")
+        } catch (e: Exception) {
+            Log.e("UserRepository", "Error updating membership level", e)
+        }
+    }
+
     companion object {
         @Volatile
         private var instance: UserRepository? = null

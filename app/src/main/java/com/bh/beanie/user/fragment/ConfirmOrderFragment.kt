@@ -38,17 +38,18 @@ import com.androidnetworking.AndroidNetworking
 import com.androidnetworking.common.Priority
 import com.androidnetworking.interfaces.JSONObjectRequestListener
 import com.androidnetworking.error.ANError
+import com.bh.beanie.model.Voucher
 import com.bh.beanie.user.UserOrderActivity
 import com.paypal.android.corepayments.CoreConfig
 import com.paypal.android.corepayments.Environment
-import com.paypal.android.corepayments.PayPalSDKError
 import com.paypal.android.paypalwebpayments.PayPalWebCheckoutClient
 import com.paypal.android.paypalwebpayments.PayPalWebCheckoutFundingSource
-import com.paypal.android.paypalwebpayments.PayPalWebCheckoutListener
 import com.paypal.android.paypalwebpayments.PayPalWebCheckoutRequest
-import com.paypal.android.paypalwebpayments.PayPalWebCheckoutResult
 import org.json.JSONObject
 import java.util.UUID
+import android.widget.Toast
+import androidx.fragment.app.DialogFragment
+import com.bh.beanie.repository.VoucherRepository
 
 class ConfirmOrderFragment : BottomSheetDialogFragment() {
     private var _binding: FragmentConfirmOrderBinding? = null
@@ -76,6 +77,9 @@ class ConfirmOrderFragment : BottomSheetDialogFragment() {
     private val secretKey: String = "EHIzjXXKsuCEmrAjjVOf7nDM6qOKC9jx4vx7hlF2r9YNLBZiClYUlqaC5tkoe4cgzGMmWNgFwfkapBa3"
     private val returnUrl: String = "nativexo://paypalpay"
     private var accessToken: String = ""
+
+    private var selectedVoucher: Voucher? = null
+    private var discountAmount: Double = 0.0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -193,10 +197,16 @@ class ConfirmOrderFragment : BottomSheetDialogFragment() {
         formatter.maximumFractionDigits = 0
         val formattedPrice = formatter.format(totalPrice).replace("₫", "đ")
 
-        // Cập nhật tổng tiền
-        binding.orderItemsTotalPrice.text = formattedPrice
-        binding.totalPriceTextView.text = formattedPrice
-        binding.bottomBarTotalPrice.text = formattedPrice
+        if (selectedVoucher != null) {
+            // Tính lại giảm giá vì tổng tiền có thể đã thay đổi
+            discountAmount = calculateDiscountAmount(selectedVoucher!!, totalPrice)
+            updateTotalPrice()
+        } else {
+            // Không có voucher, hiển thị tổng tiền thông thường
+            binding.orderItemsTotalPrice.text = formattedPrice
+            binding.totalPriceTextView.text = formattedPrice
+            binding.bottomBarTotalPrice.text = formattedPrice
+        }
 
         // Cập nhật số lượng sản phẩm
         binding.bottomBar.findViewById<android.widget.TextView>(com.bh.beanie.R.id.bottomBarTotalPrice)
@@ -301,6 +311,10 @@ class ConfirmOrderFragment : BottomSheetDialogFragment() {
                 selectedDate = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Calendar.getInstance().time)
                 showTimePicker()
             }
+        }
+
+        binding.voucherLayout.setOnClickListener {
+            showVoucherSelector()
         }
     }
 
@@ -441,17 +455,20 @@ class ConfirmOrderFragment : BottomSheetDialogFragment() {
         binding.progressBar.visibility = View.VISIBLE
         binding.confirmButton.isEnabled = false
 
-        Log.d("ConfirmOrder", "payment method: $paymentMethod")
-        fetchAccessToken()
+        if (selectedVoucher != null) {
+            order.voucherId = selectedVoucher!!.id
+        }
 
-//        // Kiểm tra phương thức thanh toán
-//        if (paymentMethod == "PAYPAL") {
-//            // Nếu là thanh toán PayPal, thực hiện quy trình PayPal
-//            fetchAccessToken()
-//        } else {
-//            // Các phương thức thanh toán khác, xử lý đơn hàng trực tiếp
-//            processOrder(order)
-//        }
+        Log.d("ConfirmOrder", "payment method: $paymentMethod")
+
+        // Kiểm tra phương thức thanh toán
+        if (paymentMethod == "PAYPAL") {
+            // Nếu là thanh toán PayPal, thực hiện quy trình PayPal
+            fetchAccessToken()
+        } else {
+            // Các phương thức thanh toán khác, xử lý đơn hàng trực tiếp
+            processOrder(order)
+        }
     }
 
     private fun processOrder(order: Order) {
@@ -477,6 +494,18 @@ class ConfirmOrderFragment : BottomSheetDialogFragment() {
                 }
 
                 val orderId = orderRepository.createOrder(order)
+
+                // Đánh dấu voucher đã sử dụng nếu có
+                if (selectedVoucher != null) {
+                    val voucherRepository = VoucherRepository.getInstance()
+                    val voucherMarked = voucherRepository.markVoucherAsUsed(order.userId, selectedVoucher!!.id)
+                    Log.d("OrderDetail", "Voucher ${selectedVoucher!!.id} marked as used: $voucherMarked")
+                }
+
+                // Cập nhật điểm tích lũy cho user
+                val userRepository = UserRepository.getInstance()
+                val pointsUpdated = userRepository.updateUserPoints(order.userId, order.totalPrice)
+                Log.d("OrderDetail", "User points updated: $pointsUpdated")
 
                 // Success - show confirmation
                 activity?.runOnUiThread {
@@ -703,6 +732,177 @@ class ConfirmOrderFragment : BottomSheetDialogFragment() {
         paymentMethodFragment.show(parentFragmentManager, "paymentMethodSelector")
     }
 
+    private fun showVoucherSelector() {
+        // Tạo fragment hiển thị danh sách voucher
+        val voucherFragment = VoucherFragment.newInstanceForSelection(object : VoucherFragment.OnVoucherSelectedListener {
+            override fun onVoucherSelected(voucher: Voucher) {
+                // Kiểm tra tính hợp lệ của voucher
+                val totalPrice = calculateSubtotal()
+                if (isVoucherValid(voucher, totalPrice)) {
+                    // Áp dụng voucher
+                    applyVoucher(voucher)
+                    Toast.makeText(requireContext(), "Đã áp dụng voucher ${voucher.name}", Toast.LENGTH_SHORT).show()
+                } else {
+                    // Hiển thị thông báo lỗi
+                    showInvalidVoucherMessage(voucher, totalPrice)
+                }
+            }
+        })
+
+        voucherFragment.show(parentFragmentManager, "VoucherFragment")
+    }
+
+    private fun isVoucherValid(voucher: Voucher, totalPrice: Double): Boolean {
+        // Kiểm tra điều kiện áp dụng voucher
+
+        // 1. Kiểm tra giá trị đơn hàng tối thiểu
+        if (totalPrice < voucher.minOrderAmount) {
+            return false
+        }
+
+        // 2. Kiểm tra ngày hết hạn
+        val currentTime = Timestamp.now()
+        voucher.expiryDate?.let {
+            if (currentTime.seconds > it.seconds) {
+                return false
+            }
+        }
+
+        return true
+    }
+
+    private fun applyVoucher(voucher: Voucher) {
+        selectedVoucher = voucher
+
+        // Tính toán giảm giá
+        val subtotal = calculateSubtotal()
+        discountAmount = calculateDiscountAmount(voucher, subtotal)
+
+        // Log thông tin
+        Log.d("Voucher", "Applied voucher: ${voucher.name}")
+        Log.d("Voucher", "Discount amount: $discountAmount")
+
+        // Cập nhật UI voucher
+        updateVoucherUI(voucher)
+
+        // Tính toán lại tổng tiền
+        updateTotalPrice()
+    }
+
+    private fun calculateDiscountAmount(voucher: Voucher, subtotal: Double): Double {
+        val discountAmount = when (voucher.discountType.uppercase()) {
+            "PERCENTAGE", "PERCENT" -> {
+                // Giảm giá theo phần trăm
+                val discountPercent = voucher.discountValue
+                val discount = subtotal * discountPercent / 100
+                discount
+            }
+            "FIXED" -> {
+                // Giảm giá cố định
+                voucher.discountValue
+            }
+            else -> 0.0
+        }
+
+        // Log giá trị để debug
+        Log.d("Voucher", "Discount Type: ${voucher.discountType}")
+        Log.d("Voucher", "Discount Value: ${voucher.discountValue}")
+        Log.d("Voucher", "Subtotal: $subtotal")
+        Log.d("Voucher", "Calculated Discount: $discountAmount")
+
+        return discountAmount
+    }
+
+    private fun updateVoucherUI(voucher: Voucher) {
+        // Tạo text hiển thị voucher dựa trên loại discount
+        val voucherDiscountText = when (voucher.discountType.uppercase()) {
+            "PERCENTAGE", "PERCENT" -> "-${voucher.discountValue.toInt()}%"
+            "FIXED" -> "-${NumberFormat.getNumberInstance(Locale("vi", "VN")).format(voucher.discountValue.toInt())}đ"
+            else -> ""
+        }
+
+        // Cập nhật UI để hiển thị voucher đã chọn
+        binding.voucherLayout.visibility = View.GONE
+        binding.voucherApplyLayout.visibility = View.VISIBLE
+        binding.voucherName.text = voucher.name
+        binding.voucherPrice.text = voucherDiscountText
+
+        // Log để debug
+        Log.d("Voucher", "updateVoucherUI - voucherName: ${voucher.name}")
+        Log.d("Voucher", "updateVoucherUI - voucherDiscount: $voucherDiscountText")
+    }
+
+    private fun showInvalidVoucherMessage(voucher: Voucher, totalPrice: Double) {
+        var message = ""
+
+        if (totalPrice < voucher.minOrderAmount) {
+            message = "Đơn hàng tối thiểu phải đạt ${voucher.minOrderAmount.toInt()}K để sử dụng voucher này"
+        } else {
+            val currentTime = Timestamp.now()
+            voucher.expiryDate?.let {
+                if (currentTime.seconds > it.seconds) {
+                    message = "Voucher này đã hết hạn"
+                }
+            }
+        }
+
+        if (message.isEmpty()) {
+            message = "Voucher không hợp lệ cho đơn hàng này"
+        }
+
+        // Hiển thị thông báo lỗi
+        Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
+    }
+
+    private fun calculateSubtotal(): Double {
+        var subtotal = 0.0
+        for (item in cartItems) {
+            subtotal += item.unitPrice * item.quantity
+        }
+        return subtotal
+    }
+
+    private fun updateTotalPrice() {
+        val subtotal = calculateSubtotal()
+        val discountAmountValue = discountAmount
+
+        // Hiển thị giá trị ban đầu và giảm giá
+        val formatter = NumberFormat.getNumberInstance(Locale("vi", "VN"))
+
+        // Hiển thị giá gốc
+        binding.orderItemsTotalPrice.text = "${formatter.format(subtotal)}đ"
+
+        // Hiển thị giá trị giảm giá (nếu có)
+        if (selectedVoucher != null) {
+            binding.voucherLayout.visibility = View.GONE
+            binding.voucherApplyLayout.visibility = View.VISIBLE
+
+            // Hiển thị tên voucher
+            binding.voucherName.text = selectedVoucher?.name ?: ""
+
+            // Hiển thị giá trị giảm giá
+            binding.voucherPrice.text = "-${formatter.format(discountAmountValue)}đ"
+        } else {
+            binding.voucherLayout.visibility = View.VISIBLE
+            binding.voucherApplyLayout.visibility = View.GONE
+        }
+
+        // Tính tổng tiền sau giảm giá
+        val totalAfterDiscount = subtotal - discountAmountValue
+
+        // Đảm bảo tổng tiền không âm
+        val finalTotal = if (totalAfterDiscount < 0) 0.0 else totalAfterDiscount
+
+        // Cập nhật UI tổng tiền
+        binding.totalPriceTextView.text = "${formatter.format(finalTotal)}đ"
+        binding.bottomBarTotalPrice.text = "${formatter.format(finalTotal)}đ"
+
+        // Cập nhật giá trị cho đơn hàng
+        order.totalPrice = finalTotal
+        if (selectedVoucher != null) {
+            order.voucherId = selectedVoucher!!.id
+        }
+    }
 
     override fun onDestroyView() {
         super.onDestroyView()

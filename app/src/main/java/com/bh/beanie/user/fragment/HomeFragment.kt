@@ -10,40 +10,39 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
-import android.widget.ImageView
 import android.widget.Toast
 import androidx.core.content.edit
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.bh.beanie.R
+import com.bh.beanie.databinding.FragmentHomeBinding
 import com.bh.beanie.model.Product
 import com.bh.beanie.repository.ProductRepository
 import com.bh.beanie.BeanieApplication
 import com.bh.beanie.repository.NotificationRepository
+import com.bh.beanie.repository.UserRepository
 import com.bh.beanie.user.NotificationsActivity
 import com.bh.beanie.user.UserOrderActivity
 import com.bh.beanie.user.adapter.ProductAdapter
-import com.google.android.material.button.MaterialButton
-import com.google.android.material.card.MaterialCardView
+import com.google.android.material.badge.BadgeDrawable
+import com.google.android.material.badge.BadgeUtils
+import com.google.android.material.badge.ExperimentalBadgeUtils
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.MultiFormatWriter
 import com.google.zxing.common.BitMatrix
 import kotlinx.coroutines.launch
-import com.google.android.material.badge.BadgeDrawable
-import com.google.android.material.badge.BadgeUtils
-@OptIn(com.google.android.material.badge.ExperimentalBadgeUtils::class)
 
+@OptIn(ExperimentalBadgeUtils::class)
 class HomeFragment : Fragment() {
-    @OptIn(com.google.android.material.badge.ExperimentalBadgeUtils::class)
-    private lateinit var popularItemsRecyclerView: RecyclerView
-    private val productList = mutableListOf<Product>()
+    private var _binding: FragmentHomeBinding? = null
+    private val binding get() = _binding!!
+
     private lateinit var productRepository: ProductRepository
-    private lateinit var barcodeImageView: ImageView
+    private lateinit var userRepository: UserRepository
     private lateinit var notificationRepository: NotificationRepository
+
     private var userId: String = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -51,49 +50,51 @@ class HomeFragment : Fragment() {
 
         // Khởi tạo repository
         productRepository = ProductRepository(FirebaseFirestore.getInstance())
+        userRepository = UserRepository()
+        notificationRepository = NotificationRepository()
+
+        userId = BeanieApplication.instance.getUserId()
     }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_home, container, false)
+    ): View {
+        // Sử dụng view binding
+        _binding = FragmentHomeBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        setupFortuneWheelCard(view)
-        userId = BeanieApplication.instance.getUserId()
-        barcodeImageView = view.findViewById(R.id.ivBarcode)
 
-        // Khởi tạo RecyclerView
-        popularItemsRecyclerView = view.findViewById(R.id.popularItemsRecyclerView)
-        popularItemsRecyclerView.layoutManager =
-            LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+        setupFortuneWheelCard()
+        setupRecyclerView()
+        setupButtons()
 
-        notificationRepository = NotificationRepository()
-        // Lấy userId
-        val userId = BeanieApplication.instance.getUserId()
-
+        // Lấy userId và tạo barcode nếu đã đăng nhập
         if (userId.isNotEmpty()) {
-            // Tạo barcode từ userId
             generateAndSetBarcode(userId)
+            fetchUserPoints()
         }
+    }
 
-        val notificationButton = view.findViewById<MaterialButton>(R.id.notificationButton)
-        notificationButton.setOnClickListener {
+    private fun setupRecyclerView() {
+        binding.popularItemsRecyclerView.layoutManager =
+            LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+    }
+
+    private fun setupButtons() {
+        binding.notificationButton.setOnClickListener {
             val intent = Intent(requireContext(), NotificationsActivity::class.java)
             startActivity(intent)
         }
 
-        val deliveryBtn: Button = view.findViewById(R.id.deliveryButton)
-        deliveryBtn.setOnClickListener {
+        binding.deliveryButton.setOnClickListener {
             showAddressSelectionAndOpenCategories()
         }
 
-        val takeAwayBtn: Button = view.findViewById(R.id.takeawayButton)
-        takeAwayBtn.setOnClickListener {
+        binding.takeawayButton.setOnClickListener {
             showBranchSelectionAndOpenCategories()
         }
     }
@@ -104,7 +105,7 @@ class HomeFragment : Fragment() {
             val barcodeBitmap = generateBarcode(userId, BarcodeFormat.CODE_128, 350, 150)
 
             // Gán bitmap vào ImageView
-            barcodeImageView.setImageBitmap(barcodeBitmap)
+            binding.ivBarcode.setImageBitmap(barcodeBitmap)
         } catch (e: Exception) {
             Toast.makeText(
                 context,
@@ -128,12 +129,9 @@ class HomeFragment : Fragment() {
         return bitmap
     }
 
-    private fun setupFortuneWheelCard(view: View) {
-        // Get reference to the Fortune Wheel card
-        val fortuneWheelCard = view.findViewById<MaterialCardView>(R.id.fortuneWheelCard)
-
+    private fun setupFortuneWheelCard() {
         // Set onClick listener to open LuckyWheel fragment
-        fortuneWheelCard.setOnClickListener {
+        binding.fortuneWheelCard.setOnClickListener {
             // Create instance of LuckyWheelFragment
             val luckyWheelFragment = LuckyWheelFragment.newInstance()
 
@@ -174,14 +172,10 @@ class HomeFragment : Fragment() {
     private fun saveOrderMode(orderMode: String) {
         val sharedPreferences = requireActivity().getSharedPreferences("OrderMode", Context.MODE_PRIVATE)
         sharedPreferences.edit {
-            if (orderMode == "delivery") {
-                putString("order_mode", "delivery")
-            } else {
-                putString("order_mode", "take_away")
-            }      
+            putString("order_mode", orderMode)
         }
     }
-    
+
     private fun checkUnreadNotifications() {
         viewLifecycleOwner.lifecycleScope.launch {
             try {
@@ -194,25 +188,44 @@ class HomeFragment : Fragment() {
     }
 
     private fun updateNotificationBadge(count: Int) {
-        if (count > 0) {
-            val notificationButton = view?.findViewById<MaterialButton>(R.id.notificationButton)
-            if (notificationButton != null) {
-                // Create a badge drawable
-                val badgeDrawable = BadgeDrawable.create(requireContext())
-                badgeDrawable.number = count
-                badgeDrawable.backgroundColor = ContextCompat.getColor(requireContext(), R.color.colorError)
+        if (count > 0 && _binding != null) {
+            // Create a badge drawable
+            val badgeDrawable = BadgeDrawable.create(requireContext())
+            badgeDrawable.number = count
+            badgeDrawable.backgroundColor = ContextCompat.getColor(requireContext(), R.color.colorError)
 
-                // Position the badge on the notification button
-                BadgeUtils.attachBadgeDrawable(badgeDrawable, notificationButton, null)
+            // Position the badge on the notification button
+            BadgeUtils.attachBadgeDrawable(badgeDrawable, binding.notificationButton, null)
+        }
+    }
+
+    private fun fetchUserPoints() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            try {
+                val user = userRepository.getCurrentUser()
+                user?.let {
+                    // Cập nhật UI với số điểm hiện tại của user
+                    binding.beaniesCountText.text = it.presentPoints.toString()
+                }
+            } catch (e: Exception) {
+                Log.e("HomeFragment", "Error fetching user points: ${e.message}")
+                // Hiển thị giá trị mặc định nếu có lỗi
+                binding.beaniesCountText.text = "0"
             }
         }
     }
-    
+
     override fun onResume() {
         super.onResume()
         if (userId.isNotEmpty()) {
             checkUnreadNotifications()
+            fetchUserPoints()
         }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 
     companion object {

@@ -1,5 +1,6 @@
 package com.bh.beanie.repository
 
+import android.util.Log
 import com.bh.beanie.model.Voucher
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestore
@@ -77,6 +78,35 @@ class VoucherRepository {
             }
         } catch (e: Exception) {
             null
+        }
+    }
+
+    suspend fun markVoucherAsUsed(userId: String, voucherId: String): Boolean {
+        return try {
+            val userVouchersCollection = firestore.collection("user_vouchers")
+
+            // Tìm user_voucher dựa trên userId và voucherId
+            val query = userVouchersCollection
+                .whereEqualTo("userId", userId)
+                .whereEqualTo("voucherId", voucherId)
+                .limit(1)
+                .get()
+                .await()
+
+            if (!query.isEmpty) {
+                // Tìm thấy bản ghi, cập nhật trạng thái used thành true
+                val userVoucherDoc = query.documents[0]
+                userVoucherDoc.reference.update("used", true).await()
+                Log.d("VoucherRepository", "Voucher marked as used: $voucherId for user: $userId")
+                true
+            } else {
+                // Không tìm thấy bản ghi
+                Log.w("VoucherRepository", "No user_voucher record found for userId: $userId, voucherId: $voucherId")
+                false
+            }
+        } catch (e: Exception) {
+            Log.e("VoucherRepository", "Error marking voucher as used", e)
+            false
         }
     }
 

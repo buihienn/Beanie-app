@@ -134,6 +134,7 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="70dp"
                                 android:gravity="center"
+                                android:background="@color/background"
                                 android:orientation="vertical"
                                 android:padding="@dimen/spacing_small">
 
@@ -215,7 +216,7 @@
                                 android:layout_height="wrap_content"
                                 android:text="@string/redeem"
                                 android:textColor="@color/text_primary"
-                                app:backgroundTint="@color/white" />
+                                app:backgroundTint="@color/background" />
                         </LinearLayout>
                     </androidx.constraintlayout.widget.ConstraintLayout>
                 </com.google.android.material.card.MaterialCardView>
