@@ -23,6 +23,7 @@ lifecycleRuntimeKtx = "2.6.1"
 zxingCore = "3.5.1"
 zxingEmbedded = "4.3.0"
 gson = "2.10.1"
+firebaseDatabaseKtx = "21.0.0"
 
 
 [libraries]
@@ -54,6 +55,7 @@ androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecyc
 zxing-core = { group = "com.google.zxing", name = "core", version.ref = "zxingCore" }
 zxing-embedded = { group = "com.journeyapps", name = "zxing-android-embedded", version.ref = "zxingEmbedded" }
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+firebase-database-ktx = { group = "com.google.firebase", name = "firebase-database-ktx", version.ref = "firebaseDatabaseKtx" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

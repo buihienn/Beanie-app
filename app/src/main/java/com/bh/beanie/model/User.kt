@@ -1,8 +1,8 @@
 package com.bh.beanie.model
 
 import com.google.firebase.firestore.IgnoreExtraProperties
-import com.google.firebase.firestore.ServerTimestamp // Import nếu dùng ServerTimestamp
-import java.util.Date // Import nếu dùng Date cho createdAt
+import com.google.firebase.firestore.ServerTimestamp
+import java.util.Date
 
 @IgnoreExtraProperties
 data class User(
@@ -12,7 +12,7 @@ data class User(
     var dob: String = "",
     var gender: String = "",
     var avatarUrl: String? = null,
-    var role: String = "customer", // <-- Thêm trường role với giá trị mặc định là "customer" (hoặc "user")
+    var role: String = "customer",
 
     // Thông tin tích điểm
     var points: Int = 0,                     // Tổng điểm để xét hạng
@@ -21,9 +21,13 @@ data class User(
     @ServerTimestamp
     var lastPointReset: Date? = null,   // Thời gian reset lần cuối
 
+    // Field to track last lucky wheel spin
+    @ServerTimestamp
+    var lastSpinDate: Date? = null,    // Track the date of the user's last spin
+
     //Time account created
-    @ServerTimestamp // Firestore sẽ tự điền thời gian phía server khi tạo document
-    var createdAt: Date? = null, // Kiểu Date hoặc com.google.firebase.Timestamp
+    @ServerTimestamp
+    var createdAt: Date? = null,
 ) {
     // Constructor không tham số vẫn được đảm bảo do tất cả thuộc tính có giá trị mặc định.
 }

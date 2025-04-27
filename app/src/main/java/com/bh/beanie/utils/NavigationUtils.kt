@@ -2,6 +2,7 @@ package com.bh.beanie.utils
 
 import android.app.Activity
 import android.content.Intent
+import android.util.Log
 import com.bh.beanie.BeanieApplication
 import com.bh.beanie.admin.AdminMainActivity
 import com.bh.beanie.customer.LoginActivity
@@ -49,6 +50,7 @@ object NavigationUtils {
 
     fun navigateToLogin(activity: Activity) {
         // Xóa dữ liệu người dùng
+        Log.d("DEBUG", "Navigating to LoginActivity")
         BeanieApplication.instance.clearUserId()
         UserPreferences.clearUserData(activity)
 
@@ -59,6 +61,7 @@ object NavigationUtils {
     }
 
     fun navigateToAdmin(activity: Activity, branchId: String, name: String) {
+        Log.d("DEBUG", "Navigating to AdminMainActivity with branchId: $branchId")
         val intent = Intent(activity, AdminMainActivity::class.java)
         intent.putExtra("branchId", branchId)
         intent.putExtra("nameAdmin", name)
@@ -68,11 +71,19 @@ object NavigationUtils {
     }
 
     fun navigateToCustomer(activity: Activity, userId: String) {
-        // Kiểm tra và reset điểm nếu cần
+        Log.d("DEBUG", "Navigating to UserMainActivity with userId: $userId")
         val userRepository = UserRepository()
         userRepository.checkAndResetPointsIfNeeded(userId)
 
         val intent = Intent(activity, UserMainActivity::class.java)
+        // Add the userId to the intent
+        intent.putExtra("USER_ID", userId)
+
+        // Optionally add email and name if available
+        val auth = FirebaseAuth.getInstance()
+        intent.putExtra("USER_EMAIL", auth.currentUser?.email ?: "")
+        intent.putExtra("USER_NAME", auth.currentUser?.displayName ?: "")
+
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         activity.startActivity(intent)
         activity.finish()
