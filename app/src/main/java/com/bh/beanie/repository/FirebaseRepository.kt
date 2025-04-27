@@ -5,7 +5,6 @@ import com.bh.beanie.model.Category
 import com.bh.beanie.model.Order
 import com.bh.beanie.model.OrderItem
 import com.bh.beanie.model.Product
-import com.bh.beanie.model.ProductSize
 import com.bh.beanie.model.User
 import com.bh.beanie.model.Voucher
 import com.google.firebase.Timestamp
@@ -162,7 +161,7 @@ class FirebaseRepository(private val db: FirebaseFirestore) {
             OrderItem(
                 productId = doc.getString("productId") ?: "",
                 productName = doc.getString("productName") ?: "",
-                size = productSize,
+                size = doc.getString("size") ?: "",
                 quantity = doc.getLong("quantity")?.toInt() ?: 0,
                 unitPrice = doc.getDouble("unitPrice") ?: 0.0
             )

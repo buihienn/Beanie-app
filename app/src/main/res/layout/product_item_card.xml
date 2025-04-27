@@ -2,9 +2,9 @@
 <com.google.android.material.card.MaterialCardView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="180dp"
-    android:layout_height="233dp"
-    android:layout_margin="@dimen/spacing_small"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="140dp"
+    android:layout_height="190dp"
     app:cardCornerRadius="@dimen/card_corner_radius"
     app:cardElevation="@dimen/card_elevation"
     app:strokeWidth="0dp">
@@ -17,25 +17,28 @@
         <ImageView
             android:id="@+id/productImageView"
             android:layout_width="match_parent"
-            android:layout_height="160dp"
+            android:layout_height="128dp"
             android:background="@color/primary"
-            android:src="@drawable/matcha"
-            android:scaleType="centerCrop"
-            android:contentDescription="Product image" />
+            android:contentDescription="Product image"
+            android:src="@drawable/matcha" />
 
-        <LinearLayout
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@color/tertiary_container"
-            android:orientation="horizontal"
-            android:paddingHorizontal="@dimen/spacing_small"
-            android:paddingVertical="@dimen/spacing_medium">
+            android:background="@color/tertiary_container">
 
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:orientation="vertical">
+                android:orientation="vertical"
+                android:paddingHorizontal="@dimen/spacing_medium"
+                android:paddingBottom="24dp"
+                android:paddingTop="8dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintVertical_bias="0.5">
 
                 <TextView
                     android:id="@+id/productNameTextView"
@@ -43,7 +46,7 @@
                     android:layout_height="wrap_content"
                     android:text="Coffee extra milk"
                     android:textColor="@color/text_primary"
-                    android:textSize="@dimen/text_size_small"
+                    android:textSize="12sp"
                     android:textStyle="bold" />
 
                 <TextView
@@ -52,7 +55,7 @@
                     android:layout_height="wrap_content"
                     android:text="35.000đ"
                     android:textColor="@color/text_primary"
-                    android:textSize="@dimen/text_size_small" />
+                    android:textSize="12sp" />
             </LinearLayout>
 
             <com.google.android.material.button.MaterialButton
@@ -60,9 +63,13 @@
                 style="@style/Widget.App.Button.IconOnly.Circular.Small"
                 android:layout_width="@dimen/icon_button_size_small"
                 android:layout_height="@dimen/icon_button_size_small"
+                android:layout_marginEnd="8dp"
+                android:layout_marginBottom="8dp"
                 android:contentDescription="Add to favorite"
                 app:icon="@drawable/ic_home"
-                app:iconSize="@dimen/icon_size_small" />
-        </LinearLayout>
+                app:iconSize="@dimen/icon_size_small"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

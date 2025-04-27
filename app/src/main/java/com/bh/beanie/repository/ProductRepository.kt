@@ -1,68 +1,79 @@
 package com.bh.beanie.repository
 
+import android.util.Log
 import com.bh.beanie.model.Product
-import com.bh.beanie.model.ProductSize
 import com.bh.beanie.model.ProductTopping
+import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
+import kotlin.String
 import kotlin.text.get
+import kotlin.text.toInt
 
-class ProductRepository(private val firestore: FirebaseFirestore) {
-    // Lấy thông tin đầy đủ của sản phẩm bao gồm cả sizes và toppings
-    suspend fun fetchCompleteProduct(branchId: String, categoryId: String, productId: String): Product? {
+class ProductRepository(private val db: FirebaseFirestore) {
+    // Lấy thông tin sản phẩm
+    suspend fun fetchProduct(branchId: String, categoryId: String, productId: String): Product? {
         try {
-            // Lấy dữ liệu cơ bản của sản phẩm
-            val productDoc = firestore.collection("branches").document(branchId)
+            val productRef = db.collection("branches").document(branchId)
                 .collection("categories").document(categoryId)
                 .collection("products").document(productId)
-                .get().await()
+            val doc = productRef.get().await()
 
-            if (!productDoc.exists()) return null
+            if (!doc.exists()) {
+                return null
+            }
 
-            // Tạo đối tượng sản phẩm với thông tin cơ bản
-            val baseProduct = Product(
-                id = productDoc.id,
-                name = productDoc.getString("name") ?: "Sản phẩm chưa đặt tên",
-                description = productDoc.getString("description") ?: "",
-                price = productDoc.getDouble("price") ?: 0.0,
-                imageUrl = productDoc.getString("imageUrl") ?: "",
-                stockQuantity = productDoc.getLong("stock")?.toInt() ?: 0,
+            return Product(
+                id = doc.id,
+                name = doc.getString("name") ?: "Unnamed Product",
+                description = doc.getString("description") ?: "No description",
+                price = doc.getDouble("price") ?: 0.0,
+                imageUrl = doc.getString("imageUrl") ?: "",
+                stockQuantity = doc.getLong("stock")?.toInt() ?: 0,
                 categoryId = categoryId,
-                sizesAvailable = emptyList(),
-                toppingsAvailable = emptyList()
-            )
-
-            // Lấy danh sách kích thước của sản phẩm (lưu dưới dạng sub-collection)
-            val sizes = fetchProductSizes(branchId, categoryId, productId)
-
-            // Lấy danh sách ID của các topping từ tài liệu sản phẩm
-            val toppings = productDoc.get("toppings") as? List<String> ?: emptyList()
-
-            // Trả về sản phẩm đầy đủ với sizes và toppings
-            return baseProduct.copy(
-                sizesAvailable = sizes,
-                toppingsAvailable = toppings // id
+                size = getSizeMap(doc),
+                toppingsAvailable = getToppingList(doc)
             )
         } catch (e: Exception) {
-            // Ghi log lỗi
-            println("Lỗi khi lấy thông tin sản phẩm: ${e.message}")
+            Log.e("ProductRepo", "Lỗi khi lấy thông tin sản phẩm: ${e.message}", e)
             return null
         }
     }
 
-    // Lấy danh sách kích thước của sản phẩm
-    private suspend fun fetchProductSizes(branchId: String, categoryId: String, productId: String): List<ProductSize> {
+    private fun getSizeMap(doc: DocumentSnapshot): Map<String, Double> {
         return try {
-            val sizesSnapshot = firestore.collection("branches").document(branchId)
-                .collection("categories").document(categoryId)
-                .collection("products").document(productId)
-                .collection("sizes")
-                .get().await()
-
-            sizesSnapshot.documents.mapNotNull {
-                it.toObject(ProductSize::class.java)?.copy(id = it.id)
+            val sizesData = doc.get("size")
+            if (sizesData is Map<*, *>) {
+                sizesData.entries.mapNotNull { entry ->
+                    val key = entry.key as? String ?: return@mapNotNull null
+                    val value = when (val v = entry.value) {
+                        is Double -> v
+                        is Long -> v.toDouble()
+                        is Int -> v.toDouble()
+                        is Number -> v.toDouble()
+                        else -> return@mapNotNull null
+                    }
+                    key to value
+                }.toMap()
+            } else {
+                emptyMap()
             }
         } catch (e: Exception) {
+            Log.e("ProductRepo", "Lỗi khi đọc size: ${e.message}", e)
+            emptyMap()
+        }
+    }
+
+    private fun getToppingList(doc: DocumentSnapshot): List<String> {
+        return try {
+            val toppingsData = doc.get("toppings")
+            if (toppingsData is List<*>) {
+                toppingsData.filterIsInstance<String>()
+            } else {
+                emptyList()
+            }
+        } catch (e: Exception) {
+            Log.e("ProductRepo", "Lỗi khi đọc toppings: ${e.message}", e)
             emptyList()
         }
     }
@@ -70,7 +81,7 @@ class ProductRepository(private val firestore: FirebaseFirestore) {
     // Lấy danh sách sản phẩm bán chạy nhất
     suspend fun fetchBestSellersSuspend(branchId: String): List<Product> {
         return try {
-            val snapshot = firestore.collection("branches/$branchId/products")
+            val snapshot = db.collection("branches/$branchId/products")
                 .whereEqualTo("isBestSeller", true)
                 .get().await()
             snapshot.documents.mapNotNull { it.toObject(Product::class.java) }
@@ -104,7 +115,7 @@ class ProductRepository(private val firestore: FirebaseFirestore) {
             val toppings = mutableListOf<ProductTopping>()
 
             // Lấy toàn bộ toppings của chi nhánh
-            val snapshot = firestore.collection("branches").document(branchId)
+            val snapshot = db.collection("branches").document(branchId)
                 .collection("toppings")
                 .get()
                 .await()
@@ -129,90 +140,39 @@ class ProductRepository(private val firestore: FirebaseFirestore) {
         }
     }
 
-    suspend fun getProductById(productId: String): Product? {
-        return try {
-            android.util.Log.d("ProductRepo", "Fetching product with ID: $productId")
+    suspend fun fetchProductsPaginated(
+        branchId: String,
+        categoryId: String,
+        lastVisibleDocument: DocumentSnapshot? = null,
+        pageSize: Int = 4
+    ): Pair<List<Product>, DocumentSnapshot?> {
+        var query = db.collection("branches").document(branchId)
+            .collection("categories").document(categoryId)
+            .collection("products")
+            .limit(pageSize.toLong())
 
-            // First try to find the product by searching through all branches and categories
-            val branchesSnapshot = firestore.collection("branches").get().await()
-
-            for (branchDoc in branchesSnapshot.documents) {
-                val branchId = branchDoc.id
-                android.util.Log.d("ProductRepo", "Searching in branch: $branchId")
-
-                val categoriesSnapshot = firestore.collection("branches")
-                    .document(branchId)
-                    .collection("categories")
-                    .get()
-                    .await()
-
-                for (categoryDoc in categoriesSnapshot.documents) {
-                    val categoryId = categoryDoc.id
-                    android.util.Log.d("ProductRepo", "Searching in category: $categoryId")
-
-                    // Check if product exists in this category
-                    val productDoc = firestore.collection("branches")
-                        .document(branchId)
-                        .collection("categories")
-                        .document(categoryId)
-                        .collection("products")
-                        .document(productId)
-                        .get()
-                        .await()
-
-                    if (productDoc.exists()) {
-                        android.util.Log.d("ProductRepo", "Found product in branch: $branchId, category: $categoryId")
-
-                        try {
-                            // Trích xuất dữ liệu cẩn thận để tránh null
-                            val name = productDoc.getString("name") ?: "Sản phẩm không tên"
-                            val description = productDoc.getString("description") ?: ""
-                            val price = productDoc.getDouble("price") ?: 0.0
-                            val imageUrl = productDoc.getString("imageUrl") ?: ""
-                            val stock = productDoc.getLong("stock")?.toInt() ?: 0
-
-                            // Tạo đối tượng Product thủ công thay vì dùng toObject
-                            val product = Product(
-                                id = productId,
-                                name = name,
-                                description = description,
-                                price = price,
-                                imageUrl = imageUrl,
-                                stockQuantity = stock,
-                                categoryId = categoryId
-                            )
-
-                            // Get sizes
-                            val sizes = fetchProductSizes(branchId, categoryId, productId)
-
-                            // Get topping IDs - bảo vệ khỏi cast exception
-                            val toppingsData = productDoc.get("toppings")
-                            val toppings = if (toppingsData is List<*>) {
-                                toppingsData.filterIsInstance<String>()
-                            } else {
-                                emptyList()
-                            }
-
-                            android.util.Log.d("ProductRepo", "Product data processed successfully")
-
-                            // Return complete product
-                            return product.copy(
-                                sizesAvailable = sizes,
-                                toppingsAvailable = toppings
-                            )
-                        } catch (e: Exception) {
-                            android.util.Log.e("ProductRepo", "Error processing product data: ${e.message}", e)
-                            null
-                        }
-                    }
-                }
-            }
-
-            android.util.Log.e("ProductRepo", "Product not found with ID: $productId")
-            null
-        } catch (e: Exception) {
-            android.util.Log.e("ProductRepo", "Error fetching product with ID: $productId", e)
-            null
+        lastVisibleDocument?.let {
+            query = query.startAfter(it)
         }
+
+        val snapshot = query.get().await()
+
+        val products = snapshot.documents.map { doc ->
+            Product(
+                id = doc.id,
+                name = doc.getString("name") ?: "",
+                description = doc.getString("description") ?: "",
+                price = doc.getDouble("price") ?: 0.0,
+                imageUrl = doc.getString("imageUrl") ?: "",
+                stockQuantity = doc.getLong("stock")?.toInt() ?: 0,
+                categoryId = categoryId,
+                size = emptyMap(), // Lấy đầy đủ thông tin nếu cần
+                toppingsAvailable = emptyList()
+            )
+        }
+
+        val lastDoc = snapshot.documents.lastOrNull()
+
+        return Pair(products, lastDoc)
     }
 }

@@ -108,7 +108,7 @@ class OrderDetailFragment : Fragment() {
 
         // Cập nhật thông tin cửa hàng
         binding.storeNameTextView.text = "Branch: ${order.branchId}"
-        binding.storeAddressTextView.text = "Order time: ${formatDate(order.getOrderDate())}"
+        binding.storeAddressTextView.text = "Order time: ${formatDate(order.orderTime.toDate())}"
 
         // Cập nhật danh sách sản phẩm
         (binding.cartItemsRecyclerView.adapter as OrderItemAdapter).updateItems(order.items)
@@ -160,7 +160,7 @@ class OrderDetailFragment : Fragment() {
                 try {
                     // Hiển thị tên sản phẩm với kích thước nếu có
                     val displayName = if (item.size != null) {
-                        "${item.productName} - ${item.size?.name ?: ""}"
+                        "${item.productName} - ${item.size}"
                     } else {
                         item.productName
                     }

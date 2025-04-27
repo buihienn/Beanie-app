@@ -1,6 +1,7 @@
 package com.bh.beanie.user.fragment
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -16,7 +17,6 @@ import com.bumptech.glide.Glide
 import com.bh.beanie.R
 import com.bh.beanie.databinding.FragmentProductDetailBinding
 import com.bh.beanie.model.Product
-import com.bh.beanie.model.ProductSize
 import com.bh.beanie.model.ProductTopping
 import com.bh.beanie.repository.FavoriteRepository
 import com.bh.beanie.repository.OrderRepository
@@ -25,7 +25,6 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
-import kotlin.compareTo
 
 class ProductDetailFragment : BottomSheetDialogFragment() {
     private var _binding: FragmentProductDetailBinding? = null
@@ -33,7 +32,7 @@ class ProductDetailFragment : BottomSheetDialogFragment() {
 
     private var product: Product? = null
     private var quantity = 1
-    private var selectedSize: ProductSize? = null
+    private var selectedSize: Pair<String, Double>? = null
     private val selectedToppings = mutableListOf<ProductTopping>()
     private var toppingPrice = 0.0
     private var totalPrice = 0.0
@@ -91,13 +90,13 @@ class ProductDetailFragment : BottomSheetDialogFragment() {
         // Kiểm tra xem đang ở chế độ chỉnh sửa không
         if (isEditing) {
             binding.deleteButton.visibility = View.VISIBLE
-            // Khôi phục thông tin size từ arguments
-            val sizeId = arguments?.getString("size_id")
-            val sizeName = arguments?.getString("size_name")
-            val sizePrice = arguments?.getDouble("size_price", 0.0) ?: 0.0
 
-            if (sizeId != null && sizeName != null) {
-                selectedSize = ProductSize(sizeId, sizeName, sizePrice)
+            // Khôi phục thông tin size từ arguments
+            val sizeName = arguments?.getString(ARG_SIZE_NAME)
+            val sizePrice = arguments?.getDouble(ARG_SIZE_PRICE, 0.0) ?: 0.0
+
+            if (sizeName != null) {
+                selectedSize = Pair(sizeName, sizePrice)
             }
 
             // Khôi phục thông tin toppings từ arguments
@@ -174,28 +173,13 @@ class ProductDetailFragment : BottomSheetDialogFragment() {
                 binding.loadingProgressBar.visibility = View.VISIBLE
 
                 // Log thông tin để debug
-                android.util.Log.d("ProductDetail", "Loading product: productId=$productId, isEditing=$isEditing, position=$itemPosition")
+                Log.d("ProductDetail", "Loading product: productId=$productId, isEditing=$isEditing, position=$itemPosition")
 
                 // Lấy thông tin sản phẩm
-                product = if (isEditing && itemPosition >= 0) {
-                    // Khi chỉnh sửa, lấy chi tiết sản phẩm trực tiếp từ collection products
-                    val cartItems = orderRepository.getCartItems()
-                    android.util.Log.d("ProductDetail", "Cart items: ${cartItems.size}")
-
-                    if (itemPosition < cartItems.size) {
-                        val cartItem = cartItems[itemPosition]
-                        android.util.Log.d("ProductDetail", "Editing item: ${cartItem.productId}, ${cartItem.productName}")
-
-                        // Sử dụng phương thức mới để lấy sản phẩm theo ID
-                        productRepository.getProductById(cartItem.productId)
-                    } else null
-                } else {
-                    // Trường hợp thêm mới, lấy sản phẩm từ chi tiết đầy đủ theo branch/category/product
-                    productRepository.fetchCompleteProduct(branchId, categoryId, productId)
-                }
+                product = productRepository.fetchProduct(branchId, categoryId, productId)
 
                 if (product != null) {
-                    android.util.Log.d("ProductDetail", "Product loaded: ${product?.name}")
+                    Log.d("ProductDetail", "Product loaded: ${product?.name}")
                     // Nếu lấy được thông tin sản phẩm, cập nhật UI
                     setupUI()
 
@@ -205,12 +189,12 @@ class ProductDetailFragment : BottomSheetDialogFragment() {
                         binding.addToCartBtn.text = "Cập nhật • ${totalPrice.toInt()}đ"
                     }
                 } else {
-                    android.util.Log.e("ProductDetail", "Product not found: $productId")
+                    Log.e("ProductDetail", "Product not found: $productId")
                     Toast.makeText(context, "Không tìm thấy thông tin sản phẩm", Toast.LENGTH_SHORT).show()
                     dismiss()
                 }
             } catch (e: Exception) {
-                android.util.Log.e("ProductDetail", "Error loading product", e)
+                Log.e("ProductDetail", "Error loading product", e)
                 Toast.makeText(context, "Lỗi khi tải sản phẩm: ${e.message}", Toast.LENGTH_SHORT).show()
                 dismiss()
             } finally {
@@ -222,33 +206,22 @@ class ProductDetailFragment : BottomSheetDialogFragment() {
     private fun setupSizesOptions(product: Product) {
         binding.sizeRadioGroup.removeAllViews()
 
-        // Ẩn phần size nếu không có size nào
-        if (product.sizesAvailable.isEmpty()) {
-            binding.sizeLabel?.visibility = View.GONE
-            binding.sizeRadioGroup.visibility = View.GONE
-            return
-        }
+        // Ẩn hiện phần size tùy thuộc vào việc có sizes hay không
+        val hasSizes = product.size.isNotEmpty()
+        binding.sizeLabel.visibility = if (hasSizes) View.VISIBLE else View.GONE
+        binding.sizeRadioGroup.visibility = if (hasSizes) View.VISIBLE else View.GONE
 
-        binding.sizeLabel?.visibility = View.VISIBLE
-        binding.sizeRadioGroup.visibility = View.VISIBLE
-
-        // Nếu đang sửa và chưa có selectedSize, thì cần gán size từ product
-        if (!isEditing || selectedSize == null) {
-            selectedSize = product.sizesAvailable.firstOrNull()
-        }
-
-        // Tìm index của size đã chọn (khi chỉnh sửa)
-        val selectedSizeIndex = if (selectedSize != null) {
-            product.sizesAvailable.indexOfFirst { it.id == selectedSize?.id }
-        } else {
-            0 // Mặc định chọn size đầu tiên
-        }
+        // Nếu không có size, thoát khỏi hàm
+        if (!hasSizes) return
 
         // Danh sách lưu các RadioButton để kiểm soát trạng thái
         val radioButtons = mutableListOf<RadioButton>()
 
-        // Tạo UI cho mỗi size
-        product.sizesAvailable.forEachIndexed { index, size ->
+        // Tạo UI cho mỗi size trong Map
+        product.size.entries.forEachIndexed { index, entry ->
+            val sizeName = entry.key
+            val sizePrice = entry.value
+
             val sizeLayout = layoutInflater.inflate(
                 R.layout.item_size_option,
                 binding.sizeRadioGroup,
@@ -260,13 +233,24 @@ class ProductDetailFragment : BottomSheetDialogFragment() {
             val sizePriceText = sizeLayout.findViewById<TextView>(R.id.sizePriceTextView)
 
             radioButton.id = View.generateViewId()
-            sizeNameText.text = size.name
-            sizePriceText.text = "${size.price.toInt()}đ"
+            sizeNameText.text = sizeName
+            sizePriceText.text = "${sizePrice.toInt()}đ"
 
-            // Chọn size phù hợp
-            radioButton.isChecked = index == selectedSizeIndex
-            if (radioButton.isChecked) {
-                selectedSize = size
+            // Xác định xem size này có được chọn không
+            val isSelected = when {
+                // Nếu đang sửa và đã có selectedSize, so sánh với sizeName
+                isEditing && selectedSize != null -> sizeName == selectedSize?.first
+                // Nếu không có selectedSize hoặc không phải chế độ sửa, chọn size đầu tiên
+                index == 0 -> true
+                // Các trường hợp còn lại không chọn
+                else -> false
+            }
+
+            radioButton.isChecked = isSelected
+
+            // Nếu size này được chọn, lưu lại tên và giá vào selectedSize
+            if (isSelected) {
+                selectedSize = Pair(sizeName, sizePrice)
             }
 
             // Thêm sự kiện click cho RadioButton
@@ -276,7 +260,7 @@ class ProductDetailFragment : BottomSheetDialogFragment() {
                 // Chọn RadioButton hiện tại
                 radioButton.isChecked = true
                 // Cập nhật size được chọn
-                selectedSize = size
+                selectedSize = Pair(sizeName, sizePrice)
                 updateTotalPrice()
             }
 
@@ -444,7 +428,7 @@ class ProductDetailFragment : BottomSheetDialogFragment() {
     }
 
     private fun updateTotalPrice() {
-        val basePrice = selectedSize?.price ?: product?.price ?: 0.0
+        val basePrice = selectedSize?.second ?: product?.price ?: 0.0
         toppingPrice = selectedToppings.sumOf { it.price }
         totalPrice = (basePrice + toppingPrice) * quantity
         binding.addToCartBtn.text = if (isEditing) {
@@ -459,8 +443,6 @@ class ProductDetailFragment : BottomSheetDialogFragment() {
 
         // Kiểm tra sản phẩm không null
         product?.let { currentProduct ->
-            // Khởi tạo OrderRepository đã được thực hiện trong onCreate
-
             // Thêm vào giỏ hàng trong coroutine
             lifecycleScope.launch {
                 try {
@@ -487,12 +469,12 @@ class ProductDetailFragment : BottomSheetDialogFragment() {
                             quantity = quantity,
                             note = note
                         )
-
                         // Hiển thị thông báo thành công
                         val toppingsText = selectedToppings.joinToString(", ") { it.name }
                         val message = """
                     Đã thêm ${currentProduct.name} vào giỏ hàng!
-                    - Kích thước: ${selectedSize?.name ?: "Mặc định"}
+                    - category ${currentProduct.categoryId}
+                    - Kích thước: ${selectedSize?.first ?: "Mặc định"}
                     - Topping: ${if (toppingsText.isEmpty()) "Không" else toppingsText}
                     - Số lượng: $quantity
                     - Ghi chú: ${if (note.isEmpty()) "Không" else note}
@@ -538,6 +520,8 @@ class ProductDetailFragment : BottomSheetDialogFragment() {
         private const val ARG_PRODUCT_ID = "productId"
         private const val ARG_IS_EDITING = "isEditing"
         private const val ARG_ITEM_POSITION = "itemPosition"
+        private const val ARG_SIZE_NAME = "sizeName"
+        private const val ARG_SIZE_PRICE = "sizePrice"
         private const val ARG_INITIAL_QUANTITY = "initialQuantity"
         private const val ARG_INITIAL_NOTE = "initialNote"
 
@@ -547,7 +531,7 @@ class ProductDetailFragment : BottomSheetDialogFragment() {
             productId: String,
             isEditing: Boolean = false,
             itemPosition: Int = -1,
-            initialSize: ProductSize? = null,
+            initialSize: Pair<String, Double>? = null,
             initialToppings: List<ProductTopping> = listOf(),
             initialQuantity: Int = 1,
             initialNote: String = ""
@@ -560,11 +544,10 @@ class ProductDetailFragment : BottomSheetDialogFragment() {
             args.putBoolean(ARG_IS_EDITING, isEditing)
             args.putInt(ARG_ITEM_POSITION, itemPosition)
 
-            // Lưu thông tin size dưới dạng các thuộc tính riêng lẻ
+            // Lưu tên size
             if (initialSize != null) {
-                args.putString("size_id", initialSize.id)
-                args.putString("size_name", initialSize.name)
-                args.putDouble("size_price", initialSize.price)
+                args.putString(ARG_SIZE_NAME, initialSize.first)
+                args.putDouble(ARG_SIZE_PRICE, initialSize.second)
             }
 
             // Lưu danh sách toppings dưới dạng danh sách các thuộc tính riêng lẻ

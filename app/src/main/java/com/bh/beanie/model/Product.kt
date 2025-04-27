@@ -8,7 +8,6 @@ data class Product (
     val imageUrl: String,
     val stockQuantity: Int,
     val categoryId: String,
-    val sizesAvailable: List<ProductSize> = emptyList(), // xoa di -
     val size : Map<String, Double> = emptyMap(), // M : gia, S: gia, L: gia
     val toppingsAvailable: List<String> = emptyList() // Lưu id
 )
