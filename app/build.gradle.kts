@@ -90,4 +90,12 @@ dependencies {
     implementation(libs.zxing.core)
     implementation(libs.zxing.embedded)
     implementation(libs.gson)
+
+    // Networking libraries
+    implementation(libs.okhttp)
+    implementation(libs.android.networking.jackson)
+    implementation(libs.androidx.browser)
+
+    // PayPal SDK
+    implementation(libs.paypal.web.payments)
 }

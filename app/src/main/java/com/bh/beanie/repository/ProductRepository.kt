@@ -7,8 +7,6 @@ import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 import kotlin.String
-import kotlin.text.get
-import kotlin.text.toInt
 
 class ProductRepository(private val db: FirebaseFirestore) {
     // Lấy thông tin sản phẩm
@@ -174,5 +172,76 @@ class ProductRepository(private val db: FirebaseFirestore) {
         val lastDoc = snapshot.documents.lastOrNull()
 
         return Pair(products, lastDoc)
+    }
+
+    suspend fun fetchProductsForCategory(branchId: String, categoryId: String, limit: Int = 1): List<Product> {
+        return try {
+            val snapshot = db.collection("branches").document(branchId)
+                .collection("categories").document(categoryId)
+                .collection("products")
+                .limit(limit.toLong())
+                .get()
+                .await()
+
+            snapshot.documents.mapNotNull { doc ->
+                Product(
+                    id = doc.id,
+                    name = doc.getString("name") ?: "",
+                    description = doc.getString("description") ?: "",
+                    price = doc.getDouble("price") ?: 0.0,
+                    imageUrl = doc.getString("imageUrl") ?: "",
+                    stockQuantity = doc.getLong("stock")?.toInt() ?: 0,
+                    categoryId = categoryId
+                )
+            }
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
+
+    suspend fun searchProducts(branchId: String, query: String): List<Product> {
+        val searchResults = mutableListOf<Product>()
+
+        try {
+            // Tìm kiếm qua tất cả categories
+            val categoriesRef = db.collection("branches").document(branchId).collection("categories")
+            val categoriesSnapshot = categoriesRef.get().await()
+
+            for (categoryDoc in categoriesSnapshot.documents) {
+                val categoryId = categoryDoc.id
+
+                // Tìm kiếm sản phẩm trong category này
+                val productsRef = db.collection("branches").document(branchId)
+                    .collection("categories").document(categoryId)
+                    .collection("products")
+
+                val productsSnapshot = productsRef.get().await()
+
+                for (productDoc in productsSnapshot.documents) {
+                    val productName = productDoc.getString("name") ?: ""
+                    val productDescription = productDoc.getString("description") ?: ""
+
+                    // Kiểm tra xem query có match với tên hoặc mô tả không
+                    if (productName.contains(query, ignoreCase = true) ||
+                        productDescription.contains(query, ignoreCase = true)) {
+
+                        val product = Product(
+                            id = productDoc.id,
+                            name = productName,
+                            description = productDescription,
+                            price = productDoc.getDouble("price") ?: 0.0,
+                            imageUrl = productDoc.getString("imageUrl") ?: "",
+                            stockQuantity = productDoc.getLong("stock")?.toInt() ?: 0,
+                            categoryId = categoryId
+                        )
+                        searchResults.add(product)
+                    }
+                }
+            }
+
+            return searchResults
+        } catch (e: Exception) {
+            return emptyList()
+        }
     }
 }

@@ -5,58 +5,51 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
+import com.bh.beanie.R
+import com.bh.beanie.databinding.FragmentOtherBinding
+import com.bh.beanie.utils.NavigationUtils.logout
 import android.widget.Button
 import com.bh.beanie.R
 import com.bh.beanie.utils.NavigationUtils.logout
 import com.google.android.material.card.MaterialCardView
 
-// Define constants for this fragment specifically
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
-
 class OtherFragment : Fragment() {
-    private var param1: String? = null
-    private var param2: String? = null
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        arguments?.let {
-            param1 = it.getString(ARG_PARAM1)
-            param2 = it.getString(ARG_PARAM2)
-        }
-    }
+    private var _binding: FragmentOtherBinding? = null
+    private val binding get() = _binding!!
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        // Inflate the layout for this fragment
-        val view = inflater.inflate(R.layout.fragment_other, container, false)
-
-        // Set up click listeners for the cards
-        setupCardViewListeners(view)
-
-        return view
+    ): View {
+        // Use view binding instead of findViewById
+        _binding = FragmentOtherBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
-    private fun setupCardViewListeners(view: View) {
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        setupCardViewListeners()
+    }
+
+    private fun setupCardViewListeners() {
         // Profile card
-        view.findViewById<MaterialCardView>(R.id.cardProfile)?.setOnClickListener {
+        binding.cardProfile.setOnClickListener {
             // Navigate to EditProfile fragment
             val editProfileFragment = EditProfile.newInstance()
             requireActivity().supportFragmentManager.beginTransaction()
-                .replace(R.id.fragment_container, editProfileFragment) // Ensure this ID matches your container
-                .addToBackStack(null) // So user can press back to return to previous fragment
+                .replace(R.id.fragment_container, editProfileFragment)
+                .addToBackStack(null)
                 .commit()
         }
 
         // Settings card
-        view.findViewById<MaterialCardView>(R.id.cardSettings)?.setOnClickListener {
+        binding.cardSettings.setOnClickListener {
             // Handle settings click
         }
 
         // Order History card
-        view.findViewById<MaterialCardView>(R.id.cardOrderHistory)?.setOnClickListener {
+        binding.cardOrderHistory.setOnClickListener {
             val orderHistoryFragment = OrderHistoryFragment.newInstance()
             requireActivity().supportFragmentManager.beginTransaction()
                 .replace(R.id.fragment_container, orderHistoryFragment)
@@ -64,28 +57,31 @@ class OtherFragment : Fragment() {
                 .commit()
         }
 
-        // Terms & Conditions card
-        view.findViewById<MaterialCardView>(R.id.cardTermsConditions)?.setOnClickListener {
-            // Handle terms & conditions click
+        // Store card - Show branch selection dialog in view-only mode
+        binding.cardStore.setOnClickListener {
+            showBranchSelectionDialog()
         }
 
-        // Add logout button click listener - using Button instead of MaterialCardView
-        val btnLogout = view.findViewById<Button>(R.id.btnLogout)
-        btnLogout?.setOnClickListener {
+        // Logout button
+        binding.btnLogout.setOnClickListener {
             activity?.let { currentActivity ->
                 logout(currentActivity)
             }
         }
     }
 
+    private fun showBranchSelectionDialog() {
+        val selectBranchFragment = SelectBranchFragment.newInstance(true)
+        selectBranchFragment.show(parentFragmentManager, "ViewBranchesFragment")
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
+
     companion object {
         @JvmStatic
-        fun newInstance(param1: String, param2: String) =
-            OtherFragment().apply {
-                arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
-                }
-            }
+        fun newInstance() = OtherFragment()
     }
 }

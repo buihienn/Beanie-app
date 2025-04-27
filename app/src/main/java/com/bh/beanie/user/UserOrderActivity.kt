@@ -1,6 +1,7 @@
 package com.bh.beanie.user
 
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -26,8 +27,10 @@ import com.bh.beanie.repository.OrderRepository
 import com.bh.beanie.repository.ProductRepository
 import com.bh.beanie.user.adapter.ProductAdapter
 import com.bh.beanie.user.fragment.ConfirmOrderFragment
+import com.bh.beanie.user.fragment.SearchProductFragment
 import com.bh.beanie.user.fragment.SelectAddressFragment
 import com.bh.beanie.user.fragment.SelectBranchFragment
+import com.bh.beanie.user.fragment.SelectCategoryFragment
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
@@ -79,6 +82,36 @@ class UserOrderActivity : AppCompatActivity() {
         val sharedPrefs = this.getSharedPreferences("OrderMode", MODE_PRIVATE)
         orderMode = sharedPrefs.getString("order_mode", "") ?: ""
 
+        val sharedPreferences = getSharedPreferences("BeaniePref", MODE_PRIVATE)
+        currentBranchId = sharedPreferences.getString("selected_branch_id", "") ?: ""
+
+        setupListener()
+
+        initializeRepositories()
+
+        setupBranchSelector()
+
+        loadCartCount()
+
+        // Thiết lập toolbar
+        setupToolbar()
+
+        // Thiết lập RecyclerViews cố định
+        setupFixedRecyclerViews()
+
+        setupPagination()
+
+        // Tải categories đầu tiên
+        loadInitialCategories()
+    }
+
+    private fun setupToolbar() {
+        setSupportActionBar(binding.toolbar)
+        supportActionBar?.setDisplayHomeAsUpEnabled(false)
+        supportActionBar?.title = "Categories"
+    }
+
+    private fun setupListener() {
         if (orderMode == "take_away") {
             binding.orderMode.text = "Take away"
             loadSelectedBranch()
@@ -86,15 +119,6 @@ class UserOrderActivity : AppCompatActivity() {
             binding.orderMode.text = "Delivery"
             loadSelectedAddress()
         }
-
-        val sharedPreferences = getSharedPreferences("BeaniePref", MODE_PRIVATE)
-        currentBranchId = sharedPreferences.getString("selected_branch_id", "") ?: ""
-
-        initializeRepositories()
-
-        setupBranchSelector()
-
-        loadCartCount()
 
         binding.cartBtn.setOnClickListener {
             lifecycleScope.launch {
@@ -114,18 +138,13 @@ class UserOrderActivity : AppCompatActivity() {
             }
         }
 
-        // Thiết lập toolbar
-        setSupportActionBar(binding.toolbar)
-        supportActionBar?.setDisplayHomeAsUpEnabled(false)
-        supportActionBar?.title = "Categories"
+        binding.categories.setOnClickListener {
+            showCategoriesBottomSheet()
+        }
 
-        // Thiết lập RecyclerViews cố định
-        setupFixedRecyclerViews()
-
-        setupPagination()
-
-        // Tải categories đầu tiên
-        loadInitialCategories()
+        binding.searchIcon.setOnClickListener {
+            openSearchFragment()
+        }
     }
 
     private fun setupPagination() {
@@ -723,4 +742,49 @@ class UserOrderActivity : AppCompatActivity() {
             }
         }
     }
+
+    private fun showCategoriesBottomSheet() {
+        val categoriesFragment = SelectCategoryFragment.newInstance(currentBranchId)
+
+        categoriesFragment.setOnCategorySelectedListener { category ->
+            for (i in 0 until binding.categoriesContainer.childCount) {
+                val categoryView = binding.categoriesContainer.getChildAt(i)
+                val titleTextView = categoryView.findViewById<TextView>(R.id.categoryTitleTextView)
+
+                if (titleTextView.text == category.name) {
+                    // Scroll đến category này
+                    val location = IntArray(2)
+                    categoryView.getLocationInWindow(location)
+
+                    binding.mainScrollView.post {
+                        binding.mainScrollView.smoothScrollTo(0, location[1] - binding.toolbar.height)
+                    }
+                    break
+                }
+            }
+        }
+
+        categoriesFragment.show(supportFragmentManager, "categoriesBottomSheet")
+    }
+
+    private fun openSearchFragment() {
+        val searchFragment = SearchProductFragment.newInstance(currentBranchId)
+        searchFragment.setOnCartUpdateListener { count ->
+            updateCartCount(count)
+        }
+
+        supportFragmentManager.beginTransaction()
+            .add(R.id.order, searchFragment)
+            .addToBackStack("search")
+            .commit()
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent) // Cập nhật intent mới cho Activity
+
+        val confirmOrderFragment = supportFragmentManager.findFragmentByTag(ConfirmOrderFragment.TAG) as? ConfirmOrderFragment
+        confirmOrderFragment?.handlePayPalResult(intent)
+    }
+
 }
