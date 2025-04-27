@@ -62,6 +62,11 @@ class HomeFragment : Fragment() {
     ): View {
         // Sử dụng view binding
         _binding = FragmentHomeBinding.inflate(inflater, container, false)
+
+        if (userId.isNotEmpty()) {
+            fetchUserPoints()
+        }
+
         return binding.root
     }
 
@@ -75,7 +80,6 @@ class HomeFragment : Fragment() {
         // Lấy userId và tạo barcode nếu đã đăng nhập
         if (userId.isNotEmpty()) {
             generateAndSetBarcode(userId)
-            fetchUserPoints()
         }
     }
 

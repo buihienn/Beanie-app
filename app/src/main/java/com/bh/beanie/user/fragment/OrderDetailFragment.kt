@@ -81,8 +81,17 @@ class OrderDetailFragment : Fragment() {
             requireActivity().supportFragmentManager.popBackStack()
         }
 
+        // Xử lý nút Hủy đơn
+        binding.cancelButton.setOnClickListener {
+            updateOrderStatus("CANCELLED")
+        }
+
+        // Xử lý nút Đã nhận
+        binding.doneButton.setOnClickListener {
+            updateOrderStatus("COMPLETED")
+        }
+
         binding.rateButton.setOnClickListener {
-            // TODO: Mở dialog đánh giá đơn hàng
             showRatingDialog()
         }
         checkOrderRating()
@@ -131,6 +140,8 @@ class OrderDetailFragment : Fragment() {
             "CANCELLED" -> "Your order is cancelled"
             else -> "Unknown status"
         }
+
+        updateButtonsVisibility(order.status)
 
         // Update store information
         if (order.type == "DELIVERY") {
@@ -181,6 +192,23 @@ class OrderDetailFragment : Fragment() {
 
         binding.paymentName.text = order.paymentMethod
     }
+
+    private fun updateButtonsVisibility(status: String) {
+        // Ẩn tất cả các nút trước
+        binding.cancelButton.visibility = View.GONE
+        binding.doneButton.visibility = View.GONE
+        binding.rateButton.visibility = View.GONE
+
+        // Hiển thị các nút tùy theo trạng thái
+        when (status) {
+            "WAITING ACCEPT" -> binding.cancelButton.visibility = View.VISIBLE
+            "READY FOR PICKUP" -> binding.doneButton.visibility = View.VISIBLE
+            "DELIVERING" -> binding.doneButton.visibility = View.VISIBLE
+            "COMPLETED" -> binding.rateButton.visibility = View.VISIBLE
+            // "PENDING" và "CANCELLED" không hiển thị nút nào
+        }
+    }
+
     private fun showRatingDialog() {
         orderId?.let { id ->
             lifecycleScope.launch {
@@ -211,6 +239,38 @@ class OrderDetailFragment : Fragment() {
                     binding.rateButton.text = "Update Rating"
                 } else {
                     binding.rateButton.text = "Rate"
+                }
+            }
+        }
+    }
+
+    private fun updateOrderStatus(newStatus: String) {
+        orderId?.let { id ->
+            lifecycleScope.launch {
+                try {
+                    val success = orderRepository.updateOrderStatus(id, newStatus)
+                    if (success) {
+                        Toast.makeText(
+                            requireContext(),
+                            "Đã cập nhật trạng thái đơn hàng thành $newStatus",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        // Tải lại thông tin đơn hàng sau khi cập nhật
+                        loadOrderDetails()
+                    } else {
+                        Toast.makeText(
+                            requireContext(),
+                            "Không thể cập nhật trạng thái đơn hàng",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                } catch (e: Exception) {
+                    Log.e("OrderDetail", "Lỗi khi cập nhật trạng thái: ${e.message}")
+                    Toast.makeText(
+                        requireContext(),
+                        "Lỗi: ${e.message}",
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
             }
         }

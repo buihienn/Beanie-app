@@ -152,7 +152,7 @@
                     android:backgroundTint="@color/primary"/>
 
                 <com.google.android.material.button.MaterialButton
-                    android:id="@+id/cancleButton"
+                    android:id="@+id/cancelButton"
                     android:layout_marginHorizontal="@dimen/spacing_medium"
                     style="@style/Widget.App.Button.Icon"
                     android:layout_width="160dp"
