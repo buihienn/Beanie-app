@@ -109,6 +109,41 @@
             android:clickable="true"
             android:minHeight="48dp" />
 
+        <RadioGroup
+            android:id="@+id/radioGroupLevels"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <RadioButton
+                android:id="@+id/radioButtonAll"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="All" />
+
+            <RadioButton
+                android:id="@+id/radioButtonNew"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="New" />
+
+            <RadioButton
+                android:id="@+id/radioButtonLoyal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Loyal" />
+
+            <RadioButton
+                android:id="@+id/radioButtonVIP"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="VIP" />
+        </RadioGroup>
+
         <Button
             android:id="@+id/btnCreate"
             android:layout_width="match_parent"
