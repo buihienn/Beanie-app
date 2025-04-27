@@ -34,6 +34,7 @@ import com.google.zxing.BarcodeFormat
 import com.google.zxing.MultiFormatWriter
 import com.google.zxing.common.BitMatrix
 import kotlinx.coroutines.launch
+import kotlin.text.replace
 
 @OptIn(ExperimentalBadgeUtils::class)
 class HomeFragment : Fragment() {
@@ -122,6 +123,14 @@ class HomeFragment : Fragment() {
         binding.redeemButton.setOnClickListener {
             val redeemFragment = RedeemFragment.newInstance()
             redeemFragment.show(parentFragmentManager, RedeemFragment.TAG)
+        }
+
+        binding.membershipInfoButton.setOnClickListener {
+            val rewardFragment = RewardFragment.newInstance()
+            requireActivity().supportFragmentManager.beginTransaction()
+                .replace(R.id.fragment_container, rewardFragment)
+                .addToBackStack(null)
+                .commit()
         }
     }
 

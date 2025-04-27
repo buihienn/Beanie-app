@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.lifecycle.lifecycleScope
@@ -88,7 +89,33 @@ class RewardFragment : Fragment() {
             }
         }
 
+        val redeemButton = view.findViewById<LinearLayout>(R.id.redeem)
+        redeemButton.setOnClickListener {
+            val redeemFragment = RedeemFragment.newInstance()
+            redeemFragment.show(parentFragmentManager, RedeemFragment.TAG)
+        }
+
         return view
+    }
+
+    private fun fetchUserPoints() {
+        val userId = BeanieApplication.instance.getUserId()
+        if (userId.isEmpty()) return
+
+        lifecycleScope.launch {
+            try {
+                val user = userRepository.getCurrentUser()
+                user?.let {
+                    // Cập nhật UI với số điểm hiện tại của user
+                    view?.findViewById<TextView>(R.id.tvBeaniesCount)?.text =
+                        it.presentPoints.toString()
+                }
+            } catch (e: Exception) {
+                Log.e("RewardFragment", "Error fetching user points: ${e.message}")
+                // Hiển thị giá trị mặc định nếu có lỗi
+                view?.findViewById<TextView>(R.id.tvBeaniesCount)?.text = "0"
+            }
+        }
     }
 
     private fun fetchRewardsForLevel(level: String) {
@@ -165,5 +192,11 @@ class RewardFragment : Fragment() {
             progressBar?.progress = 100
             textViewContent?.text = "You are at the highest membership level!"
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Cập nhật điểm khi fragment được hiển thị lại
+        fetchUserPoints()
     }
 }
