@@ -21,7 +21,7 @@ data class Order(
 
     var paymentMethod: String = "CASH", // "MOMO", "VNPAY", ...
     var transactionId: String = "",
-
+    var voucherId: String = "",
 ) {
     fun getOrderDate(): Date {
         return orderTime.toDate()

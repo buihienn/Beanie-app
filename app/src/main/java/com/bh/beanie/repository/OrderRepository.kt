@@ -266,4 +266,17 @@ class OrderRepository(private val db: FirebaseFirestore, private val context: Co
             }
         }
     }
+
+    suspend fun updateOrderStatus(orderId: String, newStatus: String): Boolean {
+        return try {
+            db.collection("orders").document(orderId)
+                .update("status", newStatus)
+                .await()
+            Log.d("OrderRepository", "Đã cập nhật trạng thái đơn hàng $orderId thành $newStatus")
+            true
+        } catch (e: Exception) {
+            Log.e("OrderRepository", "Lỗi khi cập nhật trạng thái đơn hàng: ${e.message}")
+            false
+        }
+    }
 }

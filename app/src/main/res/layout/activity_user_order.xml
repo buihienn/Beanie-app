@@ -129,6 +129,7 @@
             <!-- Your Fav Section -->
             <LinearLayout
                 android:id="@+id/yourFavSection"
+                android:visibility="gone"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
@@ -160,6 +161,7 @@
             <LinearLayout
                 android:id="@+id/bestSellerSection"
                 android:layout_width="match_parent"
+                android:visibility="gone"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:paddingVertical="8dp">

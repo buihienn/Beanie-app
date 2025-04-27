@@ -1,30 +1,48 @@
 package com.bh.beanie.user.fragment
 
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.lifecycle.lifecycleScope
+import com.bh.beanie.BeanieApplication
 import com.bh.beanie.R
 import com.bh.beanie.databinding.FragmentOtherBinding
+import com.bh.beanie.repository.UserRepository
 import com.bh.beanie.utils.NavigationUtils.logout
+import kotlinx.coroutines.launch
 
 class OtherFragment : Fragment() {
     private var _binding: FragmentOtherBinding? = null
     private val binding get() = _binding!!
+    private lateinit var userRepository: UserRepository
+    private var userId: String = ""
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        userRepository = UserRepository()
+        userId = BeanieApplication.instance.getUserId()
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        // Use view binding instead of findViewById
         _binding = FragmentOtherBinding.inflate(inflater, container, false)
+
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setupCardViewListeners()
+
+        if (userId.isNotEmpty()) {
+            fetchUserDetails()
+        }
     }
 
     private fun setupCardViewListeners() {
@@ -63,6 +81,11 @@ class OtherFragment : Fragment() {
                 logout(currentActivity)
             }
         }
+
+        binding.redeem.setOnClickListener {
+            val redeemFragment = RedeemFragment.newInstance()
+            redeemFragment.show(parentFragmentManager, RedeemFragment.TAG)
+        }
     }
 
     private fun showBranchSelectionDialog() {
@@ -70,9 +93,39 @@ class OtherFragment : Fragment() {
         selectBranchFragment.show(parentFragmentManager, "ViewBranchesFragment")
     }
 
+    private fun fetchUserDetails() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            try {
+                val user = userRepository.getCurrentUser()
+                user?.let {
+                    // Cập nhật tên người dùng
+                    binding.tvUserName.text = it.username ?: "User"
+
+                    // Cập nhật điểm người dùng
+                    binding.tvBeaniesCount.text = it.presentPoints.toString()
+
+                    // Cập nhật loại thành viên nếu có
+                    binding.tvMembershipType.text = it.membershipLevel ?: "Regular membership"
+                }
+            } catch (e: Exception) {
+                Log.e("OtherFragment", "Error fetching user details: ${e.message}")
+                // Hiển thị giá trị mặc định nếu có lỗi
+                binding.tvBeaniesCount.text = "0"
+            }
+        }
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Cập nhật thông tin người dùng mỗi khi fragment được hiển thị lại
+        if (userId.isNotEmpty()) {
+            fetchUserDetails()
+        }
     }
 
     companion object {

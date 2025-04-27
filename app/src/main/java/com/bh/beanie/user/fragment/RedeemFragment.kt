@@ -16,37 +16,27 @@ import android.widget.Toast
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.bh.beanie.databinding.FragmentVoucherBinding
 import com.bh.beanie.R
+import com.bh.beanie.databinding.FragmentRedeemBinding
+import com.bh.beanie.model.User
 import com.bh.beanie.model.Voucher
 import com.bh.beanie.repository.UserRepository
 import com.bh.beanie.repository.UserVoucherRepository
-import com.bh.beanie.repository.VoucherRepository
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-class VoucherFragment : DialogFragment() {
+class RedeemFragment : DialogFragment() {
 
-    private var _binding: FragmentVoucherBinding? = null
+    private var _binding: FragmentRedeemBinding? = null
     private val binding get() = _binding!!
 
-    private lateinit var voucherAdapter: VoucherAdapter
-    private lateinit var voucherRepository: VoucherRepository
+    private lateinit var redeemAdapter: RedeemAdapter
     private lateinit var userVoucherRepository: UserVoucherRepository
     private lateinit var userRepository: UserRepository
-
-    // Chế độ hiển thị của fragment
-    private var viewOnlyMode = false
-
-    // Interface để lắng nghe sự kiện voucher được chọn
-    interface OnVoucherSelectedListener {
-        fun onVoucherSelected(voucher: Voucher)
-    }
-
-    private var voucherSelectedListener: OnVoucherSelectedListener? = null
+    private var currentUser: User? = null
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val dialog = super.onCreateDialog(savedInstanceState)
@@ -66,7 +56,7 @@ class VoucherFragment : DialogFragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding = FragmentVoucherBinding.inflate(inflater, container, false)
+        _binding = FragmentRedeemBinding.inflate(inflater, container, false)
 
         // Thêm nút đóng ở header
         binding.closeButton.setOnClickListener {
@@ -79,62 +69,57 @@ class VoucherFragment : DialogFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Lấy chế độ từ arguments
-        viewOnlyMode = arguments?.getBoolean("viewOnlyMode", false) ?: false
-
         // Initialize repositories
-        voucherRepository = VoucherRepository()
         userVoucherRepository = UserVoucherRepository()
         userRepository = UserRepository()
 
         // Initialize RecyclerView
         binding.rvVouchers.layoutManager = LinearLayoutManager(requireContext())
-        voucherAdapter = VoucherAdapter(emptyList(), !viewOnlyMode) { voucher ->
-            // Khi nhấp vào voucher, luôn hiển thị dialog chi tiết
-            showVoucherDetailDialog(voucher)
+        redeemAdapter = RedeemAdapter(emptyList()) { voucher ->
+            showRedeemConfirmDialog(voucher)
         }
-        binding.rvVouchers.adapter = voucherAdapter
+        binding.rvVouchers.adapter = redeemAdapter
 
-        // Load vouchers
-        loadVouchers()
+        // Load data
+        loadCurrentUser()
+        loadRedeemableVouchers()
     }
 
-    private fun loadVouchers() {
+    private fun loadCurrentUser() {
         lifecycleScope.launch {
             try {
-                Log.d("VoucherFragment", "Fetching user vouchers...")
-                val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
-
-                if (currentUserId == null) {
-                    Log.e("VoucherFragment", "User ID is null")
-                    Toast.makeText(requireContext(), "Bạn chưa đăng nhập", Toast.LENGTH_SHORT).show()
-                    return@launch
-                }
-
-                Log.d("VoucherFragment", "User ID: $currentUserId")
-                val userVouchers = userVoucherRepository.getUserVouchers()
-
-                Log.d("VoucherFragment", "Retrieved ${userVouchers.size} user vouchers")
-
-                if (userVouchers.isNotEmpty()) {
-                    // Extract just the Voucher objects from the pairs
-                    val vouchers = userVouchers.map { it.second }
-                    Log.d("VoucherFragment", "Updating adapter with ${vouchers.size} vouchers")
-                    voucherAdapter.updateVouchers(vouchers)
-                } else {
-                    Log.d("VoucherFragment", "No vouchers found in the response")
-                    Toast.makeText(requireContext(), "Hiện tại bạn chưa có voucher nào", Toast.LENGTH_SHORT).show()
+                currentUser = userRepository.getCurrentUser()
+                currentUser?.let {
+                    binding.tvUserPoints.text = "Điểm hiện tại: ${it.presentPoints}"
                 }
             } catch (e: Exception) {
-                Log.e("VoucherFragment", "Error loading vouchers", e)
-                Log.e("VoucherFragment", "Stack trace: ${e.stackTraceToString()}")
-                Toast.makeText(requireContext(), "Lỗi khi tải voucher: ${e.message}", Toast.LENGTH_SHORT).show()
+                Log.e(TAG, "Error loading user", e)
+                Toast.makeText(requireContext(), "Lỗi khi tải thông tin người dùng", Toast.LENGTH_SHORT).show()
             }
         }
     }
 
-    private fun showVoucherDetailDialog(voucher: Voucher) {
-        // Inflate the dialog layout
+    private fun loadRedeemableVouchers() {
+        lifecycleScope.launch {
+            try {
+                Log.d(TAG, "Fetching redeemable vouchers...")
+                val redeemableVouchers = userVoucherRepository.getActiveVouchersForRedeem()
+
+                if (redeemableVouchers.isNotEmpty()) {
+                    Log.d(TAG, "Retrieved ${redeemableVouchers.size} redeemable vouchers")
+                    redeemAdapter.updateVouchers(redeemableVouchers)
+                } else {
+                    Log.d(TAG, "No redeemable vouchers found")
+                    Toast.makeText(requireContext(), "Hiện không có voucher nào để đổi", Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error loading redeemable vouchers", e)
+                Toast.makeText(requireContext(), "Lỗi khi tải danh sách voucher: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun showRedeemConfirmDialog(voucher: Voucher) {
         val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_voucher_detail, null)
 
         // Find views
@@ -164,15 +149,8 @@ class VoucherFragment : DialogFragment() {
 
         tvDialogDescription.text = voucher.content ?: "Không có mô tả"
 
-        // Thiết lập hiển thị các nút dựa vào chế độ xem
-        if (viewOnlyMode) {
-            // Ở chế độ chỉ xem, ẩn nút Use Now, đổi text của nút Cancel thành "Đóng"
-            btnUseVoucher.visibility = View.GONE
-            btnCancel.text = "Đóng"
-        } else {
-            // Ở chế độ chọn, hiển thị cả hai nút
-            btnUseVoucher.visibility = View.VISIBLE
-        }
+        // Đổi tên nút
+        btnUseVoucher.text = "Đổi ${voucher.redeemPoints} điểm"
 
         // Create dialog
         val dialog = androidx.appcompat.app.AlertDialog.Builder(requireContext())
@@ -185,15 +163,42 @@ class VoucherFragment : DialogFragment() {
         }
 
         btnUseVoucher.setOnClickListener {
-            voucherSelectedListener?.onVoucherSelected(voucher)
+            redeemVoucher(voucher)
             dialog.dismiss()
-            // Đóng cả VoucherFragment khi đã chọn voucher
-            if (!viewOnlyMode) {
-                dismiss()
-            }
         }
 
         dialog.show()
+    }
+
+    private fun redeemVoucher(voucher: Voucher) {
+        val user = currentUser
+        if (user == null) {
+            Toast.makeText(requireContext(), "Vui lòng đăng nhập để đổi voucher", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        if (user.presentPoints < voucher.redeemPoints) {
+            Toast.makeText(requireContext(), "Bạn không đủ điểm để đổi voucher này", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        lifecycleScope.launch {
+            try {
+                val success = userVoucherRepository.redeemVoucherWithPoints(voucher)
+                if (success) {
+                    // Cập nhật lại điểm hiện tại
+                    val updatedUser = userRepository.getCurrentUser()
+                    currentUser = updatedUser
+                    binding.tvUserPoints.text = "Điểm hiện tại: ${updatedUser?.presentPoints ?: 0}"
+
+                    Toast.makeText(requireContext(), "Đổi voucher thành công!", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(requireContext(), "Đổi voucher thất bại, vui lòng thử lại sau", Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: Exception) {
+                Toast.makeText(requireContext(), "Lỗi: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 
     override fun onDestroyView() {
@@ -202,30 +207,16 @@ class VoucherFragment : DialogFragment() {
     }
 
     companion object {
-        fun newInstance(viewOnlyMode: Boolean = false): VoucherFragment {
-            return VoucherFragment().apply {
-                arguments = Bundle().apply {
-                    putBoolean("viewOnlyMode", viewOnlyMode)
-                }
-            }
-        }
-
-        // Tạo instance với listener để chọn voucher
-        fun newInstanceForSelection(listener: OnVoucherSelectedListener): VoucherFragment {
-            return VoucherFragment().apply {
-                arguments = Bundle().apply {
-                    putBoolean("viewOnlyMode", false)
-                }
-                voucherSelectedListener = listener
-            }
+        const val TAG = "RedeemFragment"
+        fun newInstance(): RedeemFragment {
+            return RedeemFragment()
         }
     }
 
-    inner class VoucherAdapter(
+    inner class RedeemAdapter(
         private var vouchers: List<Voucher>,
-        private val showSelectButton: Boolean,
-        private val onVoucherClick: (Voucher) -> Unit
-    ) : androidx.recyclerview.widget.RecyclerView.Adapter<VoucherAdapter.VoucherViewHolder>() {
+        private val onRedeemClick: (Voucher) -> Unit
+    ) : androidx.recyclerview.widget.RecyclerView.Adapter<RedeemAdapter.VoucherViewHolder>() {
 
         fun updateVouchers(newVouchers: List<Voucher>) {
             this.vouchers = newVouchers
@@ -233,7 +224,7 @@ class VoucherFragment : DialogFragment() {
         }
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VoucherViewHolder {
-            val view = LayoutInflater.from(parent.context).inflate(R.layout.item_voucher, parent, false)
+            val view = LayoutInflater.from(parent.context).inflate(R.layout.item_redeem, parent, false)
             return VoucherViewHolder(view)
         }
 
@@ -249,7 +240,8 @@ class VoucherFragment : DialogFragment() {
             private val imgClock: ImageView = itemView.findViewById(R.id.imgClock)
             private val tvTimeLabel: TextView = itemView.findViewById(R.id.tvTimeLabel)
             private val tvExpireDate: TextView = itemView.findViewById(R.id.tvExpireDate)
-            private val btnSelect: Button = itemView.findViewById(R.id.btnSelect)
+            private val tvRedeemPoints: TextView = itemView.findViewById(R.id.tvRedeemPoints)
+            private val btnRedeem: Button = itemView.findViewById(R.id.btnRedeem)
 
             fun bind(voucher: Voucher) {
                 // Format discount amount
@@ -274,27 +266,23 @@ class VoucherFragment : DialogFragment() {
                         tvExpireDate.text = dateFormat.format(date)
                     } catch (e: Exception) {
                         tvExpireDate.text = "Ngày không hợp lệ"
-                        Log.e("VoucherFragment", "Error formatting date", e)
+                        Log.e(TAG, "Error formatting date", e)
                     }
                 } ?: run {
                     tvExpireDate.text = "Không giới hạn"
                 }
 
-                // Chỉ hiển thị nút Select khi không ở chế độ chỉ xem
-                btnSelect.visibility = if (showSelectButton) View.VISIBLE else View.GONE
+                // Hiển thị số điểm cần đổi
+                tvRedeemPoints.text = "${voucher.redeemPoints} điểm"
 
-                // Thiết lập click listener cho cả item
-                itemView.setOnClickListener {
-                    onVoucherClick(voucher)
+                // Thiết lập nút đổi
+                btnRedeem.setOnClickListener {
+                    onRedeemClick(voucher)
                 }
 
-                // Nút Select sẽ áp dụng voucher và đóng dialog
-                btnSelect.setOnClickListener {
-                    voucherSelectedListener?.onVoucherSelected(voucher)
-                    // Đóng cả fragment khi đã chọn voucher
-                    if (!viewOnlyMode) {
-                        dismiss()
-                    }
+                // Set click listener cho cả item
+                itemView.setOnClickListener {
+                    onRedeemClick(voucher)
                 }
             }
 

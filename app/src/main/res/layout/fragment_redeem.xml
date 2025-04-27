@@ -18,7 +18,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:text="Voucher"
+            android:text="Đổi điểm lấy ưu đãi"
             android:textColor="@color/text_primary"
             android:textSize="18sp"
             android:textStyle="bold"
@@ -43,11 +43,22 @@
             app:tint="@color/black" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
+    <TextView
+        android:id="@+id/tvUserPoints"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/headerL"
+        android:padding="16dp"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:text="Điểm hiện tại: 0" />
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvVouchers"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@id/headerL"
+        android:layout_below="@id/tvUserPoints"
         android:clipToPadding="false"
         android:paddingTop="8dp"
         android:paddingBottom="16dp" />

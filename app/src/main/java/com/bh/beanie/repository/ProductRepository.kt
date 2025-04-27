@@ -76,18 +76,6 @@ class ProductRepository(private val db: FirebaseFirestore) {
         }
     }
 
-    // Lấy danh sách sản phẩm bán chạy nhất
-    suspend fun fetchBestSellersSuspend(branchId: String): List<Product> {
-        return try {
-            val snapshot = db.collection("branches/$branchId/products")
-                .whereEqualTo("isBestSeller", true)
-                .get().await()
-            snapshot.documents.mapNotNull { it.toObject(Product::class.java) }
-        } catch (e: Exception) {
-            emptyList()
-        }
-    }
-
     // Lấy thông tin chi tiết các topping của sản phẩm
     suspend fun fetchProductToppings(branchId: String, product: Product): List<ProductTopping> {
         try {
@@ -241,6 +229,50 @@ class ProductRepository(private val db: FirebaseFirestore) {
 
             return searchResults
         } catch (e: Exception) {
+            return emptyList()
+        }
+    }
+
+    suspend fun fetchBestSellersSuspend(branchId: String): List<Product> {
+        val bestSellersList = mutableListOf<Product>()
+
+        try {
+            // Nếu không tìm thấy, thử tìm trong từng category
+            val categoriesSnapshot = db.collection("branches")
+                .document(branchId)
+                .collection("categories")
+                .get()
+                .await()
+
+            for (categoryDoc in categoriesSnapshot.documents) {
+                val categoryId = categoryDoc.id
+
+                val productsSnapshot = db.collection("branches")
+                    .document(branchId)
+                    .collection("categories")
+                    .document(categoryId)
+                    .collection("products")
+                    .whereEqualTo("isBestSeller", true)
+                    .get()
+                    .await()
+
+                for (productDoc in productsSnapshot.documents) {
+                    val product = Product(
+                        id = productDoc.id,
+                        name = productDoc.getString("name") ?: "",
+                        description = productDoc.getString("description") ?: "",
+                        price = productDoc.getDouble("price") ?: 0.0,
+                        imageUrl = productDoc.getString("imageUrl") ?: "",
+                        stockQuantity = productDoc.getLong("stock")?.toInt() ?: 0,
+                        categoryId = categoryId
+                    )
+                    bestSellersList.add(product)
+                }
+            }
+
+            return bestSellersList
+        } catch (e: Exception) {
+            Log.e("ProductRepository", "Error fetching best sellers: ${e.message}")
             return emptyList()
         }
     }
