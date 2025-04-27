@@ -71,7 +71,6 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="@dimen/spacing_small"
-                        android:text="Ho Vinh"
                         android:textColor="@color/text_primary"
                         android:textSize="@dimen/text_size_medium"
                         android:textStyle="bold"
@@ -84,7 +83,6 @@
                         android:id="@+id/tvMembershipType"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:text="Gold membership"
                         android:textColor="@color/text_secondary"
                         android:textSize="@dimen/text_size_small"
                         app:layout_constraintBottom_toBottomOf="parent"
@@ -114,7 +112,6 @@
                                 android:id="@+id/tvBeaniesCount"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="150"
                                 android:textColor="@color/white"
                                 android:textSize="@dimen/text_size_large"
                                 android:textStyle="bold"/>

@@ -33,16 +33,16 @@ class OtherFragment : Fragment() {
     ): View {
         _binding = FragmentOtherBinding.inflate(inflater, container, false)
 
-        if (userId.isNotEmpty()) {
-            fetchUserDetails()
-        }
-
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setupCardViewListeners()
+
+        if (userId.isNotEmpty()) {
+            fetchUserDetails()
+        }
     }
 
     private fun setupCardViewListeners() {

@@ -24,7 +24,8 @@ import com.bh.beanie.repository.NotificationRepository
 import com.bh.beanie.repository.UserRepository
 import com.bh.beanie.user.NotificationsActivity
 import com.bh.beanie.user.UserOrderActivity
-import com.bh.beanie.user.adapter.ProductAdapter
+import com.bh.beanie.user.adapter.BestSellerAdapter
+import com.bh.beanie.utils.BranchPreferences.getBranchId
 import com.google.android.material.badge.BadgeDrawable
 import com.google.android.material.badge.BadgeUtils
 import com.google.android.material.badge.ExperimentalBadgeUtils
@@ -38,6 +39,9 @@ import kotlinx.coroutines.launch
 class HomeFragment : Fragment() {
     private var _binding: FragmentHomeBinding? = null
     private val binding get() = _binding!!
+
+    private lateinit var bestSellerAdapter: BestSellerAdapter
+    private val bestSellerProducts = mutableListOf<Product>()
 
     private lateinit var productRepository: ProductRepository
     private lateinit var userRepository: UserRepository
@@ -76,6 +80,7 @@ class HomeFragment : Fragment() {
         setupFortuneWheelCard()
         setupRecyclerView()
         setupButtons()
+        loadBestSellerProducts()
 
         // Lấy userId và tạo barcode nếu đã đăng nhập
         if (userId.isNotEmpty()) {
@@ -84,8 +89,20 @@ class HomeFragment : Fragment() {
     }
 
     private fun setupRecyclerView() {
-        binding.popularItemsRecyclerView.layoutManager =
-            LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+        bestSellerAdapter = BestSellerAdapter(bestSellerProducts) { product ->
+            // Xử lý khi click vào sản phẩm
+            val orderFragment = OrderFragment.newInstance()
+
+            requireActivity().supportFragmentManager.beginTransaction()
+                .replace(R.id.fragment_container, orderFragment)
+                .addToBackStack(null)
+                .commit()
+        }
+
+        binding.popularItemsRecyclerView.apply {
+            layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+            adapter = bestSellerAdapter
+        }
     }
 
     private fun setupButtons() {
@@ -105,6 +122,21 @@ class HomeFragment : Fragment() {
         binding.redeemButton.setOnClickListener {
             val redeemFragment = RedeemFragment.newInstance()
             redeemFragment.show(parentFragmentManager, RedeemFragment.TAG)
+        }
+    }
+
+    private fun loadBestSellerProducts() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            try {
+                val branchId = getBranchId(requireContext())
+                val products = productRepository.fetchBestSellersSuspend(branchId)
+
+                bestSellerProducts.clear()
+                bestSellerProducts.addAll(products)
+                bestSellerAdapter.notifyDataSetChanged()
+            } catch (e: Exception) {
+                Log.e("HomeFragment", "Error loading best sellers: ${e.message}")
+            }
         }
     }
 

@@ -196,7 +196,6 @@
                                     android:id="@+id/beaniesCountText"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="150"
                                     android:textColor="@color/white"
                                     android:textSize="@dimen/text_size_large"
                                     android:textStyle="bold" />
@@ -231,9 +230,9 @@
 
                 <com.google.android.material.card.MaterialCardView
                     android:id="@+id/fortuneWheelCard"
-                    android:layout_width="0dp"
+                    android:layout_width="match_parent"
                     android:layout_height="@dimen/card_height_medium"
-                    android:layout_marginStart="@dimen/spacing_medium"
+                    android:layout_marginHorizontal="@dimen/spacing_medium"
                     app:cardElevation="@dimen/card_elevation"
                     app:shapeAppearanceOverlay="@style/ShapeAppearance.App.MediumComponent"
                     app:layout_constraintBottom_toBottomOf="parent"
@@ -293,6 +292,7 @@
                     android:layout_marginEnd="@dimen/spacing_medium"
                     app:cardElevation="@dimen/card_elevation"
                     app:shapeAppearanceOverlay="@style/ShapeAppearance.App.MediumComponent"
+                    android:visibility="gone"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
