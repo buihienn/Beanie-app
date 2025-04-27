@@ -6,9 +6,14 @@ import com.bh.beanie.model.Order
 import com.bh.beanie.model.OrderItem
 import com.bh.beanie.model.Product
 import com.bh.beanie.model.ProductTopping
+import com.bh.beanie.model.Voucher
+import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
+import kotlin.String
+import kotlin.text.get
+import kotlin.text.toInt
 
 class OrderRepository(private val db: FirebaseFirestore, private val context: Context) {
     private val cartPreferences = CartPreferences(context)
@@ -170,26 +175,57 @@ class OrderRepository(private val db: FirebaseFirestore, private val context: Co
     // Lấy đơn hàng theo id
     suspend fun getOrderById(orderId: String): Order? {
         try {
-            val doc = db.collection("orders").document(orderId).get().await()
-            if (!doc.exists()) return null
+            val orderRef = db.collection("orders").document(orderId)
+            val snapshot = orderRef.get().await()
 
-            // Tạo đối tượng Order cơ bản (chưa có items)
-            val order = doc.toObject(Order::class.java) ?: return null
+            if (!snapshot.exists()) {
+                Log.d("OrderRepository", "Order không tồn tại với ID: $orderId")
+                return null
+            }
 
-            // Lấy các items của đơn hàng riêng biệt
+            // Lấy thông tin cơ bản của order
+            val order = Order(
+                id = snapshot.id,
+                branchId = snapshot.getString("branchId") ?: "",
+                userId = snapshot.getString("userId") ?: "",
+                customerName = snapshot.getString("customerName") ?: "",
+                phoneNumber = snapshot.getString("phoneNumber") ?: "",
+                deliveryAddress = snapshot.getString("deliveryAddress") ?: "",
+                type = snapshot.getString("type") ?: "DELIVERY",
+                totalPrice = snapshot.getDouble("totalPrice") ?: 0.0,
+                status = snapshot.getString("status") ?: "WAITING ACCEPT",
+                orderTime = snapshot.getTimestamp("orderTime") ?: Timestamp.now(),
+                note = snapshot.getString("note") ?: "",
+                paymentMethod = snapshot.getString("paymentMethod") ?: "CASH",
+                transactionId = snapshot.getString("transactionId") ?: ""
+            )
+
+            // Log để kiểm tra thông tin order cơ bản
+            Log.d("OrderRepository", "Đã lấy order cơ bản: ${order.id}, status: ${order.status}" +
+                    "branchId: ${order.branchId}, userId: ${order.userId}, " +
+                    "deliveryAddress: ${order.deliveryAddress}, type: ${order.type}, " +
+                    "totalPrice: ${order.totalPrice}, status: ${order.status}, ")
+
+            // Lấy các items của đơn hàng từ subcollection
             val items = fetchOrderItems(orderId)
+            Log.d("OrderRepository", "Đã lấy ${items.size} items cho order $orderId")
+
+            // Thêm log để kiểm tra items
+            items.forEachIndexed { index, item ->
+                Log.d("OrderRepository", "Item $index: ${item.productName}, qty: ${item.quantity}")
+            }
 
             // Trả về order với items đã được xử lý
-            return order.copy(id = doc.id, items = items)
+            return order.copy(items = items)
         } catch (e: Exception) {
-            Log.e("OrderRepository", "Error getting order: ${e.message}")
+            Log.e("OrderRepository", "Lỗi khi lấy order: ${e.message}")
             throw e
         }
     }
 
     // Hàm fetchOrderItems xử lý items riêng biệt
     private suspend fun fetchOrderItems(orderId: String): List<OrderItem> {
-        val itemsCollection = db.collection("orders").document(orderId).collection("items")
+        val itemsCollection = db.collection("orders").document(orderId).collection("order_items")
         val snapshot = itemsCollection.get().await()
 
         return snapshot.documents.mapNotNull { doc ->
@@ -197,17 +233,32 @@ class OrderRepository(private val db: FirebaseFirestore, private val context: Co
                 // Lấy dữ liệu cơ bản
                 val productId = doc.getString("productId") ?: ""
                 val productName = doc.getString("productName") ?: ""
+                val categoryId = doc.getString("categoryId") ?: ""
                 val size = doc.getString("size") ?: ""
                 val quantity = doc.getLong("quantity")?.toInt() ?: 0
                 val unitPrice = doc.getDouble("unitPrice") ?: 0.0
+                val note = doc.getString("note") ?: ""
+
+                // Xử lý danh sách toppings
+                val toppingsData = doc.get("toppings") as? List<Map<String, Any>> ?: emptyList()
+                val toppings = toppingsData.map { toppingMap ->
+                    ProductTopping(
+                        id = toppingMap["id"] as? String ?: "",
+                        name = toppingMap["name"] as? String ?: "",
+                        price = (toppingMap["price"] as? Number)?.toDouble() ?: 0.0
+                    )
+                }
 
                 // Tạo OrderItem với dữ liệu đã xử lý
                 OrderItem(
                     productId = productId,
                     productName = productName,
+                    categoryId = categoryId,
                     quantity = quantity,
                     unitPrice = unitPrice,
                     size = size,
+                    note = note,
+                    toppings = toppings
                 )
             } catch (e: Exception) {
                 Log.e("OrderRepository", "Error parsing order item: ${e.message}")
