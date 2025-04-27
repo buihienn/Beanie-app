@@ -256,18 +256,18 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- General Information Section -->
+            <!-- Store -->
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="General information"
+                android:text="Store"
                 android:textColor="@color/text_primary"
                 android:textSize="@dimen/text_size_medium"
                 android:textStyle="bold"
                 android:layout_marginBottom="@dimen/spacing_small"/>
 
             <com.google.android.material.card.MaterialCardView
-                android:id="@+id/cardTermsConditions"
+                android:id="@+id/cardStore"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:backgroundTint="@color/white"
@@ -284,14 +284,14 @@
                     <ImageView
                         android:layout_width="@dimen/icon_size_medium"
                         android:layout_height="@dimen/icon_size_medium"
-                        android:src="@drawable/ic_term"
+                        android:src="@drawable/ic_store"
                         android:layout_marginBottom="@dimen/spacing_small"/>
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Terms and conditions"
+                        android:text="Store"
                         android:textColor="@color/text_primary"
                         android:textSize="@dimen/text_size_small"/>
 

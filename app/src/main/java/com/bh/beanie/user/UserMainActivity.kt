@@ -65,7 +65,7 @@ class UserMainActivity : AppCompatActivity() {
                 R.id.navigation_order -> OrderFragment.newInstance()
                 R.id.navigation_reward -> RewardFragment.newInstance("param1", "param2")
                 R.id.navigation_voucher -> VoucherFragment.newInstance(userId)
-                R.id.navigation_other -> OtherFragment.newInstance("param1", "param2")
+                R.id.navigation_other -> OtherFragment.newInstance()
                 else -> null
             }
 
