@@ -22,10 +22,23 @@
             android:exported="false" />
         <activity
             android:name=".user.UserOrderActivity"
-            android:exported="false" />
+            android:exported="true"
+            android:launchMode="singleTop" >
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:scheme="nativexo"
+                    android:host="paypalpay" />
+            </intent-filter>
+        </activity>
         <activity
             android:name=".user.UserMainActivity"
-            android:exported="false" />
+            android:exported="false" >
+        </activity>
         <activity
             android:name=".admin.AdminMainActivity"
             android:exported="true"/>

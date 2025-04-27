@@ -16,6 +16,8 @@ data class Order(
     var totalPrice: Double = 0.0,
     var status: String = "WAITING ACCEPT", //"WAITING ACCEPT" "READY FOR PICKUP"  "PENDING" "DELIVERING" "COMPLETED" "CANCELLED"
     var orderTime: Timestamp = Timestamp.now(),
+    var note: String = "",
+
     var paymentMethod: String = "CASH", // "MOMO", "VNPAY", ...
-    var note: String = ""
+    var transactionId: String = "",
 )

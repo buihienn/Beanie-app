@@ -117,6 +117,7 @@ class OrderRepository(private val db: FirebaseFirestore, private val context: Co
             "status" to "WAITING ACCEPT",
             "orderTime" to order.orderTime,
             "paymentMethod" to order.paymentMethod,
+            "transactionId" to order.transactionId,
             "note" to order.note,
         )
 

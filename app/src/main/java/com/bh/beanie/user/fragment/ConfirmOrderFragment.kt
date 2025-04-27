@@ -3,9 +3,12 @@ package com.bh.beanie.user.fragment
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.content.Context
+import android.content.Intent
 import android.icu.text.SimpleDateFormat
 import android.icu.util.Calendar
 import android.os.Bundle
+import android.util.Base64
+import com.bh.beanie.R
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -31,6 +34,21 @@ import java.text.NumberFormat
 import java.util.Date
 import java.util.Locale
 import kotlin.text.format
+import com.androidnetworking.AndroidNetworking
+import com.androidnetworking.common.Priority
+import com.androidnetworking.interfaces.JSONObjectRequestListener
+import com.androidnetworking.error.ANError
+import com.bh.beanie.user.UserOrderActivity
+import com.paypal.android.corepayments.CoreConfig
+import com.paypal.android.corepayments.Environment
+import com.paypal.android.corepayments.PayPalSDKError
+import com.paypal.android.paypalwebpayments.PayPalWebCheckoutClient
+import com.paypal.android.paypalwebpayments.PayPalWebCheckoutFundingSource
+import com.paypal.android.paypalwebpayments.PayPalWebCheckoutListener
+import com.paypal.android.paypalwebpayments.PayPalWebCheckoutRequest
+import com.paypal.android.paypalwebpayments.PayPalWebCheckoutResult
+import org.json.JSONObject
+import java.util.UUID
 
 class ConfirmOrderFragment : BottomSheetDialogFragment() {
     private var _binding: FragmentConfirmOrderBinding? = null
@@ -49,11 +67,23 @@ class ConfirmOrderFragment : BottomSheetDialogFragment() {
     private var selectedDate: String = ""
     private var selectedTime: String = ""
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
+    private var orderId: String = ""
+    private var paypalTransactionId: String = ""
+
+    private var paymentMethod: String = "CASH"
+
+    private val clientId: String = "AbagdadySoTpDKoqQxVJpDrlKCg3a3GepBDyIquKU7H9kmQL3uH56TY1Gt5mDz2zYISCatMHS8GujCgR"
+    private val secretKey: String = "EHIzjXXKsuCEmrAjjVOf7nDM6qOKC9jx4vx7hlF2r9YNLBZiClYUlqaC5tkoe4cgzGMmWNgFwfkapBa3"
+    private val returnUrl: String = "nativexo://paypalpay"
+    private var accessToken: String = ""
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        AndroidNetworking.initialize(requireContext())
+    }
+
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentConfirmOrderBinding.inflate(inflater, container, false)
 
         // Khởi tạo OrderRepository
@@ -96,8 +126,12 @@ class ConfirmOrderFragment : BottomSheetDialogFragment() {
             phoneNumber = addressSharedPrefs.getString("selected_phone", "") ?: ""
             deliveryAddress = addressSharedPrefs.getString("selected_address_detail", "") ?: ""
 
+            binding.orderModeTextView.text = "Delivery"
+
             binding.storeNameTextView.text = customerName
             binding.storeAddressTextView.text = deliveryAddress
+
+            binding.deliveryField.visibility = View.VISIBLE
         } else {
             lifecycleScope.launch {
                 try {
@@ -160,6 +194,7 @@ class ConfirmOrderFragment : BottomSheetDialogFragment() {
         val formattedPrice = formatter.format(totalPrice).replace("₫", "đ")
 
         // Cập nhật tổng tiền
+        binding.orderItemsTotalPrice.text = formattedPrice
         binding.totalPriceTextView.text = formattedPrice
         binding.bottomBarTotalPrice.text = formattedPrice
 
@@ -245,6 +280,10 @@ class ConfirmOrderFragment : BottomSheetDialogFragment() {
 
         binding.delButton.setOnClickListener {
             deleteOrder()
+        }
+
+        binding.paymentMethodLayout.setOnClickListener {
+            showPaymentMethodSelector()
         }
 
         binding.storeInfoLayout.setOnClickListener {
@@ -388,8 +427,8 @@ class ConfirmOrderFragment : BottomSheetDialogFragment() {
                         android.widget.Toast.LENGTH_SHORT
                     ).show()
 
-                    if (activity is com.bh.beanie.user.UserOrderActivity) {
-                        (activity as com.bh.beanie.user.UserOrderActivity).updateCartCount(0)
+                    if (activity is UserOrderActivity) {
+                        (activity as UserOrderActivity).updateCartCount(0)
                     }
                     dismiss()
                 }
@@ -399,6 +438,23 @@ class ConfirmOrderFragment : BottomSheetDialogFragment() {
     }
 
     private fun confirmOrder(order: Order) {
+        binding.progressBar.visibility = View.VISIBLE
+        binding.confirmButton.isEnabled = false
+
+        Log.d("ConfirmOrder", "payment method: $paymentMethod")
+        fetchAccessToken()
+
+//        // Kiểm tra phương thức thanh toán
+//        if (paymentMethod == "PAYPAL") {
+//            // Nếu là thanh toán PayPal, thực hiện quy trình PayPal
+//            fetchAccessToken()
+//        } else {
+//            // Các phương thức thanh toán khác, xử lý đơn hàng trực tiếp
+//            processOrder(order)
+//        }
+    }
+
+    private fun processOrder(order: Order) {
         lifecycleScope.launch {
             try {
                 // Show loading indicator
@@ -410,6 +466,8 @@ class ConfirmOrderFragment : BottomSheetDialogFragment() {
                 order.customerName = customerName
                 order.phoneNumber = phoneNumber
                 order.orderTime = processTime(selectedDate, selectedTime)
+                order.paymentMethod = paymentMethod
+                order.transactionId = paypalTransactionId
 
                 if (orderMode == "delivery") {
                     order.deliveryAddress = deliveryAddress
@@ -437,7 +495,7 @@ class ConfirmOrderFragment : BottomSheetDialogFragment() {
                 }
             } catch (e: Exception) {
                 // Handle error
-                android.util.Log.e("OrderDetail", "Error creating order", e)
+                Log.e("OrderDetail", "Error creating order", e)
                 activity?.runOnUiThread {
                     binding.progressBar.visibility = View.GONE
                     binding.confirmButton.isEnabled = true
@@ -453,6 +511,158 @@ class ConfirmOrderFragment : BottomSheetDialogFragment() {
         }
     }
 
+    private fun fetchAccessToken() {
+        val authString = "$clientId:$secretKey"
+        val encodedAuthString = Base64.encodeToString(authString.toByteArray(), Base64.NO_WRAP)
+
+        AndroidNetworking.post("https://api-m.sandbox.paypal.com/v1/oauth2/token")
+            .addHeaders("Authorization", "Basic $encodedAuthString")
+            .addHeaders("Content-Type", "application/x-www-form-urlencoded")
+            .addBodyParameter("grant_type", "client_credentials")
+            .setPriority(Priority.HIGH)
+            .build()
+            .getAsJSONObject(object : JSONObjectRequestListener {
+                override fun onResponse(response: JSONObject) {
+                    try {
+                        accessToken = response.getString("access_token")
+                        Log.d(TAG, "Token received: ${accessToken.take(10)}...")
+                        startOrder()
+                    } catch (e: Exception) {
+                        handlePaymentError("Không thể xác thực với PayPal: ${e.message}")
+                    }
+                }
+
+                override fun onError(error: ANError) {
+                    Log.d(TAG, error.errorBody)
+                }
+            })
+    }
+
+    private fun handlePaymentError(message: String) {
+        activity?.runOnUiThread {
+            binding.progressBar.visibility = View.GONE
+            binding.confirmButton.isEnabled = true
+
+            android.app.AlertDialog.Builder(requireContext())
+                .setTitle("Lỗi thanh toán")
+                .setMessage(message)
+                .setPositiveButton("OK", null)
+                .show()
+        }
+    }
+
+    private fun handlerTransactionID(order: Order) {
+        val config = CoreConfig(clientId, environment = Environment.SANDBOX)
+        val payPalWebCheckoutClient = PayPalWebCheckoutClient(requireActivity(), config, returnUrl)
+
+        val payPalWebCheckoutRequest =
+            PayPalWebCheckoutRequest(paypalTransactionId, fundingSource = PayPalWebCheckoutFundingSource.PAYPAL)
+        payPalWebCheckoutClient.start(payPalWebCheckoutRequest)
+    }
+
+    private fun startOrder() {
+        try {
+            // Tạo đơn hàng mới
+            val order = Order()
+
+            var totalAmountVND = 0.0
+            // Tính tổng tiền bằng VND và chuyển sang USD
+            lifecycleScope.launch {
+                totalAmountVND = orderRepository.calculateTotal()
+            }
+            val totalAmountUSD = String.format("%.2f", totalAmountVND / 23000.0) // Tỷ giá ước tính
+
+            orderId = UUID.randomUUID().toString()
+
+            // Tạo JSON cho yêu cầu thanh toán PayPal
+            val orderRequestJson = JSONObject().apply {
+                put("intent", "CAPTURE")
+                put("purchase_units", org.json.JSONArray().apply {
+                    put(JSONObject().apply {
+                        put("reference_id", orderId)
+                        put("amount", JSONObject().apply {
+                            put("currency_code", "USD")
+                            put("value", totalAmountUSD)
+                        })
+                    })
+                })
+                put("payment_source", JSONObject().apply {
+                    put("paypal", JSONObject().apply {
+                        put("experience_context", JSONObject().apply {
+                            put("payment_method_preference", "IMMEDIATE_PAYMENT_REQUIRED")
+                            put("brand_name", "Beanie")
+                            put("locale", "en-US")
+                            put("landing_page", "LOGIN")
+                            put("shipping_preference", "NO_SHIPPING")
+                            put("user_action", "PAY_NOW")
+                            put("return_url", returnUrl)
+                            put("cancel_url", "https://example.com/cancelUrl")
+                        })
+                    })
+                })
+            }
+
+            AndroidNetworking.post("https://api-m.sandbox.paypal.com/v2/checkout/orders")
+                .addHeaders("Authorization", "Bearer $accessToken")
+                .addHeaders("Content-Type", "application/json")
+                .addHeaders("PayPal-Request-Id", orderId)
+                .addJSONObjectBody(orderRequestJson)
+                .setPriority(Priority.HIGH)
+                .build()
+                .getAsJSONObject(object : JSONObjectRequestListener {
+                    override fun onResponse(response: JSONObject) {
+                        paypalTransactionId = response.getString("id")
+                        Log.d(TAG, "PayPal Transaction ID: $paypalTransactionId")
+                        handlerTransactionID(order)
+                    }
+
+                    override fun onError(error: ANError) {
+                        Log.e(TAG, "Order Error: ${error.errorBody}")
+                        handlePaymentError("Không thể tạo đơn hàng PayPal: ${error.message}")
+                    }
+                })
+        } catch (e: Exception) {
+            handlePaymentError("Lỗi chuẩn bị đơn hàng: ${e.message}")
+        }
+    }
+
+    private fun captureOrder(order: Order) {
+        AndroidNetworking.post("https://api-m.sandbox.paypal.com/v2/checkout/orders/$paypalTransactionId/capture")
+            .addHeaders("Authorization", "Bearer $accessToken")
+            .addHeaders("Content-Type", "application/json")
+            .addJSONObjectBody(JSONObject()) // Empty body
+            .setPriority(Priority.HIGH)
+            .build()
+            .getAsJSONObject(object : JSONObjectRequestListener {
+                override fun onResponse(response: JSONObject) {
+                    Log.d(TAG, "Capture Response: ${response.toString()}")
+                    // lưu vào Firebase
+                    processOrder(order)
+                }
+
+                override fun onError(error: ANError) {
+                    Log.e(TAG, "Capture Error: ${error.errorDetail}")
+                    handlePaymentError("Không thể hoàn tất thanh toán: ${error.message}")
+                }
+            })
+    }
+
+    fun handlePayPalResult(intent: Intent?) {
+        val uri = intent?.data ?: return
+        if (uri.toString().startsWith(returnUrl)) {
+            // User đã thanh toán hoặc cancel, kiểm tra kết quả
+            val payerId = uri.getQueryParameter("PayerID")
+            if (payerId != null) {
+                Log.d(TAG, "PayPal Payment Approved with PayerID: $payerId")
+                captureOrder(order) // Tiến hành capture đơn hàng
+            } else {
+                Log.e(TAG, "Payment cancelled or failed")
+                handlePaymentError("Thanh toán bị huỷ hoặc thất bại.")
+            }
+        }
+    }
+
+
     fun processTime(selectedDate: String, selectedTime: String): Timestamp {
         // Kết hợp selectedDate và selectedTime thành một chuỗi datetime duy nhất
         val combinedDateTime = "$selectedDate $selectedTime" // Ví dụ: "26/04/2025 04:19"
@@ -467,6 +677,32 @@ class ConfirmOrderFragment : BottomSheetDialogFragment() {
         return Timestamp(orderDate ?: Date())
     }
 
+    private fun showPaymentMethodSelector() {
+        val paymentMethodFragment = SelectPaymentMethodFragment.newInstance(paymentMethod)
+
+        paymentMethodFragment.setPaymentMethodSelectedListener { method ->
+            paymentMethod = method
+
+            Log.d("Method", "$paymentMethod")
+
+            // Cập nhật UI hiển thị phương thức thanh toán
+            binding.paymentMethodTextView.text = paymentMethod
+            binding.paymentIcon.visibility = View.VISIBLE
+
+            // Cập nhật icon dựa vào phương thức
+            val iconRes = when (method) {
+                "CASH" -> R.drawable.ic_paypal
+                "PAYPAL" -> R.drawable.ic_paypal
+                "MOMO" -> R.drawable.ic_paypal
+                "VNPAY" -> R.drawable.ic_paypal
+                else -> R.drawable.ic_paypal
+            }
+            binding.paymentIcon.setBackgroundResource(iconRes)
+        }
+
+        paymentMethodFragment.show(parentFragmentManager, "paymentMethodSelector")
+    }
+
 
     override fun onDestroyView() {
         super.onDestroyView()
@@ -479,7 +715,7 @@ class ConfirmOrderFragment : BottomSheetDialogFragment() {
     }
 
     companion object {
-        const val TAG = "OrderDetailFragment"
+        const val TAG = "ConfirmOrderFragment"
         fun newInstance(): ConfirmOrderFragment {
             val fragment = ConfirmOrderFragment()
             return fragment

@@ -1,6 +1,7 @@
 package com.bh.beanie.user
 
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -723,4 +724,13 @@ class UserOrderActivity : AppCompatActivity() {
             }
         }
     }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent) // Cập nhật intent mới cho Activity
+
+        val confirmOrderFragment = supportFragmentManager.findFragmentByTag(ConfirmOrderFragment.TAG) as? ConfirmOrderFragment
+        confirmOrderFragment?.handlePayPalResult(intent)
+    }
+
 }
