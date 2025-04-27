@@ -149,6 +149,15 @@ class FirebaseRepository(private val db: FirebaseFirestore) {
             .await()
 
         return itemsSnapshot.map { doc ->
+            val sizeName = doc.getString("size") ?: ""
+            val sizePrice = doc.getDouble("sizePrice") ?: 0.0
+
+            val productSize = if (sizeName.isNotEmpty()) {
+                ProductSize(name = sizeName, price = sizePrice)
+            } else {
+                null
+            }
+
             OrderItem(
                 productId = doc.getString("productId") ?: "",
                 productName = doc.getString("productName") ?: "",
@@ -159,10 +168,18 @@ class FirebaseRepository(private val db: FirebaseFirestore) {
         }
     }
 
-    suspend fun fetchOrdersPaginated(lastVisibleDocument: DocumentSnapshot? = null): Pair<List<Order>, DocumentSnapshot?> = coroutineScope {
-        var query = db.collection("orders")
+    // Fetch danh sách đơn hàng, thêm filter branchId
+    suspend fun fetchOrdersPaginated(
+        branchId: String?, // <- Thêm branchId vô đây
+        lastVisibleDocument: DocumentSnapshot? = null
+    ): Pair<List<Order>, DocumentSnapshot?> = coroutineScope {
+        var query: Query = db.collection("orders")
             .orderBy("orderTime", Query.Direction.DESCENDING)
             .limit(7)
+
+        if (!branchId.isNullOrEmpty()) {
+            query = query.whereEqualTo("branchId", branchId)
+        }
 
         lastVisibleDocument?.let {
             query = query.startAfter(it)

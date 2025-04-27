@@ -45,6 +45,7 @@ class AdminOrderFragment : Fragment() {
     private var isLastPage = false
     private var selectedStatusFilter: String = "" // "" means All
     private var currentSearchQuery: String = ""
+    private var branchId : String = arguments?.getString("branchId") ?: "braches_q5"
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -130,7 +131,7 @@ class AdminOrderFragment : Fragment() {
             isLoading = true
             progressBar.visibility = View.VISIBLE
             try {
-                val (orders, lastVisible) = repository.fetchOrdersPaginated(lastVisibleDocument)
+                val (orders, lastVisible) = repository.fetchOrdersPaginated(branchId,lastVisibleDocument)
 
                 if (orders.isEmpty()) {
                     isLastPage = true

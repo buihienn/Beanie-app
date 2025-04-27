@@ -30,7 +30,12 @@ class AdminInventoryFragment : Fragment() {
     private lateinit var categoryAdapter: AdminCategoryAdapter
     private val categories = mutableListOf<Category>()
     private val repository = FirebaseRepository(FirebaseFirestore.getInstance())
-    private val branchId = "braches_q5"
+    private lateinit var branchId: String
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        branchId = arguments?.getString("branchId") ?: "braches_q5"
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
