@@ -25,7 +25,7 @@ class SignupActivity : AppCompatActivity() {
     private lateinit var phoneEditText: EditText
     private lateinit var dobEditText: EditText
     private lateinit var genderSpinner: Spinner
-    private lateinit var avatarPreview: ImageView
+//    private lateinit var avatarPreview: ImageView
     private lateinit var passwordEditText: EditText
     private lateinit var confirmPasswordEditText: EditText
     private lateinit var signUpButton: Button
@@ -50,7 +50,7 @@ class SignupActivity : AppCompatActivity() {
         phoneEditText = findViewById(R.id.phoneEditText)
         dobEditText = findViewById(R.id.dobEditText)
         genderSpinner = findViewById(R.id.genderSpinner)
-        avatarPreview = findViewById(R.id.avatarPreview)
+//        avatarPreview = findViewById(R.id.avatarPreview)
         passwordEditText = findViewById(R.id.passwordEditText)
         confirmPasswordEditText = findViewById(R.id.confirmPasswordEditText)
         signUpButton = findViewById(R.id.signUpButton)
@@ -65,10 +65,10 @@ class SignupActivity : AppCompatActivity() {
         dobEditText.setOnClickListener { showDatePickerDialog() }
 
         // --- Setup Avatar Click (Placeholder) ---
-        avatarPreview.setOnClickListener {
-            Toast.makeText(this, "Avatar selection feature coming soon!", Toast.LENGTH_SHORT).show()
-            // TODO: Implement image picker and upload to Firebase Storage, then update avatarUrl in Firestore
-        }
+//        avatarPreview.setOnClickListener {
+//            Toast.makeText(this, "Avatar selection feature coming soon!", Toast.LENGTH_SHORT).show()
+//            // TODO: Implement image picker and upload to Firebase Storage, then update avatarUrl in Firestore
+//        }
 
         // --- Setup Sign Up Button Click ---
         signUpButton.setOnClickListener { attemptSignUp() }

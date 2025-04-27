@@ -24,7 +24,7 @@
                 android:id="@+id/logoImage"
                 android:layout_width="48dp"
                 android:layout_height="48dp"
-                android:src="@drawable/placeholder"
+                android:src="@drawable/logo"
                 android:contentDescription="Logo" />
 
             <TextView
@@ -92,31 +92,6 @@
             android:padding="12dp"
             android:background="@drawable/edit_text_background"/>
 
-        <!-- Avatar upload -->
-        <LinearLayout
-            android:orientation="horizontal"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:layout_marginTop="12dp"
-            android:paddingStart="12dp"
-            android:paddingEnd="12dp">
-
-            <ImageView
-                android:id="@+id/avatarPreview"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:src="@drawable/user_placeholder"
-                android:contentDescription="Avatar Preview"
-                android:layout_marginEnd="8dp"
-                android:clickable="true"
-                android:focusable="true"/>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Tap icon to choose avatar (Optional)" />
-        </LinearLayout>
 
         <!-- Password -->
         <EditText
