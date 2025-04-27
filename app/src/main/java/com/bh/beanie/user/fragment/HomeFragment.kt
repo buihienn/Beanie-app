@@ -1,5 +1,6 @@
 package com.bh.beanie.user.fragment
 
+import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Color
@@ -11,6 +12,7 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.Toast
+import androidx.core.content.edit
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -70,12 +72,12 @@ class HomeFragment : Fragment() {
 
         val deliveryBtn: Button = view.findViewById(R.id.deliveryButton)
         deliveryBtn.setOnClickListener {
-            startActivity(Intent(requireContext(), UserOrderActivity::class.java))
+            showAddressSelectionAndOpenCategories()
         }
 
         val takeAwayBtn: Button = view.findViewById(R.id.takeawayButton)
         takeAwayBtn.setOnClickListener {
-            startActivity(Intent(requireContext(), UserOrderActivity::class.java))
+            showBranchSelectionAndOpenCategories()
         }
     }
 
@@ -123,6 +125,43 @@ class HomeFragment : Fragment() {
                 .replace(R.id.fragment_container, luckyWheelFragment)
                 .addToBackStack(null)
                 .commit()
+        }
+    }
+
+    private fun showAddressSelectionAndOpenCategories() {
+        val selectAddressFragment = SelectAddressFragment.newInstance()
+
+        selectAddressFragment.setAddressSelectedListener { address ->
+            startActivity(Intent(requireContext(), UserOrderActivity::class.java).apply {
+                putExtra("order_mode", "delivery")
+                saveOrderMode("delivery")
+            })
+        }
+
+        selectAddressFragment.show(childFragmentManager, "addressSelector")
+    }
+
+    private fun showBranchSelectionAndOpenCategories() {
+        val selectBranchFragment = SelectBranchFragment.newInstance()
+
+        selectBranchFragment.setBranchSelectedListener { branch ->
+            startActivity(Intent(requireContext(), UserOrderActivity::class.java).apply {
+                putExtra("order_mode", "take_away")
+                saveOrderMode("take_away")
+            })
+        }
+
+        selectBranchFragment.show(childFragmentManager, "branchSelector")
+    }
+
+    private fun saveOrderMode(orderMode: String) {
+        val sharedPreferences = requireActivity().getSharedPreferences("OrderMode", Context.MODE_PRIVATE)
+        sharedPreferences.edit {
+            if (orderMode == "delivery") {
+                putString("order_mode", "delivery")
+            } else {
+                putString("order_mode", "take_away")
+            }
         }
     }
 
