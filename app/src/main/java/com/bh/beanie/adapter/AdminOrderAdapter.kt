@@ -48,6 +48,7 @@ class AdminOrderAdapter(
                     "DELIVERING" -> android.graphics.Color.BLUE
                     "CONFIRMED" -> Color.parseColor("#4CAF50")
                     "PENDING" -> Color.parseColor("#FBC02D")
+                    "CANCELLED" -> android.graphics.Color.RED
                     "CANCELED" -> android.graphics.Color.RED
                     else -> android.graphics.Color.GRAY
                 }

@@ -27,13 +27,12 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
-        android:id="@+id/textView6"
+        android:id="@+id/textViewContentBen"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
         android:text="Give a 50% discount voucher up to 30k when you are promoted."
         android:textSize="15sp"
-        app:layout_constraintStart_toStartOf="@+id/textViewNameBen"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="@+id/textViewNameBen"
         app:layout_constraintTop_toBottomOf="@+id/textViewNameBen" />
 </androidx.constraintlayout.widget.ConstraintLayout>
