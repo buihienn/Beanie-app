@@ -11,7 +11,6 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
 import com.bh.beanie.R
-import com.bh.beanie.customer.LoginActivity
 import com.bh.beanie.databinding.ActivityUserMainBinding
 import com.bh.beanie.repository.BranchRepository
 import com.bh.beanie.user.fragment.HomeFragment
@@ -34,7 +33,9 @@ class UserMainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        setContentView(R.layout.activity_user_main)
+
+        binding = ActivityUserMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
@@ -46,9 +47,6 @@ class UserMainActivity : AppCompatActivity() {
         userName = intent.getStringExtra("USER_NAME")
 
         Log.d("UserMainActivity", "Received user data: ID=$userId, Email=$userEmail, Name=$userName")
-
-        binding = ActivityUserMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
 
         if (userId.isEmpty()) {
             // No user ID - go back to login
