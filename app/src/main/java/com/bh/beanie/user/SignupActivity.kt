@@ -1,4 +1,4 @@
-package com.bh.beanie.customer
+package com.bh.beanie.user
 
 import android.app.DatePickerDialog
 import android.content.Intent
@@ -9,13 +9,14 @@ import android.util.Patterns
 import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import com.bh.beanie.R
 import com.bh.beanie.model.User // Import User model
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.firestore.FirebaseFirestore
 import java.util.*
-import kotlin.Int
 
 class SignupActivity : AppCompatActivity() {
 
@@ -25,7 +26,7 @@ class SignupActivity : AppCompatActivity() {
     private lateinit var phoneEditText: EditText
     private lateinit var dobEditText: EditText
     private lateinit var genderSpinner: Spinner
-    private lateinit var avatarPreview: ImageView
+//    private lateinit var avatarPreview: ImageView
     private lateinit var passwordEditText: EditText
     private lateinit var confirmPasswordEditText: EditText
     private lateinit var signUpButton: Button
@@ -39,6 +40,11 @@ class SignupActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_signup)
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            insets
+        }
 
         // Khởi tạo Firebase
         auth = FirebaseAuth.getInstance()
@@ -50,7 +56,7 @@ class SignupActivity : AppCompatActivity() {
         phoneEditText = findViewById(R.id.phoneEditText)
         dobEditText = findViewById(R.id.dobEditText)
         genderSpinner = findViewById(R.id.genderSpinner)
-        avatarPreview = findViewById(R.id.avatarPreview)
+//        avatarPreview = findViewById(R.id.avatarPreview)
         passwordEditText = findViewById(R.id.passwordEditText)
         confirmPasswordEditText = findViewById(R.id.confirmPasswordEditText)
         signUpButton = findViewById(R.id.signUpButton)
@@ -65,10 +71,10 @@ class SignupActivity : AppCompatActivity() {
         dobEditText.setOnClickListener { showDatePickerDialog() }
 
         // --- Setup Avatar Click (Placeholder) ---
-        avatarPreview.setOnClickListener {
-            Toast.makeText(this, "Avatar selection feature coming soon!", Toast.LENGTH_SHORT).show()
-            // TODO: Implement image picker and upload to Firebase Storage, then update avatarUrl in Firestore
-        }
+//        avatarPreview.setOnClickListener {
+//            Toast.makeText(this, "Avatar selection feature coming soon!", Toast.LENGTH_SHORT).show()
+//            // TODO: Implement image picker and upload to Firebase Storage, then update avatarUrl in Firestore
+//        }
 
         // --- Setup Sign Up Button Click ---
         signUpButton.setOnClickListener { attemptSignUp() }

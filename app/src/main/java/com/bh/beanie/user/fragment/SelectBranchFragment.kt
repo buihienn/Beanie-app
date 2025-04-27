@@ -32,6 +32,8 @@ class SelectBranchFragment : BottomSheetDialogFragment() {
 
     private var branchSelectedListener: ((Branch) -> Unit)? = null
 
+    private var viewOnlyMode = false
+
     fun setBranchSelectedListener(listener: (Branch) -> Unit) {
         this.branchSelectedListener = listener
     }
@@ -47,6 +49,12 @@ class SelectBranchFragment : BottomSheetDialogFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        viewOnlyMode = arguments?.getBoolean("viewOnlyMode", false) ?: false
+
+        if (viewOnlyMode) {
+            binding.titleText.text = "Store"
+        }
+
         // Thiết lập các thành phần UI
         setupUI()
 
@@ -56,7 +64,9 @@ class SelectBranchFragment : BottomSheetDialogFragment() {
         // Tải chi nhánh từ Firebase
         loadBranches()
 
-        clearBranch(requireContext())
+        if (!viewOnlyMode) {
+            clearBranch(requireContext())
+        }
     }
 
     override fun getTheme(): Int {
@@ -170,22 +180,48 @@ class SelectBranchFragment : BottomSheetDialogFragment() {
 
                     // Thiết lập sự kiện xem chi tiết
                     detailButton.setOnClickListener {
-                        Toast.makeText(requireContext(), "Xem chi tiết ${branch.name}", Toast.LENGTH_SHORT).show()
+                        showBranchDetails(branch.id)
                     }
 
                     // Thiết lập sự kiện chọn chi nhánh
-                    root.setOnClickListener {
-                        saveBranchId(requireContext(), branch.id)
-                        branchSelectedListener?.invoke(branch)
-                        dismiss()
+                    if (!viewOnlyMode) {
+                        // Normal selection mode
+                        root.setOnClickListener {
+                            saveBranchId(requireContext(), branch.id)
+                            branchSelectedListener?.invoke(branch)
+                            dismiss()
+                        }
+                    } else {
+                        // View-only mode: just show details instead of selecting
+                        root.setOnClickListener {
+                            showBranchDetails(branch.id)
+                        }
                     }
                 }
             }
         }
     }
 
+    private fun showBranchDetails(branchId: String) {
+        val detailFragment = if (!viewOnlyMode) {
+            BranchDetailFragment.newInstance(branchId).apply {
+                branchSelectedListener?.let { listener ->
+                    setBranchSelectedListener(listener)
+                }
+            }
+        } else {
+            BranchDetailFragment.newInstance(branchId, viewOnlyMode)
+        }
+
+        detailFragment.show(parentFragmentManager, "BranchDetailFragment")
+    }
+
     companion object {
-        fun newInstance() = SelectBranchFragment()
+        fun newInstance(viewOnlyMode: Boolean = false) = SelectBranchFragment().apply {
+            arguments = Bundle().apply {
+                putBoolean("viewOnlyMode", viewOnlyMode)
+            }
+        }
     }
 
     override fun onDestroyView() {

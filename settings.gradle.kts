@@ -9,6 +9,9 @@ pluginManagement {
         }
         mavenCentral()
         gradlePluginPortal()
+        jcenter()
+        maven { url = uri("https://ui.sandbox.paypal.com/nexus/content/repositories/releases") }
+        maven { setUrl("https://jitpack.io") }
     }
 }
 dependencyResolutionManagement {

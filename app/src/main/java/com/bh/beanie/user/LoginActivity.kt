@@ -1,4 +1,4 @@
-package com.bh.beanie.customer
+package com.bh.beanie.user
 
 import android.content.Intent
 import android.os.Bundle
@@ -12,9 +12,11 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import com.bh.beanie.BeanieApplication
 import com.bh.beanie.R
 import com.bh.beanie.admin.AdminMainActivity
-import com.bh.beanie.user.UserMainActivity
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthInvalidUserException
@@ -47,6 +49,11 @@ class LoginActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            insets
+        }
 
         // Initialize Firebase Auth
         auth = FirebaseAuth.getInstance()
@@ -145,11 +152,16 @@ class LoginActivity : AppCompatActivity() {
                     Log.d("GoogleSignIn", "signInWithCredential:success")
 
                     if (task.result?.additionalUserInfo?.isNewUser == true) {
-                        // New user - collect additional info
+                        // New user - DO NOT store the user ID yet
+                        // First collect additional info and only persist after successful profile completion
                         checkAndCollectAdditionalInfo(user?.uid)
                     } else {
-                        // Existing user - check role and navigate accordingly
-                        checkUserRoleAndNavigate(user?.uid)
+                        // Existing user with complete profile - store user ID in application for persistence
+                        if (user != null) {
+                            (application as BeanieApplication).setUserId(user.uid)
+                            // Check if user exists in Firestore and navigate accordingly
+                            checkUserRoleAndNavigate(user.uid)
+                        }
                     }
                 } else {
                     Log.w("GoogleSignIn", "signInWithCredential:failure", task.exception)
@@ -175,25 +187,9 @@ class LoginActivity : AppCompatActivity() {
                 showLoading(false)
                 if (document.exists()) {
                     val role = document.getString("role") ?: "user"
-                    when (role) {
-                        "admin" -> {
-                            val intent = Intent(this, AdminMainActivity::class.java)
-                            intent.putExtra("USER_ID", userId)
-                            startActivity(intent)
-                            finish()
-                        }
-                        else -> {
-                            val intent = Intent(this, UserMainActivity::class.java)
-                            intent.putExtra("USER_ID", userId)
-                            // You can also add other user info if needed
-                            intent.putExtra("USER_EMAIL", auth.currentUser?.email)
-                            intent.putExtra("USER_NAME", auth.currentUser?.displayName)
-                            startActivity(intent)
-                            finish()
-                        }
-                    }
+                    navigateBasedOnRole(role, userId)
                 } else {
-                    // No user document - create one with default role and navigate to user activity
+                    // Create new user document
                     val userMap = hashMapOf(
                         "email" to auth.currentUser?.email,
                         "name" to auth.currentUser?.displayName,
@@ -204,12 +200,7 @@ class LoginActivity : AppCompatActivity() {
                     db.collection("users").document(userId)
                         .set(userMap)
                         .addOnSuccessListener {
-                            val intent = Intent(this, UserMainActivity::class.java)
-                            intent.putExtra("USER_ID", userId)
-                            intent.putExtra("USER_EMAIL", auth.currentUser?.email)
-                            intent.putExtra("USER_NAME", auth.currentUser?.displayName)
-                            startActivity(intent)
-                            finish()
+                            navigateBasedOnRole("user", userId)
                         }
                         .addOnFailureListener { e ->
                             Log.w("Firestore", "Error creating user document", e)
@@ -222,6 +213,29 @@ class LoginActivity : AppCompatActivity() {
                 Log.w("Firestore", "Error checking user role", e)
                 Toast.makeText(this, "Error checking user role: ${e.message}", Toast.LENGTH_SHORT).show()
             }
+    }
+
+    private fun navigateBasedOnRole(role: String, userId: String) {
+        val currentUser = auth.currentUser
+        when (role) {
+            "admin" -> {
+                val intent = Intent(this, AdminMainActivity::class.java)
+                intent.putExtra("USER_ID", userId)
+                startActivity(intent)
+                finish()
+            }
+            else -> {
+                // For regular users
+                val intent = Intent(this, UserMainActivity::class.java)
+                intent.putExtra("USER_ID", userId)
+                // Make sure these values are not null
+                intent.putExtra("USER_EMAIL", currentUser?.email ?: "")
+                intent.putExtra("USER_NAME", currentUser?.displayName ?: "")
+                Log.d("Navigation", "Sending to UserMain - ID: $userId, Email: ${currentUser?.email}, Name: ${currentUser?.displayName}")
+                startActivity(intent)
+                finish()
+            }
+        }
     }
 
     private fun checkAndCollectAdditionalInfo(userId: String?) {
@@ -305,6 +319,11 @@ class LoginActivity : AppCompatActivity() {
                 .addOnCompleteListener(this) { task ->
                     if (task.isSuccessful) {
                         // Sign in success
+                        val user = auth.currentUser
+                        if (user != null) {
+                            // User is signed in
+                            (application as BeanieApplication).setUserId(user.uid)
+                        }
                         Log.d("LOGIN", "signInWithEmail:success")
                         showLoading(false)
                         checkUserRoleAndNavigate(auth.currentUser?.uid)

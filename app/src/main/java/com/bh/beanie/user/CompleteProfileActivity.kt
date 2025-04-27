@@ -1,4 +1,4 @@
-package com.bh.beanie.customer
+package com.bh.beanie.user
 
 import android.app.DatePickerDialog
 import android.content.Intent

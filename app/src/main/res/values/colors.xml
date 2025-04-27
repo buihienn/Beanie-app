@@ -28,6 +28,8 @@
     <color name="grey_light">#CCCCCC</color>      <!-- Màu viền ảnh đại diện -->
     <color name="grey_dark">#AAAAAA</color>       <!-- Màu chữ khi disabled -->
     <color name="button_red">#D32F2F</color>       <!-- Màu nút Delete -->
+    <color name="colorError">#F44336</color>
+    <color name="text_tertiary">#757575</color>
 
     <color name="selected_button_background">#FF6200EE</color>
 

@@ -1,5 +1,6 @@
 package com.bh.beanie.repository
 
+import android.util.Log
 import com.bh.beanie.model.User
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -9,6 +10,7 @@ import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.util.Calendar
+import java.util.Date
 
 class UserRepository {
     private val firestore = FirebaseFirestore.getInstance()
@@ -97,6 +99,7 @@ class UserRepository {
         }
     }
 
+
     suspend fun getUserMembershipInfo(userId: String): Map<String, Any?>? = withContext(Dispatchers.IO) {
         try {
             val snapshot = usersCollection.document(userId).get().await()
@@ -139,9 +142,58 @@ class UserRepository {
         }
     }
 
+    suspend fun getUserLastSpinDate(userId: String): Date? {
+        return try {
+            val userDoc = usersCollection.document(userId).get().await()
+            val timestamp = userDoc.getTimestamp("lastSpinDate")
+            timestamp?.toDate()
+        } catch (e: Exception) {
+            Log.e("UserRepository", "Error getting last spin date: ${e.message}")
+            null
+        }
+    }
+
+    suspend fun updateUserLastSpinDate(userId: String) {
+        try {
+            val currentDate = Date()
+            usersCollection.document(userId)
+                .update("lastSpinDate", Timestamp(currentDate))
+                .await()
+            Log.d("UserRepository", "Last spin date updated for user: $userId")
+        } catch (e: Exception) {
+            Log.e("UserRepository", "Error updating last spin date: ${e.message}")
+            throw e
+        }
+    }
 
 
+    suspend fun canUserSpinToday(userId: String): Boolean {
+        val lastSpinDate = getUserLastSpinDate(userId)
+        if (lastSpinDate == null) {
+            return true // User never spun before
+        }
 
+        // Check if last spin was on a different day
+        val calendar = Calendar.getInstance()
+
+        // Get today's date with time set to 00:00:00
+        val today = calendar.clone() as Calendar
+        today.set(Calendar.HOUR_OF_DAY, 0)
+        today.set(Calendar.MINUTE, 0)
+        today.set(Calendar.SECOND, 0)
+        today.set(Calendar.MILLISECOND, 0)
+
+        // Get last spin date with time set to 00:00:00
+        val lastSpinCalendar = calendar.clone() as Calendar
+        lastSpinCalendar.time = lastSpinDate
+        lastSpinCalendar.set(Calendar.HOUR_OF_DAY, 0)
+        lastSpinCalendar.set(Calendar.MINUTE, 0)
+        lastSpinCalendar.set(Calendar.SECOND, 0)
+        lastSpinCalendar.set(Calendar.MILLISECOND, 0)
+
+        // Compare dates by checking if the time in milliseconds is different
+        return today.timeInMillis > lastSpinCalendar.timeInMillis
+    }
 
     companion object {
         @Volatile

@@ -3,6 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:background="@color/background"
     android:padding="16dp">
 
     <LinearLayout
@@ -32,7 +33,7 @@
                 android:layout_centerVertical="true"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="Đóng"
-                android:src="@android:drawable/ic_menu_close_clear_cancel" />
+                android:src="@drawable/ic_cancel" />
         </RelativeLayout>
 
         <com.google.android.material.textfield.TextInputLayout
@@ -110,8 +111,8 @@
                 android:layout_height="wrap_content"
                 android:layout_alignParentStart="true"
                 android:text="Xóa"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                android:textColor="#F44336" />
+                android:backgroundTint="#F65656"
+                android:textColor="@color/white" />
 
             <Button
                 android:id="@+id/saveButton"

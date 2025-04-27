@@ -67,6 +67,7 @@ dependencies {
     implementation(libs.androidx.legacy.support.v4)
     implementation(libs.androidx.recyclerview)
     implementation("com.google.firebase:firebase-firestore-ktx:25.1.3")
+    implementation(libs.firebase.database.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -89,4 +90,12 @@ dependencies {
     implementation(libs.zxing.core)
     implementation(libs.zxing.embedded)
     implementation(libs.gson)
+
+    // Networking libraries
+    implementation(libs.okhttp)
+    implementation(libs.android.networking.jackson)
+    implementation(libs.androidx.browser)
+
+    // PayPal SDK
+    implementation(libs.paypal.web.payments)
 }
