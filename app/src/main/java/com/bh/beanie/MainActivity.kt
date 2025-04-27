@@ -7,7 +7,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import com.bh.beanie.customer.LoginActivity
+import com.bh.beanie.user.LoginActivity
 import com.bh.beanie.utils.NavigationUtils
 import com.google.firebase.auth.FirebaseAuth
 

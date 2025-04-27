@@ -9,7 +9,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.bh.beanie.R
-import com.bh.beanie.customer.LoginActivity
 import com.bh.beanie.user.fragment.HomeFragment
 import com.bh.beanie.user.fragment.OrderFragment
 import com.bh.beanie.user.fragment.VoucherFragment
