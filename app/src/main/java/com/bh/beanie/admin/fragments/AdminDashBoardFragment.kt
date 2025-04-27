@@ -223,18 +223,17 @@ class AdminDashBoardFragment : Fragment() {
         val endDate = calendar.time
 
         // Duyệt qua tất cả các đơn hàng
-        TODO("Uncomment thiss")
-//        for (order in orders) {
-//            val orderDate = order.getOrderDate()
-//
-//            // Nếu đơn hàng nằm trong tháng cần đếm
-//            if (orderDate.after(startDate) && orderDate.before(endDate)) {
-//                val dayOfWeek = getDayOfWeek(orderDate)  // Lấy ngày trong tuần của đơn hàng
-//
-//                // Cập nhật số lượng đơn hàng cho ngày đó
-//                counts[dayOfWeek] = counts[dayOfWeek]!! + 1
-//            }
-//        }
+        for (order in orders) {
+            val orderDate = order.getOrderDate()
+
+            // Nếu đơn hàng nằm trong tháng cần đếm
+            if (orderDate.after(startDate) && orderDate.before(endDate)) {
+                val dayOfWeek = getDayOfWeek(orderDate)  // Lấy ngày trong tuần của đơn hàng
+
+                // Cập nhật số lượng đơn hàng cho ngày đó
+                counts[dayOfWeek] = counts[dayOfWeek]!! + 1
+            }
+        }
 
         return counts
     }
