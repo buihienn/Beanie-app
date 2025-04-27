@@ -11,7 +11,8 @@
         android:layout_width="match_parent"
         android:layout_height="50dp"
         app:layout_constraintTop_toTopOf="parent"
-        tools:layout_editor_absoluteX="1dp">
+        tools:layout_editor_absoluteX="1dp"
+        android:background="#EBDAAB">
 
         <TextView
             android:id="@+id/textUserName"
@@ -150,12 +151,29 @@
 
         </LinearLayout>
 
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/border_dashboard"
+            android:gravity="center_horizontal"
+            android:orientation="horizontal">
+
+            <Spinner
+                android:id="@+id/spinnerMonth"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+            <Spinner
+                android:id="@+id/spinnerYear"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+
         <FrameLayout
             android:id="@+id/frameBarChart"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1">
-
             <com.github.mikephil.charting.charts.BarChart
                 android:id="@+id/barChart"
                 android:layout_width="match_parent"

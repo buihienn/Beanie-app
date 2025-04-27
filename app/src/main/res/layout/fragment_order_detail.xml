@@ -159,8 +159,6 @@
                     android:text="Cancle"
                     android:textColor="@color/white"
                     android:backgroundTint="@color/primary"/>
-
-
             </LinearLayout>
 
             <View

@@ -17,6 +17,11 @@ import com.bh.beanie.model.Order
 import com.bh.beanie.model.OrderItem
 import com.bh.beanie.repository.BranchRepository
 import com.bh.beanie.repository.OrderRepository
+import com.bh.beanie.dialog.RateOrderDialog
+import com.bh.beanie.model.OrderRating
+import com.bh.beanie.repository.RatingRepository
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
 import java.text.NumberFormat
@@ -30,6 +35,7 @@ class OrderDetailFragment : Fragment() {
     private var orderId: String? = null
     private lateinit var orderRepository: OrderRepository
     private lateinit var branchRepository: BranchRepository
+    private lateinit var ratingRepository: RatingRepository
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -53,6 +59,7 @@ class OrderDetailFragment : Fragment() {
         val db = FirebaseFirestore.getInstance()
         orderRepository = OrderRepository(db, requireContext())
         branchRepository = BranchRepository(db)
+        ratingRepository = RatingRepository()
 
         setupRecyclerView()
         setupListeners()
@@ -76,8 +83,9 @@ class OrderDetailFragment : Fragment() {
 
         binding.rateButton.setOnClickListener {
             // TODO: Mở dialog đánh giá đơn hàng
-            Toast.makeText(context, "Đánh giá đơn hàng", Toast.LENGTH_SHORT).show()
+            showRatingDialog()
         }
+        checkOrderRating()
     }
 
     private fun loadOrderDetails() {
@@ -172,6 +180,40 @@ class OrderDetailFragment : Fragment() {
         binding.totalPriceTextView.text = formattedPrice
 
         binding.paymentName.text = order.paymentMethod
+    }
+    private fun showRatingDialog() {
+        orderId?.let { id ->
+            lifecycleScope.launch {
+                val existingRating = withContext(Dispatchers.IO) {
+                    ratingRepository.getOrderRating(id)
+                }
+
+                RateOrderDialog(requireContext(), id, existingRating) { success ->
+                    if (success) {
+                        // Update the UI to show this order has been rated
+                        binding.rateButton.text = "Update Rating"
+                    }
+                }.show()
+            }
+        } ?: run {
+            Toast.makeText(requireContext(), "Order ID not available", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun checkOrderRating() {
+        orderId?.let { id ->
+            lifecycleScope.launch {
+                val existingRating = withContext(Dispatchers.IO) {
+                    ratingRepository.getOrderRating(id)
+                }
+
+                if (existingRating != null) {
+                    binding.rateButton.text = "Update Rating"
+                } else {
+                    binding.rateButton.text = "Rate"
+                }
+            }
+        }
     }
 
     // Adapter cho RecyclerView sử dụng ViewBinding

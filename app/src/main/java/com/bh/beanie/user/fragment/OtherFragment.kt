@@ -9,6 +9,10 @@ import android.widget.Toast
 import com.bh.beanie.R
 import com.bh.beanie.databinding.FragmentOtherBinding
 import com.bh.beanie.utils.NavigationUtils.logout
+import android.widget.Button
+import com.bh.beanie.R
+import com.bh.beanie.utils.NavigationUtils.logout
+import com.google.android.material.card.MaterialCardView
 
 class OtherFragment : Fragment() {
     private var _binding: FragmentOtherBinding? = null

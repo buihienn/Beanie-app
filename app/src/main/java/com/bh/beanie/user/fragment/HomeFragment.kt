@@ -5,6 +5,7 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -13,6 +14,7 @@ import android.widget.Button
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.core.content.edit
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -20,6 +22,8 @@ import com.bh.beanie.R
 import com.bh.beanie.model.Product
 import com.bh.beanie.repository.ProductRepository
 import com.bh.beanie.BeanieApplication
+import com.bh.beanie.repository.NotificationRepository
+import com.bh.beanie.user.NotificationsActivity
 import com.bh.beanie.user.UserOrderActivity
 import com.bh.beanie.user.adapter.ProductAdapter
 import com.google.android.material.button.MaterialButton
@@ -29,12 +33,18 @@ import com.google.zxing.BarcodeFormat
 import com.google.zxing.MultiFormatWriter
 import com.google.zxing.common.BitMatrix
 import kotlinx.coroutines.launch
+import com.google.android.material.badge.BadgeDrawable
+import com.google.android.material.badge.BadgeUtils
+@OptIn(com.google.android.material.badge.ExperimentalBadgeUtils::class)
 
 class HomeFragment : Fragment() {
+    @OptIn(com.google.android.material.badge.ExperimentalBadgeUtils::class)
     private lateinit var popularItemsRecyclerView: RecyclerView
     private val productList = mutableListOf<Product>()
     private lateinit var productRepository: ProductRepository
     private lateinit var barcodeImageView: ImageView
+    private lateinit var notificationRepository: NotificationRepository
+    private var userId: String = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -54,7 +64,7 @@ class HomeFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setupFortuneWheelCard(view)
-        val notificationButton = view.findViewById<MaterialButton>(R.id.notificationButton)
+        userId = BeanieApplication.instance.getUserId()
         barcodeImageView = view.findViewById(R.id.ivBarcode)
 
         // Khởi tạo RecyclerView
@@ -62,12 +72,19 @@ class HomeFragment : Fragment() {
         popularItemsRecyclerView.layoutManager =
             LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
 
+        notificationRepository = NotificationRepository()
         // Lấy userId
         val userId = BeanieApplication.instance.getUserId()
 
         if (userId.isNotEmpty()) {
             // Tạo barcode từ userId
             generateAndSetBarcode(userId)
+        }
+
+        val notificationButton = view.findViewById<MaterialButton>(R.id.notificationButton)
+        notificationButton.setOnClickListener {
+            val intent = Intent(requireContext(), NotificationsActivity::class.java)
+            startActivity(intent)
         }
 
         val deliveryBtn: Button = view.findViewById(R.id.deliveryButton)
@@ -161,7 +178,40 @@ class HomeFragment : Fragment() {
                 putString("order_mode", "delivery")
             } else {
                 putString("order_mode", "take_away")
+            }      
+        }
+    }
+    
+    private fun checkUnreadNotifications() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            try {
+                val unreadCount = notificationRepository.getUnreadCount(userId)
+                updateNotificationBadge(unreadCount)
+            } catch (e: Exception) {
+                Log.e("HomeFragment", "Error checking notifications", e)
             }
+        }
+    }
+
+    private fun updateNotificationBadge(count: Int) {
+        if (count > 0) {
+            val notificationButton = view?.findViewById<MaterialButton>(R.id.notificationButton)
+            if (notificationButton != null) {
+                // Create a badge drawable
+                val badgeDrawable = BadgeDrawable.create(requireContext())
+                badgeDrawable.number = count
+                badgeDrawable.backgroundColor = ContextCompat.getColor(requireContext(), R.color.colorError)
+
+                // Position the badge on the notification button
+                BadgeUtils.attachBadgeDrawable(badgeDrawable, notificationButton, null)
+            }
+        }
+    }
+    
+    override fun onResume() {
+        super.onResume()
+        if (userId.isNotEmpty()) {
+            checkUnreadNotifications()
         }
     }
 
