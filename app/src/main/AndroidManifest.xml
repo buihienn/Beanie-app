@@ -22,7 +22,7 @@
             android:name=".user.NotificationsActivity"
             android:exported="false" />
         <activity
-            android:name=".customer.CompleteProfileActivity"
+            android:name=".user.CompleteProfileActivity"
             android:exported="false" />
         <activity
             android:name=".user.UserOrderActivity"
@@ -34,31 +34,13 @@
             android:name=".admin.AdminMainActivity"
             android:exported="true" />
         <activity
-            android:name=".customer.LuckySpinActivity"
-            android:exported="false" />
-        <activity
             android:name=".admin.RevenueStatisticsActivity"
             android:exported="false" />
         <activity
-            android:name=".customer.NotificationActivity"
+            android:name=".user.SignupActivity"
             android:exported="false" />
         <activity
-            android:name=".customer.OrderReviewActivity"
-            android:exported="false" />
-        <activity
-            android:name=".customer.EditPasswordActivity"
-            android:exported="false" />
-        <activity
-            android:name=".customer.EditPhoneActivity"
-            android:exported="false" />
-        <activity
-            android:name=".customer.EditProfileActivity"
-            android:exported="false" />
-        <activity
-            android:name=".customer.SignupActivity"
-            android:exported="false" />
-        <activity
-            android:name=".customer.LoginActivity"
+            android:name=".user.LoginActivity"
             android:exported="false" />
         <activity
             android:name=".MainActivity"

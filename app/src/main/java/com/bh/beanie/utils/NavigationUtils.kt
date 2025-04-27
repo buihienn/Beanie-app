@@ -5,7 +5,7 @@ import android.content.Intent
 import android.util.Log
 import com.bh.beanie.BeanieApplication
 import com.bh.beanie.admin.AdminMainActivity
-import com.bh.beanie.customer.LoginActivity
+import com.bh.beanie.user.LoginActivity
 import com.bh.beanie.repository.UserRepository
 import com.bh.beanie.user.UserMainActivity
 import com.google.firebase.auth.FirebaseAuth

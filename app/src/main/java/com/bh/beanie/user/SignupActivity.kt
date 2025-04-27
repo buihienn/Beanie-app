@@ -1,4 +1,4 @@
-package com.bh.beanie.customer
+package com.bh.beanie.user
 
 import android.app.DatePickerDialog
 import android.content.Intent
@@ -15,7 +15,6 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.firestore.FirebaseFirestore
 import java.util.*
-import kotlin.Int
 
 class SignupActivity : AppCompatActivity() {
 

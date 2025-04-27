@@ -1,20 +1,14 @@
 package com.bh.beanie.user.fragment
 
-import android.content.Intent
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
-import android.widget.Toast
-import androidx.core.content.ContentProviderCompat.requireContext
 import com.bh.beanie.R
-import com.bh.beanie.customer.LoginActivity
 import com.bh.beanie.utils.NavigationUtils.logout
 import com.google.android.material.card.MaterialCardView
-import com.google.firebase.auth.FirebaseAuth
-import kotlin.text.replace
 
 // Define constants for this fragment specifically
 private const val ARG_PARAM1 = "param1"

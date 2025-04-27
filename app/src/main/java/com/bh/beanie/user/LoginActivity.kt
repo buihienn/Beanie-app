@@ -1,4 +1,4 @@
-package com.bh.beanie.customer
+package com.bh.beanie.user
 
 import android.content.Intent
 import android.os.Bundle
@@ -15,7 +15,6 @@ import androidx.appcompat.app.AppCompatActivity
 import com.bh.beanie.BeanieApplication
 import com.bh.beanie.R
 import com.bh.beanie.admin.AdminMainActivity
-import com.bh.beanie.user.UserMainActivity
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthInvalidUserException
