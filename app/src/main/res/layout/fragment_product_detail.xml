@@ -290,16 +290,18 @@
                 android:text="Add to cart"
                 android:textColor="@color/white"
                 android:layout_marginStart="16dp"
-                android:contentDescription="Increase product" />
+                android:contentDescription="Add order item to cart" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/deleteButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Delete"
-                android:textColor="@color/white"
+                android:backgroundTint="#F65656"
+                android:layout_marginStart="16dp"
                 android:visibility="gone"
-                android:layout_marginStart="16dp" />
+                android:contentDescription="Delete order item in cart"
+                android:text="Delete"
+                android:textColor="@color/white" />
         </LinearLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
