@@ -11,7 +11,7 @@ It integrates **Firebase** services and **Cloudinary** for image storage and man
 ## Some Basic Features
 - User registration and login with Firebase Authentication.
 - Place coffee and beverage orders.
-- Earn loyalty points and unlock membership tiers (Silver, Gold, Platinum).
+- Earn loyalty points and unlock membership tiers (New, Loyal, VIP).
 - Apply discount vouchers at checkout.
 - Manage and review past orders.
 - Admin features for managing vouchers, categories, and products.
