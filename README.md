@@ -1,72 +1,51 @@
-Beanie-app
-Beanie-app is a loyalty points and coffee shop management application developed for Android.
-It allows customers to place orders, accumulate membership points, use vouchers, track their membership tier, and review their orders.
+# Beanie-app
 
-Features
-User registration and login
+## Overview
+**Beanie-app** is a loyalty points and coffee shop management application developed for Android.  
+It enables customers to place coffee orders, earn and accumulate loyalty points, apply discount vouchers, track their membership tiers, and review their past orders.
 
-Place orders for coffee and beverages
+## Notes
+This project was developed using **Android Studio** with **Kotlin** as the main programming language.  
+It integrates **Firebase** services and **Cloudinary** for image storage and management.
 
-Accumulate loyalty points and unlock membership tiers (Silver, Gold, Platinum)
+## Some Basic Features
+- User registration and login with Firebase Authentication.
+- Place coffee and beverage orders.
+- Earn loyalty points and unlock membership tiers (Silver, Gold, Platinum).
+- Apply discount vouchers at checkout.
+- Manage and review past orders.
+- Admin features for managing vouchers, categories, and products.
 
-Apply discount vouchers to orders
+## Requirements
+- Android Studio (Arctic Fox or later)
+- Kotlin 1.6 or higher
+- Firebase project (Firestore, Authentication, Storage)
+- Cloudinary account (for image uploads)
 
-Manage and review past orders
+## Installation
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/buihienn/Beanie-app.git
+   cd Beanie-app
 
-Admin management for vouchers, categories, and products
+2.  **Open the project in Android Studio:**
+  - Launch **Android Studio**.
+  - Select **Open an existing project** and navigate to the `Beanie-app` directory.
 
-Technologies Used
-Kotlin (Android development)
+3. **Configure Firebase:**
 
-Firebase Firestore (Database)
+  - Create a Firebase project.
+  - Add an Android app to Firebase and download the `google-services.json` file.
+  - Place `google-services.json` inside the `app/` directory.
 
-Firebase Authentication (User login and registration)
+4. **Configure Cloudinary (optional for image uploads):**
 
-Firebase Storage (Image storage)
+  - Create a free [Cloudinary](https://cloudinary.com/) account.
+  - Obtain your **Cloud Name**, **API Key**, and **API Secret**.
+  - Configure in your code:
 
-Cloudinary (Image management)
-
-Kotlin Coroutines (Asynchronous programming)
-
-Glide (Image loading)
-
-Getting Started
-1. Clone the Repository
-git clone https://github.com/buihienn/Beanie-app.git
-
-2. Open the Project
-Open the project with Android Studio.
-
-3. Firebase Setup
-Create your own Firebase project.
-
-Download the google-services.json file and place it under the app/ directory.
-
-4. Cloudinary Setup (for Image Uploads)
-Go to Cloudinary and create a free account.
-
-After signing up, retrieve your Cloud Name, API Key, and API Secret.
-
-You can configure Cloudinary in your Android project like this:
+```kotlin
 val config = MediaManager.get().config
 config.cloudName = "your_cloud_name"
 config.apiKey = "your_api_key"
 config.apiSecret = "your_api_secret"
-
-Alternatively, you can define your credentials securely in a local properties file.
-
-Example local.properties entry:
-CLOUDINARY_URL=cloudinary://your_api_key:your_api_secret@your_cloud_name
-
-5. Build and Run
-Connect a real device or start an emulator.
-
-Build and run the application from Android Studio.
-
-Screenshots
-![image](https://github.com/user-attachments/assets/6e04d6e5-9014-4c77-9b9e-79c2d3abf526)
-![image](https://github.com/user-attachments/assets/3d6c3188-2f7e-4346-9654-2257de835e45)
-![image](https://github.com/user-attachments/assets/7de7fb9b-5eda-4c07-bf88-586f19188268)
-
-
-
