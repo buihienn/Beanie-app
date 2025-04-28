@@ -26,6 +26,7 @@ import com.bh.beanie.user.NotificationsActivity
 import com.bh.beanie.user.UserOrderActivity
 import com.bh.beanie.user.adapter.BestSellerAdapter
 import com.bh.beanie.utils.BranchPreferences.getBranchId
+import com.bh.beanie.utils.HorizontalSpaceItemDecoration
 import com.google.android.material.badge.BadgeDrawable
 import com.google.android.material.badge.BadgeUtils
 import com.google.android.material.badge.ExperimentalBadgeUtils
@@ -103,6 +104,9 @@ class HomeFragment : Fragment() {
         binding.popularItemsRecyclerView.apply {
             layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
             adapter = bestSellerAdapter
+
+            val spacing = resources.getDimensionPixelSize(R.dimen.list_item_spacing_half)
+            addItemDecoration(HorizontalSpaceItemDecoration(spacing))
         }
     }
 

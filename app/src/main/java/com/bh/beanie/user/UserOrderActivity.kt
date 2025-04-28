@@ -14,6 +14,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.widget.NestedScrollView
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bh.beanie.R
 import com.bh.beanie.databinding.ActivityUserOrderBinding
@@ -31,10 +32,13 @@ import com.bh.beanie.user.fragment.SearchProductFragment
 import com.bh.beanie.user.fragment.SelectAddressFragment
 import com.bh.beanie.user.fragment.SelectBranchFragment
 import com.bh.beanie.user.fragment.SelectCategoryFragment
+import com.bh.beanie.utils.HorizontalSpaceItemDecoration
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
+import kotlin.collections.getOrDefault
+import kotlin.text.compareTo
 
 class UserOrderActivity : AppCompatActivity() {
     private lateinit var binding: ActivityUserOrderBinding
@@ -82,8 +86,8 @@ class UserOrderActivity : AppCompatActivity() {
         val sharedPrefs = this.getSharedPreferences("OrderMode", MODE_PRIVATE)
         orderMode = sharedPrefs.getString("order_mode", "") ?: ""
 
-        val sharedPreferences = getSharedPreferences("BeaniePref", MODE_PRIVATE)
-        currentBranchId = sharedPreferences.getString("selected_branch_id", "") ?: ""
+        val sharedPreferences = getSharedPreferences("BeanieBranchPrefs", MODE_PRIVATE)
+        currentBranchId = sharedPreferences.getString("branch_id", "") ?: ""
 
         setupListener()
 
@@ -148,7 +152,6 @@ class UserOrderActivity : AppCompatActivity() {
     }
 
     private fun setupPagination() {
-        // Thiết lập scroll listener cho nested scrollview để detect khi scroll xuống cuối
         binding.mainScrollView.setOnScrollChangeListener { v, scrollX, scrollY, oldScrollX, oldScrollY ->
             val view = v as NestedScrollView
             val diffY = scrollY - oldScrollY
@@ -159,9 +162,9 @@ class UserOrderActivity : AppCompatActivity() {
                 if (child != null) {
                     if ((view.height + scrollY) >= child.measuredHeight - 200) {
                         // Đã scroll gần cuối, tải thêm categories
-//                        if (!isCategoryLoading && !isLastCategoryPage) {
+                        if (!isCategoryLoading && !isLastCategoryPage) {
                             loadMoreCategories()
-//                        }
+                        }
                     }
                 }
             }
@@ -225,6 +228,8 @@ class UserOrderActivity : AppCompatActivity() {
     }
 
     private fun loadMoreCategories() {
+        Log.d("UserOrderActivity", "loadMoreCategories - loading: $isCategoryLoading, lastPage: $isLastCategoryPage")
+
         if (isCategoryLoading || isLastCategoryPage) return
 
         binding.loadMoreCategoriesProgress.visibility = View.VISIBLE
@@ -232,13 +237,17 @@ class UserOrderActivity : AppCompatActivity() {
 
         lifecycleScope.launch {
             try {
+                Log.d("UserOrderActivity", "Fetching more categories with lastVisible: ${lastVisibleCategory?.id}")
                 val (fetchedCategories, lastDoc) = categoryRepository.fetchCategoriesPaginated(
                     currentBranchId,
                     lastVisibleCategory
                 )
 
+                Log.d("UserOrderActivity", "Fetched ${fetchedCategories.size} more categories")
+
                 if (fetchedCategories.isEmpty()) {
                     isLastCategoryPage = true
+                    Log.d("UserOrderActivity", "Reached last page of categories")
                 } else {
                     // Lưu vị trí cuối cùng để tải tiếp
                     lastVisibleCategory = lastDoc
@@ -256,6 +265,7 @@ class UserOrderActivity : AppCompatActivity() {
                 }
 
             } catch (e: Exception) {
+                Log.e("UserOrderActivity", "Error loading more categories: ${e.message}", e)
                 Toast.makeText(baseContext, "Lỗi khi tải thêm categories: ${e.message}",
                     Toast.LENGTH_LONG).show()
             } finally {
@@ -305,6 +315,12 @@ class UserOrderActivity : AppCompatActivity() {
 
             // Thêm vào container
             binding.categoriesContainer.addView(categoryView)
+
+
+        }
+
+        binding.mainScrollView.post {
+            binding.mainScrollView.fullScroll(View.FOCUS_DOWN)
         }
     }
 
@@ -317,19 +333,18 @@ class UserOrderActivity : AppCompatActivity() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
 
-                val layoutManager = recyclerView.layoutManager as GridLayoutManager
+                val layoutManager = recyclerView.layoutManager as LinearLayoutManager
                 val visibleItemCount = layoutManager.childCount
                 val totalItemCount = layoutManager.itemCount
-                val firstVisibleItemPosition = layoutManager.findFirstVisibleItemPosition()
+                val lastVisibleItemPosition = layoutManager.findLastVisibleItemPosition()
 
-                if (dx > 0) { // Scroll to right
-                    if ((visibleItemCount + firstVisibleItemPosition) >= totalItemCount - 2
-                        && firstVisibleItemPosition >= 0
-                        && !isProductLoading.getOrDefault(categoryId, false)
-                        && !isLastProductPage.getOrDefault(categoryId, false)) {
+                if (dx > 0 &&
+                    (visibleItemCount + lastVisibleItemPosition) >= totalItemCount - 2 &&
+                    lastVisibleItemPosition >= 0 &&
+                    !isProductLoading.getOrDefault(categoryId, false) &&
+                    !isLastProductPage.getOrDefault(categoryId, false)) {
 
-                        loadMoreProductsForCategory(categoryId)
-                    }
+                    loadMoreProductsForCategory(categoryId)
                 }
             }
         })
@@ -588,7 +603,7 @@ class UserOrderActivity : AppCompatActivity() {
 
 
     private fun setupCategoryRecyclerViews() {
-        // Xóa các category layout đã tạo trước đó (nếu có)
+        // Xóa các category layout đã tạo trước đó
         binding.categoriesContainer.removeAllViews()
 
         // Với mỗi category, tạo một layout Title + RecyclerView
@@ -619,18 +634,24 @@ class UserOrderActivity : AppCompatActivity() {
             )
 
             // Thiết lập title và RecyclerView
-            val titleTextView = categoryView.findViewById<TextView>(
-                R.id.categoryTitleTextView
-            )
+            val titleTextView = categoryView.findViewById<TextView>(R.id.categoryTitleTextView)
             titleTextView.text = category.name
 
-            val recyclerView = categoryView.findViewById<RecyclerView>(
-                R.id.categoryRecyclerView
-            )
-            recyclerView.layoutManager = GridLayoutManager(this, 2)
+            val recyclerView = categoryView.findViewById<RecyclerView>(R.id.categoryRecyclerView)
+
+            // Thiết lập layout manager ngang
+            recyclerView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+
+            // Thêm ItemDecoration để tạo khoảng cách giữa các item
+            val spacingInPixels = resources.getDimensionPixelSize(R.dimen.list_item_spacing_half)
+            recyclerView.addItemDecoration(HorizontalSpaceItemDecoration(spacingInPixels))
+
             recyclerView.adapter = adapter
 
-            // Thêm vào container
+            // Thiết lập pagination ngang
+            setupProductPagination(category.id, recyclerView)
+
+            // Thêm vào container (cuộn dọc)
             binding.categoriesContainer.addView(categoryView)
         }
     }

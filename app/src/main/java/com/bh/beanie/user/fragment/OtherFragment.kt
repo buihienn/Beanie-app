@@ -86,6 +86,14 @@ class OtherFragment : Fragment() {
             val redeemFragment = RedeemFragment.newInstance()
             redeemFragment.show(parentFragmentManager, RedeemFragment.TAG)
         }
+
+        binding.cardSettings.setOnClickListener {
+            val languageSettingsFragment = LanguageSettingsFragment.newInstance()
+            requireActivity().supportFragmentManager.beginTransaction()
+                .replace(R.id.fragment_container, languageSettingsFragment)
+                .addToBackStack(null)
+                .commit()
+        }
     }
 
     private fun showBranchSelectionDialog() {

@@ -51,7 +51,7 @@ class CategoryRepository(private val firestore: FirebaseFirestore) {
     suspend fun fetchCategoriesPaginated(
         branchId: String,
         lastVisibleDocument: DocumentSnapshot? = null,
-        pageSize: Int = 3
+        pageSize: Int = 5
     ): Pair<List<Category>, DocumentSnapshot?> {
         Log.d("CategoryRepository", "Fetching categories with branchId: $branchId, lastVisible: ${lastVisibleDocument?.id}")
 
@@ -79,4 +79,5 @@ class CategoryRepository(private val firestore: FirebaseFirestore) {
 
         return Pair(categories, lastDoc)
     }
+
 }

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Cài đặt</string>
+    <string name="title_home">Trang chủ</string>
+    <string name="title_order">Đặt hàng</string>
+    <string name="title_reward">Hạng thành viên</string>
+    <string name="title_voucher">Khuyến mãi</string>
+    <string name="title_other">Khác</string>
+    <string name="hello_blank_fragment">.</string>
+    <string name="gold_membership">Thành viên vàng</string>
+    <string name="redeem">Đổi thưởng</string>
+    <string name="beanies">Beanies</string>
+    <string name="welcome_message">Beanie xin chào!</string>
+    <string name="delivery">Giao hàng</string>
+    <string name="take_away">Nhận tại quán</string>
+    <string name="fortune_wheel">Vòng quay may mắn</string>
+    <string name="daily_check_in">Daily</string>
+    <string name="best_seller">Best sellet</string>
+    <string name="back_button_desc">Trở về</string>
+    <string name="profile_picture_desc">Hồ sơ người dùng</string>
+    <string name="confirm">Xác nhận</string>
+    <string name="error_field_required">This field is required</string>
+    <string name="error_invalid_email">This field is required</string>
+    <string name="error_password_length">Password must be at least 6 characters</string>
+    <string name="error_passwords_dont_match">Passwords do not match</string>
+    <string name="error_email_collision">The email address is already in use by another account.</string>
+    <string name="error_email_not_found">No account found with this email.</string>
+    <string name="error_incorrect_password">Incorrect password.</string>
+    <string name="prompt_select_gender">Please select your gender</string>
+    <string name="order_history">Lịch sử đơn hàng</string>
+    <string name="otherTitle">Khác</string>
+    <string name="order">Đơn hàng</string>
+    <string name="account">Tài khoản</string>
+    <string name="profile">Hồ sơ</string>
+    <string name="setting">Cài đặt</string>
+    <string name="logout">Đăng xuất</string>
+    <string name="store">Cửa hàng</string>
+</resources>
