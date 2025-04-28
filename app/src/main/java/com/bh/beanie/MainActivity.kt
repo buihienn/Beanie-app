@@ -1,6 +1,7 @@
 package com.bh.beanie
 
 import android.content.Intent
+import android.content.res.Configuration
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.enableEdgeToEdge
@@ -10,6 +11,7 @@ import androidx.core.view.WindowInsetsCompat
 import com.bh.beanie.user.LoginActivity
 import com.bh.beanie.utils.NavigationUtils
 import com.google.firebase.auth.FirebaseAuth
+import java.util.Locale
 
 class MainActivity : AppCompatActivity() {
     private lateinit var auth: FirebaseAuth
@@ -23,6 +25,14 @@ class MainActivity : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
+
+        val prefs = getSharedPreferences("LanguageSettings", MODE_PRIVATE)
+        val lang = prefs.getString("language", "en") ?: "en"
+        val locale = Locale(lang)
+        Locale.setDefault(locale)
+        val config = Configuration(resources.configuration)
+        config.setLocale(locale)
+        resources.updateConfiguration(config, resources.displayMetrics)
 
         // Initialize Firebase Auth
         auth = FirebaseAuth.getInstance()

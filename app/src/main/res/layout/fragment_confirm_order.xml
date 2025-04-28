@@ -447,13 +447,6 @@
             android:orientation="vertical">
 
             <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Take away • 2 items"
-                android:textColor="@color/white"
-                android:textSize="14sp"/>
-
-            <TextView
                 android:id="@+id/bottomBarTotalPrice"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

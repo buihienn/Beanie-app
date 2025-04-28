@@ -66,7 +66,7 @@ class BranchRepository(private val db: FirebaseFirestore = FirebaseFirestore.get
             if (doc.exists()) {
                 Branch(
                     phone = doc.getString("phone") ?: "",
-                    imageUrl = doc.getString("imageUrl") ?: "",
+                    imageUrl = doc.getString("imageURL") ?: "",
                     isActive = doc.getBoolean("isActive") ?: true,
                     location = doc.getString("location") ?: "",
                     adminId = doc.getString("adminId") ?: "",

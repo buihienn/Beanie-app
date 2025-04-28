@@ -2,9 +2,12 @@ package com.bh.beanie
 
 import com.bh.beanie.utils.UserPreferences
 import android.app.Application
+import android.content.Context
+import android.content.res.Configuration
 import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
+import java.util.Locale
 
 class BeanieApplication : Application() {
     companion object {
@@ -28,6 +31,11 @@ class BeanieApplication : Application() {
 
         // Restore userId from SharedPreferences
         userId = UserPreferences.getUserId(this)
+
+        // Apply saved language setting
+        val prefs = getSharedPreferences("LanguageSettings", MODE_PRIVATE)
+        val lang = prefs.getString("language", "en") ?: "en"
+        updateLanguage(lang)
     }
 
     fun setUserId(id: String) {
@@ -43,5 +51,13 @@ class BeanieApplication : Application() {
     fun clearUserId() {
         userId = ""
         UserPreferences.clearUserId(this)
+    }
+
+    private fun updateLanguage(langCode: String) {
+        val locale = Locale(langCode)
+        Locale.setDefault(locale)
+        val config = Configuration(resources.configuration)
+        config.setLocale(locale)
+        resources.updateConfiguration(config, resources.displayMetrics)
     }
 }

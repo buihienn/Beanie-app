@@ -29,7 +29,7 @@
                     android:id="@+id/tvOtherTitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Other"
+                    android:text="@string/otherTitle"
                     android:textColor="@color/text_primary"
                     android:textSize="@dimen/text_size_xlarge"
                     android:textStyle="bold"
@@ -140,7 +140,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Order"
+                android:text="@string/order"
                 android:textColor="@color/text_primary"
                 android:textSize="@dimen/text_size_medium"
                 android:textStyle="bold"
@@ -172,7 +172,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Order History"
+                        android:text="@string/order_history"
                         android:textColor="@color/text_primary"
                         android:textSize="@dimen/text_size_small"/>
 
@@ -183,7 +183,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Account"
+                android:text="@string/account"
                 android:textColor="@color/text_primary"
                 android:textSize="@dimen/text_size_medium"
                 android:textStyle="bold"
@@ -214,7 +214,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Profile"
+                        android:text="@string/profile"
                         android:textColor="@color/text_primary"
                         android:textSize="@dimen/text_size_small"/>
 
@@ -247,7 +247,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Setting"
+                        android:text="@string/setting"
                         android:textColor="@color/text_primary"
                         android:textSize="@dimen/text_size_small"/>
 
@@ -258,7 +258,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Store"
+                android:text="@string/store"
                 android:textColor="@color/text_primary"
                 android:textSize="@dimen/text_size_medium"
                 android:textStyle="bold"
@@ -289,7 +289,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Store"
+                        android:text="@string/store"
                         android:textColor="@color/text_primary"
                         android:textSize="@dimen/text_size_small"/>
 
@@ -302,7 +302,7 @@
                 android:layout_height="wrap_content"
                 android:layout_margin="16dp"
                 android:backgroundTint="#6C4E3D"
-                android:text="Logout"
+                android:text="@string/logout"
                 android:textColor="@android:color/white" />
 
         </LinearLayout>

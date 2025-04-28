@@ -1,13 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Beanies Loyalty</string>
-
-    <!-- Title bottom navigation -->
     <string name="title_home">Home</string>
     <string name="title_order">Order</string>
     <string name="title_reward">Reward</string>
     <string name="title_voucher">Voucher</string>
     <string name="title_other">Other</string>
-    <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="gold_membership">Membership</string>
     <string name="redeem">Redeem</string>
@@ -18,11 +16,9 @@
     <string name="fortune_wheel">Fortune wheel</string>
     <string name="daily_check_in">Daily check-in</string>
     <string name="best_seller">Best seller</string>
-    <string name="back_button_desc">Back</string> <!-- Mô tả nút quay lại -->
-    <string name="profile_picture_desc">User profile picture</string> <!-- Mô tả ảnh đại diện -->
+    <string name="back_button_desc">Back</string>
+    <string name="profile_picture_desc">User profile picture</string>
     <string name="confirm">Confirm</string>
-
-    <!--    sigunpPage-->
     <string name="error_field_required">This field is required</string>
     <string name="error_invalid_email">This email address is invalid</string>
     <string name="error_password_length">Password must be at least 6 characters</string>
@@ -31,22 +27,12 @@
     <string name="error_email_not_found">No account found with this email.</string>
     <string name="error_incorrect_password">Incorrect password.</string>
     <string name="prompt_select_gender">Please select your gender</string>
-
-    <string name="default_web_client_id" translatable="false">610667902405-sqbdn9dsv7krcan8ghufedq8pt67a8pv.apps.googleusercontent.com</string>
     <string name="order_history">Order History</string>
-    <string name="otherTitle">Other</string>
+    <string name="otherTitle">otherTitle</string>
     <string name="order">Order</string>
     <string name="account">Account</string>
     <string name="profile">Profile</string>
     <string name="setting">Setting</string>
-    <string name="logout">Logout</string>
+    <string name="logout">Log out</string>
     <string name="store">Store</string>
-
-    <string-array name="gender_array">
-        <item>Select Gender</item>
-        <item>Male</item>
-        <item>Female</item>
-        <item>Other</item>
-    </string-array>
-
 </resources>
