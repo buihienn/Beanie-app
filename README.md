@@ -35,6 +35,7 @@ It integrates **Firebase** services and **Cloudinary** for image storage and man
 3. **Configure Firebase:**
 
   - Create a Firebase project.
+  - Add fingerprinter SHA1.
   - Add an Android app to Firebase and download the `google-services.json` file.
   - Place `google-services.json` inside the `app/` directory.
 
