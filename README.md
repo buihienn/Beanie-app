@@ -17,9 +17,9 @@ It integrates **Firebase** services and **Cloudinary** for image storage and man
 - Admin features for managing vouchers, categories, and products.
 
 ## Requirements
-- Android Studio (Arctic Fox or later)
+- Android Studio
 - Kotlin 1.6 or higher
-- Firebase project (Firestore, Authentication, Storage)
+- Firebase project (Firestore, Authentication)
 - Cloudinary account (for image uploads)
 
 ## Installation
